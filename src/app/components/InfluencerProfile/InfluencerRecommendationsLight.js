@@ -188,7 +188,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
       case "Mild_Bearish":
         return "text-to-red-recomendations";
       default:
-        return "text-gray-400";
+        return "text-to-purple-400";
     }
   };
 
@@ -275,7 +275,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                     </option>
                   ))}
               </select>
-              <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+              <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-to-purple-400 pointer-events-none">
                 ▾
               </span>
             </div>
@@ -291,7 +291,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                 <option value="Strong_Bearish">Strong Bearish</option>
                 <option value="Mild_Bearish">Mild Bearish</option>
               </select>
-              <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+              <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-to-purple-400 pointer-events-none">
                 ▾
               </span>
             </div>
@@ -399,7 +399,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                             ? "text-to-green-recomendations"
                             : analytics.average_roi["1H"] < 0
                               ? "text-to-red-recomendations"
-                              : "text-gray-400"
+                              : "text-to-purple-400"
                           }`}
                       >
                         {analytics.average_roi["1H"] !== null
@@ -414,7 +414,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                             ? "text-to-green-recomendations"
                             : analytics.average_roi["24H"] < 0
                               ? "text-to-red-recomendations"
-                              : "text-gray-400"
+                              : "text-to-purple-400"
                           }`}
                       >
                         {analytics.average_roi["24H"] !== null
@@ -429,7 +429,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                             ? "text-to-green-recomendations"
                             : analytics.average_roi["7D"] < 0
                               ? "text-to-red-recomendations"
-                              : "text-gray-400"
+                              : "text-to-purple-400"
                           }`}
                       >
                         {analytics.average_roi["7D"] !== null
@@ -444,7 +444,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                             ? "text-to-green-recomendations"
                             : analytics.average_roi["30D"] < 0
                               ? "text-to-red-recomendations"
-                              : "text-gray-400"
+                              : "text-to-purple-400"
                           }`}
                       >
                         {analytics.average_roi["30D"] !== null
@@ -459,7 +459,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                             ? "text-to-green-recomendations"
                             : analytics.average_roi["60D"] < 0
                               ? "text-to-red-recomendations"
-                              : "text-gray-400"
+                              : "text-to-purple-400"
                           }`}
                       >
                         {analytics.average_roi["60D"] !== null
@@ -474,7 +474,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                             ? "text-to-green-recomendations"
                             : analytics.average_roi["90D"] < 0
                               ? "text-to-red-recomendations"
-                              : "text-gray-400"
+                              : "text-to-purple-400"
                           }`}
                       >
                         {analytics.average_roi["90D"] !== null
@@ -489,7 +489,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                             ? "text-to-green-recomendations"
                             : analytics.average_roi["180D"] < 0
                               ? "text-to-red-recomendations"
-                              : "text-gray-400"
+                              : "text-to-purple-400"
                           }`}
                       >
                         {analytics.average_roi["180D"] !== null
@@ -504,7 +504,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                             ? "text-to-green-recomendations"
                             : analytics.average_roi["1Y"] < 0
                               ? "text-to-red-recomendations"
-                              : "text-gray-400"
+                              : "text-to-purple-400"
                           }`}
                       >
                         {analytics.average_roi["1Y"] !== null
@@ -634,7 +634,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                       </span>
                       <div>
                         <div className="font-semibold text-to-purple">{rec.symbol}</div>
-                        <div className="text-xs text-gray-400">
+                        <div className="text-xs text-to-purple-400">
                           {rec.coin_name}
                         </div>
                       </div>
@@ -656,7 +656,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                           ? "text-to-green-recomendations"
                           : oneHourROI < 0
                             ? "text-to-red-recomendations"
-                            : "text-gray-400"
+                            : "text-to-purple-400"
                         }`}
                     >
                       {oneHourROI !== null && oneHourROI !== undefined
@@ -670,7 +670,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                           ? "text-to-green-recomendations"
                           : oneDayROI < 0
                             ? "text-to-red-recomendations"
-                            : "text-gray-400"
+                            : "text-to-purple-400"
                         }`}
                     >
                       {oneDayROI !== null && oneDayROI !== undefined
@@ -684,7 +684,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                           ? "text-to-green-recomendations"
                           : sevenDayROI < 0
                             ? "text-to-red-recomendations"
-                            : "text-gray-400"
+                            : "text-to-purple-400"
                         }`}
                     >
                       {sevenDayROI !== null && sevenDayROI !== undefined
@@ -697,7 +697,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                           ? "text-to-green-recomendations"
                           : thirtyDayROI < 0
                             ? "text-to-red-recomendations"
-                            : "text-gray-400"
+                            : "text-to-purple-400"
                         }`}
                     >
                       {thirtyDayROI !== null && thirtyDayROI !== undefined
@@ -710,7 +710,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                           ? "text-to-green-recomendations"
                           : sixtyDayROI < 0
                             ? "text-to-red-recomendations"
-                            : "text-gray-400"
+                            : "text-to-purple-400"
                         }`}
                     >
                       {sixtyDayROI !== null && sixtyDayROI !== undefined
@@ -723,7 +723,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                           ? "text-to-green-recomendations"
                           : ninetyDayROI < 0
                             ? "text-to-red-recomendations"
-                            : "text-gray-400"
+                            : "text-to-purple-400"
                         }`}
                     >
                       {ninetyDayROI !== null && ninetyDayROI !== undefined
@@ -736,7 +736,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                           ? "text-to-green-recomendations"
                           : oneEightyDayROI < 0
                             ? "text-to-red-recomendations"
-                            : "text-gray-400"
+                            : "text-to-purple-400"
                         }`}
                     >
                       {oneEightyDayROI !== null && oneEightyDayROI !== undefined
@@ -749,7 +749,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                           ? "text-to-green-recomendations"
                           : oneYearROI < 0
                             ? "text-to-red-recomendations"
-                            : "text-gray-400"
+                            : "text-to-purple-400"
                         }`}
                     >
                       {oneYearROI !== null && oneYearROI !== undefined
