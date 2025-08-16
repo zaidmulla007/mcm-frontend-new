@@ -321,3 +321,15 @@ select.light-dropdown {
   padding: 0.75rem 1rem;
   text-align: center;
 }
+
+.text-to-purple{
+  color:#0c0023 !important;
+}
+
+.text-to-red-recomendations{
+  color:#ff2121 !important;
+}
+
+.text-to-green-recomendations{
+  color:#00ff15 !important;
+}

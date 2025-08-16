@@ -210,15 +210,15 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
             {/* Controls */}
 
             {/* Performance Table */}
-            <div className="light-theme-table bg-white rounded-xl p-6 border border-gray-200 overflow-x-auto text-black">
+            <div className="light-theme-table bg-white rounded-xl p-6 border border-gray-200 overflow-x-auto text-to-purple">
                 <div className="flex flex-col sm:flex-row gap-4 items-center justify-end mb-4">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
-                            <label className="text-sm text-black">Period:</label>
+                            <label className="text-sm text-to-purple">Period:</label>
                             <select
                                 value={selectedPeriod}
                                 onChange={(e) => setSelectedPeriod(e.target.value)}
-                                className="light-dropdown bg-[#c4c5e14d] border border-gray-300 rounded-lg px-3 py-1 text-sm text-black"
+                                className="light-dropdown bg-[#c4c5e14d] border border-gray-300 rounded-lg px-3 py-1 text-sm text-to-purple"
                             >
                                 {periodOptions.map((option) => (
                                     <option key={option.value} value={option.value}>
@@ -228,11 +228,11 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                             </select>
                         </div>
                         <div className="flex items-center gap-2">
-                            <label className="text-sm text-black">Sentiment:</label>
+                            <label className="text-sm text-to-purple">Sentiment:</label>
                             <select
                                 value={selectedSentiment}
                                 onChange={(e) => setSelectedSentiment(e.target.value)}
-                                className="light-dropdown bg-[#c4c5e14d] border border-gray-300 rounded-lg px-3 py-1 text-sm text-black"
+                                className="light-dropdown bg-[#c4c5e14d] border border-gray-300 rounded-lg px-3 py-1 text-sm text-to-purple"
                             >
                                 {sentimentOptions.map((option) => (
                                     <option key={option.value} value={option.value}>
@@ -242,11 +242,11 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                             </select>
                         </div>
                         <div className="flex items-center gap-2">
-                            <label className="text-sm text-black">Timeframe:</label>
+                            <label className="text-sm text-to-purple">Timeframe:</label>
                             <select
                                 value={selectedTimeframe}
                                 onChange={(e) => setSelectedTimeframe(e.target.value)}
-                                className="light-dropdown bg-[#c4c5e14d] border border-gray-300 rounded-lg px-3 py-1 text-sm text-black"
+                                className="light-dropdown bg-[#c4c5e14d] border border-gray-300 rounded-lg px-3 py-1 text-sm text-to-purple"
                             >
                                 <option value="1">1 Hour</option>
                                 <option value="24">24 Hours</option>
@@ -262,13 +262,13 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                 <table className="w-full">
                     <thead>
                         <tr className="border-b border-gray-200">
-                            <th className="text-left py-3 px-4 text-black font-semibold">
-                                Sentiment
+                            <th className="text-left py-3 px-4 text-to-purple font-bold text-xl">
+                                Hits & Misses
                             </th>
                             {dynamicColumns.map((column) => (
                                 <th
                                     key={column.key}
-                                    className="text-center py-3 px-4 text-black font-semibold"
+                                    className="text-center py-3 px-4 text-to-purple font-bold text-xl"
                                 >
                                     <div className="flex items-center justify-center gap-1">
                                         <span>{column.label}</span>
@@ -320,9 +320,9 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                     <tbody>
                         {/* Total Recommendations Row */}
                         <tr className="border-b border-gray-200">
-                            <td className="py-4 px-4 text-black font-medium">
+                            <td className="py-4 px-4 text-to-purple font-medium">
                                 <div className="flex items-center gap-2">
-                                    <span className="font-bold text-xl">Recommendations (Cumulative)</span>
+                                    <span className="font-bold text-xl">No. of Recommendations during period</span>
                                     <button
                                         onClick={() =>
                                             setExpandedRecommendations(!expandedRecommendations)
@@ -351,7 +351,7 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                                 const metrics = calculateYearMetrics(column.key);
                                 return (
                                     <td key={column.key} className="py-4 px-4 text-center">
-                                        <div className="text-lg font-semibold recommendations-number">
+                                        <div className="font-bold text-xl text-to-purple">
                                             {metrics ? metrics.totalRecommendations : "-"}
                                         </div>
                                     </td>
@@ -362,7 +362,7 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                         {/* Expanded Hyper Activity Row */}
                         {expandedRecommendations && (
                             <tr className="border-b border-gray-100 light-dropdown ">
-                                <td className="py-3 px-4 text-black font-medium pl-8">
+                                <td className="py-3 px-4 text-to-purple font-medium pl-8">
                                     Hyper Activity
                                 </td>
                                 {dynamicColumns.map((column) => {
@@ -371,7 +371,7 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                                     // You can modify this logic to show actual hyper activity data when available
                                     return (
                                         <td key={column.key} className="py-3 px-4 text-center">
-                                            <div className="text-lg font-semibold recommendations-number">
+                                            <div className="font-bold text-xl text-to-purple">
                                                 {metrics ? Math.floor(metrics.totalRecommendations * 0.6) : "-"}
                                             </div>
                                         </td>
@@ -383,7 +383,7 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                         {/* Expanded Without Hyper Activity Row */}
                         {expandedRecommendations && (
                             <tr className="border-b border-gray-100 light-dropdown ">
-                                <td className="py-3 px-4 text-black font-medium pl-8">
+                                <td className="py-3 px-4 text-to-purple font-medium pl-8">
                                     Without Hyper Activity
                                 </td>
                                 {dynamicColumns.map((column) => {
@@ -392,7 +392,7 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                                     // You can modify this logic to show actual non-hyper activity data when available
                                     return (
                                         <td key={column.key} className="py-3 px-4 text-center">
-                                            <div className="text-lg font-semibold recommendations-number">
+                                            <div className="font-bold text-xl text-to-purple">
                                                 {metrics ? Math.floor(metrics.totalRecommendations * 0.4) : "-"}
                                             </div>
                                         </td>
@@ -462,7 +462,7 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                                                     }}
                                                     value={winPercentage}
                                                 />
-                                                <div className="text-xs font-semibold text-black">
+                                                <div className="font-bold text-xl text-to-purple">
                                                     {Math.round(winPercentage)}% Win
                                                 </div>
                                             </div>
@@ -522,7 +522,7 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                                                     }}
                                                     value={adjustedWin}
                                                 />
-                                                <div className="text-xs font-semibold text-black">
+                                                <div className="font-bold text-xl text-to-purple">
                                                     {Math.round(adjustedWin)}% Win
                                                 </div>
                                             </div>
@@ -580,7 +580,7 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                                                     }}
                                                     value={adjustedWin}
                                                 />
-                                                <div className="text-xs font-semibold text-black">
+                                                <div className="font-bold text-xl text-to-purple">
                                                     {Math.round(adjustedWin)}% Win
                                                 </div>
                                             </div>
@@ -657,7 +657,7 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                                             </div>
 
                                             {/* Value Text */}
-                                            <div className="text-xs font-semibold text-black">
+                                            <div className="font-bold text-xl text-to-purple">
                                                 {returnValue > 0 ? "+" : ""}
                                                 {returnValue.toFixed(1)}%
                                             </div>
@@ -672,7 +672,7 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                         {/* Expanded Hyper Activity Average Return Row */}
                         {expandedAverageReturn && (
                             <tr className="border-b border-gray-100 light-dropdown ">
-                                <td className="py-3 px-4 text-black font-medium pl-8">
+                                <td className="py-3 px-4 text-to-purple font-medium pl-8">
                                     Hyper Activity
                                 </td>
 
@@ -719,7 +719,7 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                                                 </div>
 
                                                 {/* Value Text */}
-                                                <div className="text-xs font-semibold text-black">
+                                                <div className="font-bold text-xl text-to-purple">
                                                     {returnValue > 0 ? "+" : ""}
                                                     {returnValue.toFixed(1)}%
                                                 </div>
@@ -733,7 +733,7 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                         {/* Expanded Without Hyper Activity Average Return Row */}
                         {expandedAverageReturn && (
                             <tr className="border-b border-gray-100 light-dropdown ">
-                                <td className="py-3 px-4 text-black font-medium pl-8">
+                                <td className="py-3 px-4 text-to-purple font-medium pl-8">
                                     Without Hyper Activity
                                 </td>
 
@@ -781,7 +781,7 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                                                 </div>
 
                                                 {/* Value Text */}
-                                                <div className="text-xs font-semibold text-black">
+                                                <div className="font-bold text-xl text-to-purple">
                                                     {returnValue > 0 ? "+" : ""}
                                                     {returnValue.toFixed(1)}%
                                                 </div>

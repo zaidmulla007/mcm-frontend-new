@@ -7,6 +7,7 @@ import InfluencerRecommendations from "../../components/InfluencerProfile/Influe
 import YearlyPerformanceTable from "../../components/InfluencerProfile/YearlyPerformanceTable";
 import YearlyPerformanceTableDark from "@/app/components/InfluencerProfile/YearlyPerformanceTableDark";
 import YearlyPerformanceTableLight from "@/app/components/InfluencerProfile/YearlyPerformanceTableLight";
+import InfluencerRecommendationsLight from "../../components/InfluencerProfile/InfluencerRecommendationsLight";
 import YearlyStatsRow from "../../components/InfluencerProfile/YearlyStatsRow";
 
 const TABS = [
@@ -16,6 +17,7 @@ const TABS = [
   { label: "Correlation Summary V2 Dark", value: "correlationSummaryV2Dark" },
   { label: "Correlation Summary V2 Light", value: "correlationSummaryV2Light" },
   { label: "Recommendations", value: "recommendations" },
+  { label: "Recommendations-Light", value: "recommendations-light" },
   { label: "Performance Charts", value: "charts" },
   { label: "Portfolio Simulator", value: "simulator" },
 ];
@@ -436,7 +438,12 @@ export default function InfluencerProfilePage() {
             channelData={channelData}
           />
         )}
-
+        {tab === "recommendations-light" && (
+          <InfluencerRecommendationsLight
+            channelID={channelID}
+            channelData={channelData}
+          />
+        )}
         {tab === "charts" && (
           <div className="grid grid-cols-1 gap-8">
             <div className="bg-[#232042]/70 rounded-xl p-8 border border-[#35315a]">
