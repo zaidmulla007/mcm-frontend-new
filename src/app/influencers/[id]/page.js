@@ -12,14 +12,14 @@ import YearlyStatsRow from "../../components/InfluencerProfile/YearlyStatsRow";
 
 const TABS = [
   { label: "Overview", value: "overview" },
-  { label: "Correlation Summary", value: "correlationSummary" },
-  { label: "Correlation Summary V2", value: "correlationSummaryV2" },
-  { label: "Correlation Summary V2 Dark", value: "correlationSummaryV2Dark" },
-  { label: "Correlation Summary V2 Light", value: "correlationSummaryV2Light" },
+  // { label: "Correlation Summary", value: "correlationSummary" },
+  { label: "Correlation Summary ", value: "correlationSummaryV2" },
+  // { label: "Correlation Summary V2 Dark", value: "correlationSummaryV2Dark" },
+  // { label: "Correlation Summary V2 Light", value: "correlationSummaryV2Light" },
   { label: "Recommendations", value: "recommendations" },
-  { label: "Recommendations-Light", value: "recommendations-light" },
-  { label: "Performance Charts", value: "charts" },
-  { label: "Portfolio Simulator", value: "simulator" },
+  // { label: "Recommendations-Light", value: "recommendations-light" },
+  // { label: "Performance Charts", value: "charts" },
+  // { label: "Portfolio Simulator", value: "simulator" },
 ];
 
 export default function InfluencerProfilePage() {
@@ -187,41 +187,41 @@ export default function InfluencerProfilePage() {
         {tab === "overview" && (
           <div className="flex flex-col gap-8">
             {/* Bio & Sentiment */}
-            <div className="bg-[#232042]/70 rounded-xl p-6 mb-2 border border-[#35315a]">
-              <h3 className="text-lg font-bold mb-2">
+            <div className="bg-white rounded-xl p-6 mb-2 border border-gray-200">
+              <h3 className="text-lg font-bold mb-2 text-[#0c0023]">
                 About {channelData.influencer_name || channelData.channel_title}
               </h3>
-              <p className="text-gray-300 mb-4">
+              <p className="text-to-purple mb-4">
                 {channelData.channel_description ||
                   channelData.branding_channel_description ||
                   "No description available."}
               </p>
               <div className="flex gap-8 mt-2">
                 <div className="text-center">
-                  <div className="text-xl font-bold mb-1 text-green-400">
+                  <div className="text-xl font-bold mb-1 text-to-green-recomendations">
                     {bullishPercentage}%
                   </div>
-                  <div className="text-xs text-gray-400">Bullish Calls</div>
+                  <div className="text-xs text-to-purple">Bullish Calls</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xl font-bold mb-1 text-red-400">
+                  <div className="text-xl font-bold mb-1 text-to-red-recomendations">
                     {bearishPercentage}%
                   </div>
-                  <div className="text-xs text-gray-400">Bearish Calls</div>
+                  <div className="text-xs text-to-purple">Bearish Calls</div>
                 </div>
               </div>
             </div>
 
             {/* Performance Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-[#232042]/70 rounded-xl p-6 border border-[#35315a]">
-                <h3 className="font-semibold mb-4">
+              <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <h3 className="font-semibold mb-4 text-[#0c0023]">
                   Channel Performance Metrics
                 </h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Clarity Score:</span>
-                    <span className="font-semibold">
+                    <span className="text-to-purple">Clarity Score:</span>
+                    <span className="font-semibold text-[#0c0023]">
                       {channelData.avg_clarity_of_analysis
                         ? parseFloat(
                           channelData.avg_clarity_of_analysis.$numberDecimal
@@ -231,8 +231,8 @@ export default function InfluencerProfilePage() {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Credibility Score:</span>
-                    <span className="font-semibold">
+                    <span className="text-to-purple">Credibility Score:</span>
+                    <span className="font-semibold text-[#0c0023]">
                       {channelData.avg_credibility_score
                         ? parseFloat(
                           channelData.avg_credibility_score.$numberDecimal
@@ -242,8 +242,8 @@ export default function InfluencerProfilePage() {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Actionable Insights:</span>
-                    <span className="font-semibold">
+                    <span className="text-to-purple">Actionable Insights:</span>
+                    <span className="font-semibold text-[#0c0023]">
                       {channelData.avg_actionable_insights
                         ? parseFloat(
                           channelData.avg_actionable_insights.$numberDecimal
@@ -253,8 +253,8 @@ export default function InfluencerProfilePage() {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Risk Management:</span>
-                    <span className="font-semibold">
+                    <span className="text-to-purple">Risk Management:</span>
+                    <span className="font-semibold text-[#0c0023]">
                       {channelData.avg_risk_management
                         ? parseFloat(
                           channelData.avg_risk_management.$numberDecimal
@@ -264,8 +264,8 @@ export default function InfluencerProfilePage() {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Educational Value:</span>
-                    <span className="font-semibold">
+                    <span className="text-to-purple">Educational Value:</span>
+                    <span className="font-semibold text-[#0c0023]">
                       {channelData.avg_educational_purpose
                         ? parseFloat(
                           channelData.avg_educational_purpose.$numberDecimal
@@ -276,30 +276,30 @@ export default function InfluencerProfilePage() {
                   </div>
                 </div>
               </div>
-              <div className="bg-[#232042]/70 rounded-xl p-6 border border-[#35315a]">
-                <h3 className="font-semibold mb-4">Sentiment Analysis</h3>
+              <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <h3 className="font-semibold mb-4 text-[#0c0023]">Sentiment Analysis</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Strong Bullish:</span>
-                    <span className="font-semibold text-green-400">
+                    <span className="text-to-purple">Strong Bullish:</span>
+                    <span className="font-semibold text-to-green-recomendations">
                       {channelData.total_strong_bullish || 0}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Mild Bullish:</span>
-                    <span className="font-semibold text-green-400">
+                    <span className="text-to-purple">Mild Bullish:</span>
+                    <span className="font-semibold text-to-green-recomendations">
                       {channelData.total_mild_bullish || 0}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Strong Bearish:</span>
-                    <span className="font-semibold text-red-400">
+                    <span className="text-to-purple">Strong Bearish:</span>
+                    <span className="font-semibold text-to-red-recomendations">
                       {channelData.total_strong_bearish || 0}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Mild Bearish:</span>
-                    <span className="font-semibold text-red-400">
+                    <span className="text-to-purple">Mild Bearish:</span>
+                    <span className="font-semibold text-to-red-recomendations">
                       {channelData.total_mild_bearish || 0}
                     </span>
                   </div>
@@ -309,9 +309,9 @@ export default function InfluencerProfilePage() {
 
             {/* Charts Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-[#232042]/70 rounded-xl p-6 border border-[#35315a]">
-                <h3 className="font-semibold mb-2">30-Day Performance</h3>
-                <div className="h-40 flex items-center justify-center text-gray-400 italic bg-gradient-to-br from-purple-400/10 to-blue-400/10 rounded">
+              <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <h3 className="font-semibold mb-2 text-[#0c0023]">30-Day Performance</h3>
+                <div className="h-40 flex items-center justify-center text-to-purple italic bg-gradient-to-br from-purple-400/10 to-blue-400/10 rounded">
                   {channelData.Overall?.["30_days"]
                     ? `ROI: ${channelData.Overall["30_days"]
                       .probablity_weighted_returns_percentage > 0
@@ -323,9 +323,9 @@ export default function InfluencerProfilePage() {
                     : "No data available"}
                 </div>
               </div>
-              <div className="bg-[#232042]/70 rounded-xl p-6 border border-[#35315a]">
-                <h3 className="font-semibold mb-2">Win Rate Analysis</h3>
-                <div className="h-40 flex items-center justify-center text-gray-400 italic bg-gradient-to-br from-purple-400/10 to-blue-400/10 rounded">
+              <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <h3 className="font-semibold mb-2 text-[#0c0023]">Win Rate Analysis</h3>
+                <div className="h-40 flex items-center justify-center text-to-purple italic bg-gradient-to-br from-purple-400/10 to-blue-400/10 rounded">
                   {channelData.Overall?.["30_days"]
                     ? `Win Rate: ${channelData.Overall[
                       "30_days"
@@ -337,12 +337,12 @@ export default function InfluencerProfilePage() {
 
             {/* Best/Worst Picks */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-[#232042]/70 rounded-xl p-6 border border-[#35315a] flex flex-col gap-2">
+              <div className="bg-white rounded-xl p-6 border border-gray-200 flex flex-col gap-2">
                 <div className="flex items-center gap-3 mb-2">
                   <span className="text-2xl">🏆</span>
                   <div>
-                    <div className="font-semibold">Best Performance</div>
-                    <div className="text-xs text-gray-400">
+                    <div className="font-semibold text-[#0c0023]">Best Performance</div>
+                    <div className="text-xs text-to-purple">
                       BTC -{" "}
                       {channelData.start_date
                         ? new Date(channelData.start_date).toLocaleDateString()
@@ -350,7 +350,7 @@ export default function InfluencerProfilePage() {
                     </div>
                   </div>
                 </div>
-                <div className="text-2xl font-bold text-green-400">
+                <div className="text-2xl font-bold text-to-green-recomendations">
                   {channelData.Overall?.["30_days"]
                     ?.probablity_weighted_returns_percentage
                     ? `${channelData.Overall["30_days"]
@@ -363,12 +363,12 @@ export default function InfluencerProfilePage() {
                     : "N/A"}
                 </div>
               </div>
-              <div className="bg-[#232042]/70 rounded-xl p-6 border border-[#35315a] flex flex-col gap-2">
+              <div className="bg-white rounded-xl p-6 border border-gray-200 flex flex-col gap-2">
                 <div className="flex items-center gap-3 mb-2">
                   <span className="text-2xl">📉</span>
                   <div>
-                    <div className="font-semibold">7-Day Performance</div>
-                    <div className="text-xs text-gray-400">
+                    <div className="font-semibold text-[#0c0023]">7-Day Performance</div>
+                    <div className="text-xs text-to-purple">
                       BTC -{" "}
                       {channelData.end_date
                         ? new Date(channelData.end_date).toLocaleDateString()
@@ -376,7 +376,7 @@ export default function InfluencerProfilePage() {
                     </div>
                   </div>
                 </div>
-                <div className="text-2xl font-bold text-red-400">
+                <div className="text-2xl font-bold text-to-red-recomendations">
                   {channelData.Overall?.["7_days"]
                     ?.probablity_weighted_returns_percentage
                     ? `${channelData.Overall["7_days"]

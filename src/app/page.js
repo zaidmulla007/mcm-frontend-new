@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import CountUp from "react-countup";
+import Link from "next/link";
 
 const stats = [
   { label: "Influencers Tracked", value: 1245 },
@@ -17,7 +18,6 @@ const features = [
   { title: "ROI Tracking", icon: "/window.svg" },
   { title: "Leaderboard", icon: "/globe.svg" },
   { title: "Crypto Pages", icon: "/next.svg" },
-  { title: "Portfolio Simulator", icon: "/vercel.svg" },
 ];
 
 const trendingInfluencers = [
@@ -81,12 +81,23 @@ export default function Home() {
             Discover the real impact of crypto influencers. Track their picks, analyze ROI, and simulate your own portfolio based on their recommendations.
           </p>
           <div className="flex gap-4 mt-2">
-            <button className="bg-gradient-to-r from-purple-500 to-blue-500 px-6 py-3 rounded-lg font-semibold shadow-lg hover:scale-105 transition">
-              Explore Influencers
-            </button>
-            <button className="bg-[#232042] px-6 py-3 rounded-lg font-semibold border border-purple-500 hover:bg-purple-700/30 transition">
-              Try Portfolio Simulator
-            </button>
+            <Link href="/influencers">
+              <button className="bg-gradient-to-r from-purple-500 to-blue-500 px-6 py-3 rounded-lg font-semibold shadow-lg hover:scale-105 transition">
+                Explore Influencers
+              </button>
+            </Link>
+            <div className="relative inline-block">
+              <button
+                disabled
+                className="bg-[#232042] px-6 py-3 rounded-lg font-semibold border border-purple-500 opacity-60 cursor-not-allowed"
+              >
+                Try Portfolio Simulator
+              </button>
+              <span className="absolute -top-2 -right-2 bg-purple-600 text-xs px-2 py-0.5 rounded-full">
+                Coming Soon
+              </span>
+            </div>
+
           </div>
         </div>
         <div className="flex-1 flex justify-center">
@@ -95,7 +106,7 @@ export default function Home() {
       </section>
 
       {/* Live Stats */}
-      <section className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-4 px-4 mb-12">
+      <section className="max-w-6xl mx-auto flex flex-wrap justify-center gap-4 px-4 mb-12">
         {stats.map((stat, i) => (
           <motion.div
             key={stat.label}
@@ -116,7 +127,29 @@ export default function Home() {
             <span className="text-xs text-gray-400 mt-1 text-center">{stat.label}</span>
           </motion.div>
         ))}
+
+        {/* Get Started Button */}
+        <motion.div
+          className="bg-white rounded-2xl p-5 flex flex-col items-center justify-center shadow-md cursor-pointer hover:scale-105 transition"
+          custom={stats.length}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.6 }}
+          variants={cardVariants}
+          style={{
+            height: "50px",
+            marginTop: "25px",
+            borderRadius: "30px"
+          }}
+        >
+          <Link href="/login" className="w-full h-full flex flex-col items-center justify-center">
+            <button className="text-2xl font-bold text-to-green-recomendations1">
+              Get Started
+            </button>
+          </Link>
+        </motion.div>
       </section>
+
 
       {/* Key Features Preview */}
       <section className="max-w-5xl mx-auto px-4 mb-12">
@@ -136,6 +169,24 @@ export default function Home() {
               <span className="font-medium text-center">{feature.title}</span>
             </motion.div>
           ))}
+          <motion.div
+            className="bg-white flex flex-col items-center justify-center shadow-md cursor-pointer transition opacity-100 rounded-[30px] mt-[38px]"
+            style={{ height: "50px", transform: "none" }}
+            custom={stats.length}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.6 }}
+            variants={cardVariants}
+          >
+            <Link
+              href="/login"
+              className="w-full h-full flex flex-col items-center justify-center"
+            >
+              <button className="text-2xl font-bold text-to-green-recomendations1">
+                Get Started
+              </button>
+            </Link>
+          </motion.div>
         </div>
       </section>
 
@@ -194,7 +245,27 @@ export default function Home() {
             ))}
           </div>
         </div>
+        <motion.div
+          className="bg-white rounded-2xl p-5 flex flex-col items-center justify-center shadow-md cursor-pointer hover:scale-105 transition"
+          custom={stats.length}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.6 }}
+          variants={cardVariants}
+          style={{
+            height: "50px",
+            marginTop: "25px",
+            borderRadius: "30px"
+          }}
+        >
+          <Link href="/login" className="w-full h-full flex flex-col items-center justify-center">
+            <button className="text-2xl font-bold text-to-green-recomendations1">
+              Get Started
+            </button>
+          </Link>
+        </motion.div>
       </section>
     </div>
+
   );
 }

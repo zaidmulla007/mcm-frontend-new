@@ -16,7 +16,8 @@
     "react-countup": "^6.5.3",
     "react-dom": "19.1.0",
     "react-gauge-component": "^1.2.64",
-    "react-icons": "^5.5.0"
+    "react-icons": "^5.5.0",
+    "sweetalert2": "^11.22.4"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import axios from "../../api/axios";
+import { useLivePrice } from "./useLivePrice";
 
 export default function InfluencerRecommendations({ channelID, channelData }) {
   const [recommendations, setRecommendations] = useState([]);
@@ -16,6 +17,10 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
   const [endDate, setEndDate] = useState("");
   const [dateError, setDateError] = useState("");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const symbolsToTrack = [...new Set(recommendations.map(rec => rec.symbol).filter(Boolean))];
+  const { formatPrice: formatLivePrice, getPriceData } = useLivePrice(symbolsToTrack);
+  // const { formatPrice: formatLivePrice } = useLivePrice(symbolsToTrack);
+  // const { formatPrice: formatLivePrice, getPriceData } = useLivePrice(symbolsToTrack);
   const [overallAnalysisStartDate, setOverallAnalysisStartDate] = useState(
     channelData.Overall.start_date
   );
@@ -24,6 +29,17 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
   );
 
   // Number formatting function
+  function formatNumberWithCommas(number) {
+    if (number === undefined || number === null) return "-";
+    if (typeof number === "object" && number.$numberDecimal) {
+      number = parseFloat(number.$numberDecimal);
+    }
+    if (isNaN(Number(number))) return "-";
+    return Number(number).toLocaleString(undefined, {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    });
+  }
   function formatNumberWithCommas(number) {
     if (number === undefined || number === null) return "-";
     if (typeof number === "object" && number.$numberDecimal) {
@@ -180,15 +196,15 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
   const getSentimentColor = (sentiment) => {
     switch (sentiment) {
       case "Strong_Bullish":
-        return "text-green-400";
+        return "text-to-green-recomendations";
       case "Mild_Bullish":
-        return "text-green-300";
+        return "text-to-green-recomendations";
       case "Strong_Bearish":
-        return "text-red-400";
+        return "text-to-red-recomendations";
       case "Mild_Bearish":
-        return "text-red-300";
+        return "text-to-red-recomendations";
       default:
-        return "text-gray-400";
+        return "text-to-purple-400";
     }
   };
 
@@ -231,128 +247,131 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
   };
 
   return (
-    <div className="bg-[#232042]/70 rounded-xl border border-[#35315a] overflow-x-auto">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-6 border-b border-[#35315a]">
-        <h3 className="font-normal">
+    <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto text-to-purple">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-6 border-b border-gray-200">
+        <h3 className="font-normal text-to-purple">
           Number of mentions of{" "}
-          <span className="font-bold">{selectedSymbol || "all coins"}</span>
+          <span className="font-bold text-to-purple">{selectedSymbol || "all coins"}</span>
           {startDate && endDate && startDate === endDate ? " " : " during "}
-          <span className="font-bold">
+          <span className="font-bold text-to-purple">
             {startDate && endDate
               ? startDate === endDate
                 ? `on ${startDate}`
                 : `${startDate} to ${endDate}`
               : startDate
-              ? `from ${startDate}`
-              : endDate
-              ? `until ${endDate}`
-              : "all time"}
+                ? `from ${startDate}`
+                : endDate
+                  ? `until ${endDate}`
+                  : "all time"}
           </span>{" "}
           for{" "}
-          <span className="font-bold">
+          <span className="font-bold text-to-purple">
             {selectedSentiment ? selectedSentiment.replace("_", " ") : "all"}
           </span>{" "}
           sentiment (
-          <span className="font-bold">
+          <span className="font-bold text-to-purple">
             {formatNumberWithCommas(totalItems)}
           </span>
           )
         </h3>
         <div className="flex flex-col gap-3 items-end">
           {/* Main Filters Row */}
-          <div className="flex gap-3 items-center">
-                         <div className="relative">
-               <select
-                 className="bg-[#232042] border border-[#35315a] rounded px-3 py-2 pr-8 text-sm text-white appearance-none"
-                 value={selectedSymbol}
-                 onChange={handleSymbolChange}
-               >
-                 <option value="">All Coins</option>
-                 {uniqueSymbols &&
-                   uniqueSymbols?.symbols?.map((symbol) => (
-                     <option key={symbol} value={symbol}>
-                       {symbol}
-                     </option>
-                   ))}
-               </select>
-               <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
-                 ▾
-               </span>
-             </div>
-             <div className="relative">
-               <select
-                 className="bg-[#232042] border border-[#35315a] rounded px-3 py-2 pr-8 text-sm text-white appearance-none"
-                 value={selectedSentiment}
-                 onChange={handleSentimentChange}
-               >
-                 <option value="">All Sentiments</option>
-                 <option value="Strong_Bullish">Strong Bullish</option>
-                 <option value="Mild_Bullish">Mild Bullish</option>
-                 <option value="Strong_Bearish">Strong Bearish</option>
-                 <option value="Mild_Bearish">Mild Bearish</option>
-               </select>
-               <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
-                 ▾
-               </span>
-             </div>
-            <button
-              onClick={handleApplyFilters}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
-            >
-              Apply
-            </button>
-            <button
-              onClick={handleClearFilters}
-              className="bg-transparent border border-[#35315a] text-gray-300 hover:bg-[#232042] hover:text-white px-4 py-2 rounded text-sm font-medium transition-colors"
-            >
-              Clear
-            </button>
-            <button
-              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className="bg-[#232042] border border-[#35315a] rounded px-3 py-2 text-sm text-white hover:bg-[#232042]/80 flex items-center gap-2 transition-colors"
-            >
-              Advanced Filters
-              <span
-                className={`transition-transform duration-200 ${
-                  showAdvancedFilters ? "rotate-180" : ""
-                }`}
+          <div className="w-full md:w-auto overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+            <div className="flex gap-3 items-center min-w-max px-2 py-1">
+              <div className="relative">
+                <select
+                  className="bg-[#c4c5e14d] border border-gray-300 rounded px-3 py-2 pr-8 text-sm text-to-purple appearance-none"
+                  value={selectedSymbol}
+                  onChange={handleSymbolChange}
+                >
+                  <option value="">All Coins</option>
+                  {uniqueSymbols &&
+                    uniqueSymbols?.symbols?.map((symbol) => (
+                      <option key={symbol} value={symbol}>
+                        {symbol}
+                      </option>
+                    ))}
+                </select>
+                <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-to-purple-400 pointer-events-none">
+                  ▾
+                </span>
+              </div>
+              <div className="relative">
+                <select
+                  className="bg-[#c4c5e14d] border border-gray-300 rounded px-3 py-2 pr-8 text-sm text-to-purple appearance-none"
+                  value={selectedSentiment}
+                  onChange={handleSentimentChange}
+                >
+                  <option value="">All Sentiments</option>
+                  <option value="Strong_Bullish">Strong Bullish</option>
+                  <option value="Mild_Bullish">Mild Bullish</option>
+                  <option value="Strong_Bearish">Strong Bearish</option>
+                  <option value="Mild_Bearish">Mild Bearish</option>
+                </select>
+                <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-to-purple-400 pointer-events-none">
+                  ▾
+                </span>
+              </div>
+              <button
+                onClick={handleApplyFilters}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors whitespace-nowrap"
               >
-                ▾
-              </span>
-            </button>
+                Apply
+              </button>
+              <button
+                onClick={handleClearFilters}
+                className="bg-transparent border border-gray-300 text-to-purple hover:bg-gray-100 px-4 py-2 rounded text-sm font-medium transition-colors whitespace-nowrap"
+              >
+                Clear
+              </button>
+              <button
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className="bg-[#c4c5e14d] border border-gray-300 rounded px-3 py-2 text-sm text-to-purple hover:bg-gray-100 flex items-center gap-2 transition-colors whitespace-nowrap"
+              >
+                Advanced Filters
+                <span
+                  className={`transition-transform duration-200 ${showAdvancedFilters ? "rotate-180" : ""
+                    }`}
+                >
+                  ▾
+                </span>
+              </button>
+            </div>
           </div>
 
           {/* Advanced Filters Section */}
           {showAdvancedFilters && (
-            <div className="flex gap-3 items-center">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-400">Start Date:</span>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={handleStartDateChange}
-                  className="bg-[#232042] border border-[#35315a] rounded px-3 py-2 text-sm text-white"
-                  min={overallAnalysisStartDate || undefined}
-                  max={
-                    endDate ||
-                    overallAnalysisEndDate ||
-                    new Date().toISOString().split("T")[0]
-                  }
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-400">End Date:</span>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={handleEndDateChange}
-                  className="bg-[#232042] border border-[#35315a] rounded px-3 py-2 text-sm text-white"
-                  min={startDate || overallAnalysisStartDate || undefined}
-                  max={
-                    overallAnalysisEndDate ||
-                    new Date().toISOString().split("T")[0]
-                  }
-                />
+            <div className="w-full md:w-auto overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+              <div className="flex gap-3 items-center min-w-max px-2 py-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-to-purple whitespace-nowrap">Start Date:</span>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={handleStartDateChange}
+                    className="bg-[#c4c5e14d] border border-gray-300 rounded px-3 py-2 text-sm text-to-purple"
+                    min={overallAnalysisStartDate || undefined}
+                    max={
+                      endDate ||
+                      overallAnalysisEndDate ||
+                      new Date().toISOString().split("T")[0]
+                    }
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-to-purple whitespace-nowrap">End Date:</span>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={handleEndDateChange}
+                    className="bg-[#c4c5e14d] border border-gray-300 rounded px-3 py-2 text-sm text-to-purple"
+                    min={startDate || overallAnalysisStartDate || undefined}
+                    max={
+                      overallAnalysisEndDate ||
+                      new Date().toISOString().split("T")[0]
+                    }
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -361,24 +380,24 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
 
       {/* Date Error Display */}
       {dateError && (
-        <div className="px-6 py-2 bg-red-900/20 border-l-4 border-red-500 text-red-400 text-sm">
+        <div className="px-6 py-2 bg-red-900/20 border-l-4 border-red-500 text-to-red-recomendations text-sm">
           {dateError}
         </div>
       )}
 
       {/* Summary Tables Container */}
       {analytics && (
-        <div className="p-6 border-b border-[#35315a]">
+        <div className="p-6 border-b border-gray-200">
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             {/* Performance Summary Table */}
-            <div className="bg-[#232042]/50 rounded-lg border border-[#35315a] shadow-lg shadow-black/20">
-              <h4 className="text-lg font-semibold text-white mb-4 p-4 pb-0">
+            <div className="bg-[#f5f5f5] rounded-lg border border-gray-200 shadow-lg">
+              <h4 className="text-lg font-semibold text-to-purple mb-4 p-4 pb-0">
                 Performance Summary (Avg ROI)
               </h4>
               <div className="overflow-x-auto p-4 pt-0">
                 <table className="min-w-full text-sm">
                   <thead>
-                    <tr className="bg-[#232042] text-gray-400">
+                    <tr className="bg-[#e8e8e8] text-to-purple">
                       <th className="p-2 text-left font-semibold">Metric</th>
                       <th className="p-2 text-center font-semibold">1H</th>
                       <th className="p-2 text-center font-semibold">24H</th>
@@ -391,144 +410,128 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="hover:bg-[#232042]/40">
-                      <td className="p-3 font-medium text-white">
+                    <tr className="hover:bg-gray-100">
+                      <td className="p-3 font-medium text-to-purple">
                         Average Performance
                       </td>
                       <td
-                        className={`p-2 text-center font-semibold ${
-                          analytics.average_roi["1H"] > 0
-                            ? "text-green-400"
-                            : analytics.average_roi["1H"] < 0
-                            ? "text-red-400"
-                            : "text-gray-400"
-                        }`}
+                        className={`p-2 text-center font-semibold ${analytics.average_roi["1H"] > 0
+                          ? "text-to-green-recomendations"
+                          : analytics.average_roi["1H"] < 0
+                            ? "text-to-red-recomendations"
+                            : "text-to-purple-400"
+                          }`}
                       >
                         {analytics.average_roi["1H"] !== null
-                          ? `${
-                              analytics.average_roi["1H"] > 0 ? "+" : ""
-                            }${formatNumberWithCommas(
-                              analytics.average_roi["1H"]
-                            )}%`
+                          ? `${analytics.average_roi["1H"] > 0 ? "+" : ""
+                          }${formatNumberWithCommas(
+                            analytics.average_roi["1H"]
+                          )}%`
                           : "N/A"}
                       </td>
                       <td
-                        className={`p-2 text-center font-semibold ${
-                          analytics.average_roi["24H"] > 0
-                            ? "text-green-400"
-                            : analytics.average_roi["24H"] < 0
-                            ? "text-red-400"
-                            : "text-gray-400"
-                        }`}
+                        className={`p-2 text-center font-semibold ${analytics.average_roi["24H"] > 0
+                          ? "text-to-green-recomendations"
+                          : analytics.average_roi["24H"] < 0
+                            ? "text-to-red-recomendations"
+                            : "text-to-purple-400"
+                          }`}
                       >
                         {analytics.average_roi["24H"] !== null
-                          ? `${
-                              analytics.average_roi["24H"] > 0 ? "+" : ""
-                            }${formatNumberWithCommas(
-                              analytics.average_roi["24H"]
-                            )}%`
+                          ? `${analytics.average_roi["24H"] > 0 ? "+" : ""
+                          }${formatNumberWithCommas(
+                            analytics.average_roi["24H"]
+                          )}%`
                           : "N/A"}
                       </td>
                       <td
-                        className={`p-2 text-center font-semibold ${
-                          analytics.average_roi["7D"] > 0
-                            ? "text-green-400"
-                            : analytics.average_roi["7D"] < 0
-                            ? "text-red-400"
-                            : "text-gray-400"
-                        }`}
+                        className={`p-2 text-center font-semibold ${analytics.average_roi["7D"] > 0
+                          ? "text-to-green-recomendations"
+                          : analytics.average_roi["7D"] < 0
+                            ? "text-to-red-recomendations"
+                            : "text-to-purple-400"
+                          }`}
                       >
                         {analytics.average_roi["7D"] !== null
-                          ? `${
-                              analytics.average_roi["7D"] > 0 ? "+" : ""
-                            }${formatNumberWithCommas(
-                              analytics.average_roi["7D"]
-                            )}%`
+                          ? `${analytics.average_roi["7D"] > 0 ? "+" : ""
+                          }${formatNumberWithCommas(
+                            analytics.average_roi["7D"]
+                          )}%`
                           : "N/A"}
                       </td>
                       <td
-                        className={`p-2 text-center font-semibold ${
-                          analytics.average_roi["30D"] > 0
-                            ? "text-green-400"
-                            : analytics.average_roi["30D"] < 0
-                            ? "text-red-400"
-                            : "text-gray-400"
-                        }`}
+                        className={`p-2 text-center font-semibold ${analytics.average_roi["30D"] > 0
+                          ? "text-to-green-recomendations"
+                          : analytics.average_roi["30D"] < 0
+                            ? "text-to-red-recomendations"
+                            : "text-to-purple-400"
+                          }`}
                       >
                         {analytics.average_roi["30D"] !== null
-                          ? `${
-                              analytics.average_roi["30D"] > 0 ? "+" : ""
-                            }${formatNumberWithCommas(
-                              analytics.average_roi["30D"]
-                            )}%`
+                          ? `${analytics.average_roi["30D"] > 0 ? "+" : ""
+                          }${formatNumberWithCommas(
+                            analytics.average_roi["30D"]
+                          )}%`
                           : "N/A"}
                       </td>
                       <td
-                        className={`p-2 text-center font-semibold ${
-                          analytics.average_roi["60D"] > 0
-                            ? "text-green-400"
-                            : analytics.average_roi["60D"] < 0
-                            ? "text-red-400"
-                            : "text-gray-400"
-                        }`}
+                        className={`p-2 text-center font-semibold ${analytics.average_roi["60D"] > 0
+                          ? "text-to-green-recomendations"
+                          : analytics.average_roi["60D"] < 0
+                            ? "text-to-red-recomendations"
+                            : "text-to-purple-400"
+                          }`}
                       >
                         {analytics.average_roi["60D"] !== null
-                          ? `${
-                              analytics.average_roi["60D"] > 0 ? "+" : ""
-                            }${formatNumberWithCommas(
-                              analytics.average_roi["60D"]
-                            )}%`
+                          ? `${analytics.average_roi["60D"] > 0 ? "+" : ""
+                          }${formatNumberWithCommas(
+                            analytics.average_roi["60D"]
+                          )}%`
                           : "N/A"}
                       </td>
                       <td
-                        className={`p-2 text-center font-semibold ${
-                          analytics.average_roi["90D"] > 0
-                            ? "text-green-400"
-                            : analytics.average_roi["90D"] < 0
-                            ? "text-red-400"
-                            : "text-gray-400"
-                        }`}
+                        className={`p-2 text-center font-semibold ${analytics.average_roi["90D"] > 0
+                          ? "text-to-green-recomendations"
+                          : analytics.average_roi["90D"] < 0
+                            ? "text-to-red-recomendations"
+                            : "text-to-purple-400"
+                          }`}
                       >
                         {analytics.average_roi["90D"] !== null
-                          ? `${
-                              analytics.average_roi["90D"] > 0 ? "+" : ""
-                            }${formatNumberWithCommas(
-                              analytics.average_roi["90D"]
-                            )}%`
+                          ? `${analytics.average_roi["90D"] > 0 ? "+" : ""
+                          }${formatNumberWithCommas(
+                            analytics.average_roi["90D"]
+                          )}%`
                           : "N/A"}
                       </td>
                       <td
-                        className={`p-2 text-center font-semibold ${
-                          analytics.average_roi["180D"] > 0
-                            ? "text-green-400"
-                            : analytics.average_roi["180D"] < 0
-                            ? "text-red-400"
-                            : "text-gray-400"
-                        }`}
+                        className={`p-2 text-center font-semibold ${analytics.average_roi["180D"] > 0
+                          ? "text-to-green-recomendations"
+                          : analytics.average_roi["180D"] < 0
+                            ? "text-to-red-recomendations"
+                            : "text-to-purple-400"
+                          }`}
                       >
                         {analytics.average_roi["180D"] !== null
-                          ? `${
-                              analytics.average_roi["180D"] > 0 ? "+" : ""
-                            }${formatNumberWithCommas(
-                              analytics.average_roi["180D"]
-                            )}%`
+                          ? `${analytics.average_roi["180D"] > 0 ? "+" : ""
+                          }${formatNumberWithCommas(
+                            analytics.average_roi["180D"]
+                          )}%`
                           : "N/A"}
                       </td>
                       <td
-                        className={`p-2 text-center font-semibold ${
-                          analytics.average_roi["1Y"] > 0
-                            ? "text-green-400"
-                            : analytics.average_roi["1Y"] < 0
-                            ? "text-red-400"
-                            : "text-gray-400"
-                        }`}
+                        className={`p-2 text-center font-semibold ${analytics.average_roi["1Y"] > 0
+                          ? "text-to-green-recomendations"
+                          : analytics.average_roi["1Y"] < 0
+                            ? "text-to-red-recomendations"
+                            : "text-to-purple-400"
+                          }`}
                       >
                         {analytics.average_roi["1Y"] !== null
-                          ? `${
-                              analytics.average_roi["1Y"] > 0 ? "+" : ""
-                            }${formatNumberWithCommas(
-                              analytics.average_roi["1Y"]
-                            )}%`
+                          ? `${analytics.average_roi["1Y"] > 0 ? "+" : ""
+                          }${formatNumberWithCommas(
+                            analytics.average_roi["1Y"]
+                          )}%`
                           : "N/A"}
                       </td>
                     </tr>
@@ -538,14 +541,14 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
             </div>
 
             {/* Sentiment Summary Table */}
-            <div className="bg-[#232042]/50 rounded-lg border border-[#35315a] shadow-lg shadow-black/20">
-              <h4 className="text-lg font-semibold text-white mb-4 p-4 pb-0">
+            <div className="bg-[#f5f5f5] rounded-lg border border-gray-200 shadow-lg">
+              <h4 className="text-lg font-semibold text-to-purple mb-4 p-4 pb-0">
                 Sentiment Summary
               </h4>
               <div className="overflow-x-auto p-4 pt-0">
                 <table className="min-w-full text-sm">
                   <thead>
-                    <tr className="bg-[#232042] text-gray-400">
+                    <tr className="bg-[#e8e8e8] text-to-purple">
                       <th className="p-2 text-left font-semibold">Metric</th>
                       <th className="p-2 text-center font-semibold">
                         Strong Bullish
@@ -562,35 +565,35 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="hover:bg-[#232042]/40">
-                      <td className="p-3 font-medium text-white">
+                    <tr className="hover:bg-gray-100">
+                      <td className="p-3 font-medium text-to-purple">
                         Sentiment Distribution
                       </td>
-                      <td className="p-3 text-center text-green-400 font-semibold">
+                      <td className="p-3 text-center text-to-green-recomendations font-semibold">
                         {formatNumberWithCommas(
                           analytics.sentiment_analysis.sentiment_breakdown[
-                            "Strong_Bullish"
+                          "Strong_Bullish"
                           ] || 0
                         )}
                       </td>
-                      <td className="p-3 text-center text-green-300 font-semibold">
+                      <td className="p-3 text-center text-to-green-recomendations font-semibold">
                         {formatNumberWithCommas(
                           analytics.sentiment_analysis.sentiment_breakdown[
-                            "Mild_Bullish"
+                          "Mild_Bullish"
                           ] || 0
                         )}
                       </td>
-                      <td className="p-3 text-center text-red-300 font-semibold">
+                      <td className="p-3 text-center text-to-red-recomendations font-semibold">
                         {formatNumberWithCommas(
                           analytics.sentiment_analysis.sentiment_breakdown[
-                            "Mild_Bearish"
+                          "Mild_Bearish"
                           ] || 0
                         )}
                       </td>
-                      <td className="p-3 text-center text-red-400 font-semibold">
+                      <td className="p-3 text-center text-to-red-recomendations font-semibold">
                         {formatNumberWithCommas(
                           analytics.sentiment_analysis.sentiment_breakdown[
-                            "Strong_Bearish"
+                          "Strong_Bearish"
                           ] || 0
                         )}
                       </td>
@@ -606,17 +609,38 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
       {loading ? (
         <div className="p-8 text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading recommendations...</p>
+          <p className="text-to-purple">Loading recommendations...</p>
         </div>
       ) : recommendations.length > 0 ? (
         <>
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="bg-[#232042] text-gray-400">
+              <tr className="bg-[#e8e8e8] text-to-purple">
                 <th className="p-2 text-left font-semibold">Date of Post</th>
-                <th className="p-2 text-left font-semibold">Coin</th>
-                <th className="p-2 text-left font-semibold">Current Price</th>
-                <th className="p-2 text-left font-semibold">Sentiment</th>
+                <th className="p-2 text-center font-semibold">Coin</th>
+                <th className="p-2 text-center font-semibold">
+                  <div className="flex flex-col items-center">
+                    {/* Main Label */}
+                    <span className="font-semibold text-black">Price</span>
+
+                    {/* Sub Labels as boxes */}
+                    <div className="flex gap-2 mt-1">
+                      <span
+                        className="px-2 py-0.5 rounded text-xs text-to-purple font-semibold"
+                        style={{ backgroundColor: "#ebe8e8", }}
+                      >
+                        Current Price
+                      </span>
+                      <span
+                        className="px-2 py-0.5 rounded text-xs font-semibold"
+                        style={{ backgroundColor: "#ebe8e8", color: "#2b7fff" }}
+                      >
+                        Last Updated
+                      </span>
+                    </div>
+                  </div>
+                </th>
+                <th className="p-2 text-center font-semibold">Sentiment</th>
                 <th className="p-2 text-left font-semibold">Initial Price</th>
                 <th className="p-2 text-left font-semibold">1H ROI</th>
                 <th className="p-2 text-left font-semibold">24H ROI</th>
@@ -641,8 +665,8 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                 const oneYearROI = rec["1_year_price_returns"];
                 const oneEightyDayROI = rec["180_days_price_returns"];
                 return (
-                  <tr key={rec._id} className="hover:bg-[#232042]/40">
-                    <td className="p-3">
+                  <tr key={rec._id} className="hover:bg-gray-100">
+                    <td className="p-3 text-to-purple">
                       {new Date(rec.publishedAt).toLocaleDateString()}
                     </td>
                     <td className="p-3 flex items-center gap-2">
@@ -650,142 +674,133 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                         {rec.symbol?.charAt(0) || "?"}
                       </span>
                       <div>
-                        <div className="font-semibold">{rec.symbol}</div>
-                        <div className="text-xs text-gray-400">
+                        <div className="font-semibold text-to-purple">{rec.symbol}</div>
+                        <div className="text-xs text-to-purple-400">
                           {rec.coin_name}
                         </div>
                       </div>
                     </td>
-
-                    <td className="p-3">-</td>
-                    <td className="p-3">
+                    <td className="p-3 font-semibold text-center">
+                      {formatLivePrice(rec.symbol) === "-" || formatLivePrice(rec.symbol) === "" || formatLivePrice(rec.symbol) === null || formatLivePrice(rec.symbol) === undefined
+                        ? <span style={{ color: "#2b7fff" }}>-</span>
+                        : <span className="text-to-purple">${formatLivePrice(rec.symbol)}</span>}
+                    </td>
+                    {/* <td className="p-3 text-to-purple">-</td> */}
+                    <td className="p-3 text-center">
                       <span
-                        className={`px-2 py-1 rounded text-xs font-semibold ${getSentimentColor(
+                        className={`inline-block min-w-[110px] text-xs font-semibold text-center ${getSentimentColor(
                           rec.sentiment
                         )}`}
                       >
                         {rec.sentiment?.replace("_", " ") || "N/A"}
                       </span>
                     </td>
-                    <td className="p-3">{formatPrice(rec.base?.price)}</td>
+                    <td className="p-3 text-to-purple">{formatPrice(rec.base?.price)}</td>
                     <td
-                      className={`p-3 font-semibold ${
-                        oneHourROI > 0
-                          ? "text-green-400"
-                          : oneHourROI < 0
-                          ? "text-red-400"
-                          : "text-gray-400"
-                      }`}
+                      className={`p-3 font-semibold ${oneHourROI > 0
+                        ? "text-to-green-recomendations"
+                        : oneHourROI < 0
+                          ? "text-to-red-recomendations"
+                          : "text-to-purple-400"
+                        }`}
                     >
                       {oneHourROI !== null && oneHourROI !== undefined
                         ? `${oneHourROI > 0 ? "+" : ""}${formatNumberWithCommas(
-                            oneHourROI
-                          )}%`
+                          oneHourROI
+                        )}%`
                         : "N/A"}
                     </td>
                     <td
-                      className={`p-3 font-semibold ${
-                        oneDayROI > 0
-                          ? "text-green-400"
-                          : oneDayROI < 0
-                          ? "text-red-400"
-                          : "text-gray-400"
-                      }`}
+                      className={`p-3 font-semibold ${oneDayROI > 0
+                        ? "text-to-green-recomendations"
+                        : oneDayROI < 0
+                          ? "text-to-red-recomendations"
+                          : "text-to-purple-400"
+                        }`}
                     >
                       {oneDayROI !== null && oneDayROI !== undefined
                         ? `${oneDayROI > 0 ? "+" : ""}${formatNumberWithCommas(
-                            oneDayROI
-                          )}%`
+                          oneDayROI
+                        )}%`
                         : "N/A"}
                     </td>
                     <td
-                      className={`p-3 font-semibold ${
-                        sevenDayROI > 0
-                          ? "text-green-400"
-                          : sevenDayROI < 0
-                          ? "text-red-400"
-                          : "text-gray-400"
-                      }`}
+                      className={`p-3 font-semibold ${sevenDayROI > 0
+                        ? "text-to-green-recomendations"
+                        : sevenDayROI < 0
+                          ? "text-to-red-recomendations"
+                          : "text-to-purple-400"
+                        }`}
                     >
                       {sevenDayROI !== null && sevenDayROI !== undefined
-                        ? `${
-                            sevenDayROI > 0 ? "+" : ""
-                          }${formatNumberWithCommas(sevenDayROI)}%`
+                        ? `${sevenDayROI > 0 ? "+" : ""
+                        }${formatNumberWithCommas(sevenDayROI)}%`
                         : "N/A"}
                     </td>
                     <td
-                      className={`p-3 font-semibold ${
-                        thirtyDayROI > 0
-                          ? "text-green-400"
-                          : thirtyDayROI < 0
-                          ? "text-red-400"
-                          : "text-gray-400"
-                      }`}
+                      className={`p-3 font-semibold ${thirtyDayROI > 0
+                        ? "text-to-green-recomendations"
+                        : thirtyDayROI < 0
+                          ? "text-to-red-recomendations"
+                          : "text-to-purple-400"
+                        }`}
                     >
                       {thirtyDayROI !== null && thirtyDayROI !== undefined
-                        ? `${
-                            thirtyDayROI > 0 ? "+" : ""
-                          }${formatNumberWithCommas(thirtyDayROI)}%`
+                        ? `${thirtyDayROI > 0 ? "+" : ""
+                        }${formatNumberWithCommas(thirtyDayROI)}%`
                         : "N/A"}
                     </td>
                     <td
-                      className={`p-3 font-semibold ${
-                        sixtyDayROI > 0
-                          ? "text-green-400"
-                          : sixtyDayROI < 0
-                          ? "text-red-400"
-                          : "text-gray-400"
-                      }`}
+                      className={`p-3 font-semibold ${sixtyDayROI > 0
+                        ? "text-to-green-recomendations"
+                        : sixtyDayROI < 0
+                          ? "text-to-red-recomendations"
+                          : "text-to-purple-400"
+                        }`}
                     >
                       {sixtyDayROI !== null && sixtyDayROI !== undefined
-                        ? `${
-                            sixtyDayROI > 0 ? "+" : ""
-                          }${formatNumberWithCommas(sixtyDayROI)}%`
+                        ? `${sixtyDayROI > 0 ? "+" : ""
+                        }${formatNumberWithCommas(sixtyDayROI)}%`
                         : "N/A"}
                     </td>
                     <td
-                      className={`p-3 font-semibold ${
-                        ninetyDayROI > 0
-                          ? "text-green-400"
-                          : ninetyDayROI < 0
-                          ? "text-red-400"
-                          : "text-gray-400"
-                      }`}
+                      className={`p-3 font-semibold ${ninetyDayROI > 0
+                        ? "text-to-green-recomendations"
+                        : ninetyDayROI < 0
+                          ? "text-to-red-recomendations"
+                          : "text-to-purple-400"
+                        }`}
                     >
                       {ninetyDayROI !== null && ninetyDayROI !== undefined
-                        ? `${
-                            ninetyDayROI > 0 ? "+" : ""
-                          }${formatNumberWithCommas(ninetyDayROI)}%`
+                        ? `${ninetyDayROI > 0 ? "+" : ""
+                        }${formatNumberWithCommas(ninetyDayROI)}%`
                         : "N/A"}
                     </td>
                     <td
-                      className={`p-3 font-semibold ${
-                        oneEightyDayROI > 0
-                          ? "text-green-400"
-                          : oneEightyDayROI < 0
-                          ? "text-red-400"
-                          : "text-gray-400"
-                      }`}
+                      className={`p-3 font-semibold ${oneEightyDayROI > 0
+                        ? "text-to-green-recomendations"
+                        : oneEightyDayROI < 0
+                          ? "text-to-red-recomendations"
+                          : "text-to-purple-400"
+                        }`}
                     >
                       {oneEightyDayROI !== null && oneEightyDayROI !== undefined
-                        ? `${
-                            oneEightyDayROI > 0 ? "+" : ""
-                          }${formatNumberWithCommas(oneEightyDayROI)}%`
+                        ? `${oneEightyDayROI > 0 ? "+" : ""
+                        }${formatNumberWithCommas(oneEightyDayROI)}%`
                         : "N/A"}
                     </td>
                     <td
-                      className={`p-3 font-semibold ${
-                        oneYearROI > 0
-                          ? "text-green-400"
-                          : oneYearROI < 0
-                          ? "text-red-400"
-                          : "text-gray-400"
-                      }`}
+                      className={`p-3 font-semibold ${oneYearROI > 0
+                        ? "text-to-green-recomendations"
+                        : oneYearROI < 0
+                          ? "text-to-red-recomendations"
+                          : "text-to-purple-400"
+                        }`}
                     >
                       {oneYearROI !== null && oneYearROI !== undefined
                         ? `${oneYearROI > 0 ? "+" : ""}${formatNumberWithCommas(
-                            oneYearROI
-                          )}%`
+                          oneYearROI
+                        )}%`
                         : "N/A"}
                     </td>
                     <td className="p-3">
@@ -806,8 +821,8 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex justify-between items-center p-6 border-t border-[#35315a]">
-              <div className="text-sm text-gray-400">
+            <div className="flex justify-between items-center p-6 border-t border-gray-200">
+              <div className="text-sm text-to-purple">
                 Showing page {currentPage + 1} of {totalPages} (
                 {formatNumberWithCommas(totalItems)} total items)
               </div>
@@ -819,7 +834,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                     getRecommendations(newPage, 100, selectedSymbol, selectedSentiment);
                   }}
                   disabled={currentPage === 0}
-                  className="px-3 py-1 bg-[#232042] border border-[#35315a] rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#232042]/80"
+                  className="px-3 py-1 bg-[#c4c5e14d] border border-gray-300 rounded text-sm text-to-purple disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
                 >
                   Previous
                 </button>
@@ -830,7 +845,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                     getRecommendations(newPage, 100, selectedSymbol, selectedSentiment);
                   }}
                   disabled={currentPage >= totalPages - 1}
-                  className="px-3 py-1 bg-[#232042] border border-[#35315a] rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#232042]/80"
+                  className="px-3 py-1 bg-[#c4c5e14d] border border-gray-300 rounded text-sm text-to-purple disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
                 >
                   Next
                 </button>
@@ -839,7 +854,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
           )}
         </>
       ) : (
-        <div className="p-8 text-center text-gray-400">
+        <div className="p-8 text-center text-to-purple">
           <p>No recommendations available for this channel.</p>
         </div>
       )}
