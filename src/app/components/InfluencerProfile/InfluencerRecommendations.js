@@ -18,7 +18,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
   const [dateError, setDateError] = useState("");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const symbolsToTrack = [...new Set(recommendations.map(rec => rec.symbol).filter(Boolean))];
-  const { formatPrice: formatLivePrice, getPriceData } = useLivePrice(symbolsToTrack);
+  const { formatPrice: formatLivePrice, getPriceData, isSymbolLive, getPriceSource, getPriceTimestamp } = useLivePrice(symbolsToTrack);
   // const { formatPrice: formatLivePrice } = useLivePrice(symbolsToTrack);
   // const { formatPrice: formatLivePrice, getPriceData } = useLivePrice(symbolsToTrack);
   const [overallAnalysisStartDate, setOverallAnalysisStartDate] = useState(
@@ -667,7 +667,17 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                 return (
                   <tr key={rec._id} className="hover:bg-gray-100">
                     <td className="p-3 text-to-purple">
-                      {new Date(rec.publishedAt).toLocaleDateString()}
+                      {new Date(rec.publishedAt).toLocaleDateString(undefined, {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                      })}{" "}
+                      <br />
+                      {new Date(rec.publishedAt).toLocaleTimeString(undefined, {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                      })}
                     </td>
                     <td className="p-3 flex items-center gap-2">
                       <span className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center text-xs font-bold">
@@ -680,10 +690,44 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                         </div>
                       </div>
                     </td>
-                    <td className="p-3 font-semibold text-center">
-                      {formatLivePrice(rec.symbol) === "-" || formatLivePrice(rec.symbol) === "" || formatLivePrice(rec.symbol) === null || formatLivePrice(rec.symbol) === undefined
-                        ? <span style={{ color: "#2b7fff" }}>-</span>
-                        : <span className="text-to-purple">${formatLivePrice(rec.symbol)}</span>}
+                    <td className="px-2 py-3 text-center">
+                      {(() => {
+                        const priceText = formatLivePrice(rec.symbol);
+                        const isLive = isSymbolLive(rec.symbol);
+                        const source = getPriceSource(rec.symbol);
+                        const timestamp = getPriceTimestamp(rec.symbol);
+
+                        if (priceText === "-" || priceText === "" || priceText === null || priceText === undefined) {
+                          return <span className="text-red-400 font-semibold">-</span>;
+                        }
+
+                        return (
+                          <div className="flex flex-col items-center">
+                            <div className="flex items-center gap-1">
+                              <span
+                                className={`font-semibold text-sm ${isLive ? 'text-to-purple' : ''}`}
+                                style={{ color: isLive ? undefined : '#2b7fff' }}
+                              >
+                                ${priceText}
+                              </span>
+                              {!isLive && timestamp && (
+                                <div className="relative group">
+                                  <button
+                                    className="text-xs cursor-pointer"
+                                    style={{ color: "#2b7fff" }}
+                                    title={`Last updated: ${new Date(timestamp).toLocaleString()}`}
+                                  >
+                                    ⓘ
+                                  </button>
+                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+                                    Last updated: {new Date(timestamp).toLocaleString()}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </td>
                     {/* <td className="p-3 text-to-purple">-</td> */}
                     <td className="p-3 text-center">

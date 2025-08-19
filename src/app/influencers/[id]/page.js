@@ -11,7 +11,8 @@ import InfluencerRecommendationsLight from "../../components/InfluencerProfile/I
 import YearlyStatsRow from "../../components/InfluencerProfile/YearlyStatsRow";
 
 const TABS = [
-  { label: "Overview", value: "overview" },
+  { label: "Overview-light", value: "overview-light" },
+  { label: "Overview-dark", value: "overview-dark" },
   // { label: "Correlation Summary", value: "correlationSummary" },
   { label: "Correlation Summary ", value: "correlationSummaryV2" },
   // { label: "Correlation Summary V2 Dark", value: "correlationSummaryV2Dark" },
@@ -23,7 +24,7 @@ const TABS = [
 ];
 
 export default function InfluencerProfilePage() {
-  const [tab, setTab] = useState("overview");
+  const [tab, setTab] = useState("overview-light");
   const [channelData, setChannelData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -184,7 +185,7 @@ export default function InfluencerProfilePage() {
         </div>
 
         {/* Tab Content */}
-        {tab === "overview" && (
+        {tab === "overview-light" && (
           <div className="flex flex-col gap-8">
             {/* Bio & Sentiment */}
             <div className="bg-white rounded-xl p-6 mb-2 border border-gray-200">
@@ -377,6 +378,214 @@ export default function InfluencerProfilePage() {
                   </div>
                 </div>
                 <div className="text-2xl font-bold text-to-red-recomendations">
+                  {channelData.Overall?.["7_days"]
+                    ?.probablity_weighted_returns_percentage
+                    ? `${channelData.Overall["7_days"]
+                      .probablity_weighted_returns_percentage > 0
+                      ? "+"
+                      : ""
+                    }${channelData.Overall[
+                      "7_days"
+                    ].probablity_weighted_returns_percentage.toFixed(1)}%`
+                    : "N/A"}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {tab === "overview-dark" && (
+          <div className="flex flex-col gap-8">
+            {/* Bio & Sentiment */}
+            <div className="bg-[#232042]/70 rounded-xl p-6 mb-2 border border-[#35315a]">
+              <h3 className="text-lg font-bold mb-2">
+                About {channelData.influencer_name || channelData.channel_title}
+              </h3>
+              <p className="text-gray-300 mb-4">
+                {channelData.channel_description ||
+                  channelData.branding_channel_description ||
+                  "No description available."}
+              </p>
+              <div className="flex gap-8 mt-2">
+                <div className="text-center">
+                  <div className="text-xl font-bold mb-1 text-green-400">
+                    {bullishPercentage}%
+                  </div>
+                  <div className="text-xs text-gray-400">Bullish Calls</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold mb-1 text-red-400">
+                    {bearishPercentage}%
+                  </div>
+                  <div className="text-xs text-gray-400">Bearish Calls</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Performance Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-[#232042]/70 rounded-xl p-6 border border-[#35315a]">
+                <h3 className="font-semibold mb-4">
+                  Channel Performance Metrics
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Clarity Score:</span>
+                    <span className="font-semibold">
+                      {channelData.avg_clarity_of_analysis
+                        ? parseFloat(
+                          channelData.avg_clarity_of_analysis.$numberDecimal
+                        ).toFixed(1)
+                        : "N/A"}
+                      /10
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Credibility Score:</span>
+                    <span className="font-semibold">
+                      {channelData.avg_credibility_score
+                        ? parseFloat(
+                          channelData.avg_credibility_score.$numberDecimal
+                        ).toFixed(1)
+                        : "N/A"}
+                      /10
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Actionable Insights:</span>
+                    <span className="font-semibold">
+                      {channelData.avg_actionable_insights
+                        ? parseFloat(
+                          channelData.avg_actionable_insights.$numberDecimal
+                        ).toFixed(1)
+                        : "N/A"}
+                      /10
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Risk Management:</span>
+                    <span className="font-semibold">
+                      {channelData.avg_risk_management
+                        ? parseFloat(
+                          channelData.avg_risk_management.$numberDecimal
+                        ).toFixed(1)
+                        : "N/A"}
+                      /10
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Educational Value:</span>
+                    <span className="font-semibold">
+                      {channelData.avg_educational_purpose
+                        ? parseFloat(
+                          channelData.avg_educational_purpose.$numberDecimal
+                        ).toFixed(1)
+                        : "N/A"}
+                      /10
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-[#232042]/70 rounded-xl p-6 border border-[#35315a]">
+                <h3 className="font-semibold mb-4">Sentiment Analysis</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Strong Bullish:</span>
+                    <span className="font-semibold text-green-400">
+                      {channelData.total_strong_bullish || 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Mild Bullish:</span>
+                    <span className="font-semibold text-green-400">
+                      {channelData.total_mild_bullish || 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Strong Bearish:</span>
+                    <span className="font-semibold text-red-400">
+                      {channelData.total_strong_bearish || 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Mild Bearish:</span>
+                    <span className="font-semibold text-red-400">
+                      {channelData.total_mild_bearish || 0}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Charts Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-[#232042]/70 rounded-xl p-6 border border-[#35315a]">
+                <h3 className="font-semibold mb-2">30-Day Performance</h3>
+                <div className="h-40 flex items-center justify-center text-gray-400 italic bg-gradient-to-br from-purple-400/10 to-blue-400/10 rounded">
+                  {channelData.Overall?.["30_days"]
+                    ? `ROI: ${channelData.Overall["30_days"]
+                      .probablity_weighted_returns_percentage > 0
+                      ? "+"
+                      : ""
+                    }${channelData.Overall[
+                      "30_days"
+                    ].probablity_weighted_returns_percentage.toFixed(2)}%`
+                    : "No data available"}
+                </div>
+              </div>
+              <div className="bg-[#232042]/70 rounded-xl p-6 border border-[#35315a]">
+                <h3 className="font-semibold mb-2">Win Rate Analysis</h3>
+                <div className="h-40 flex items-center justify-center text-gray-400 italic bg-gradient-to-br from-purple-400/10 to-blue-400/10 rounded">
+                  {channelData.Overall?.["30_days"]
+                    ? `Win Rate: ${channelData.Overall[
+                      "30_days"
+                    ].price_probablity_of_winning_percentage.toFixed(1)}%`
+                    : "No data available"}
+                </div>
+              </div>
+            </div>
+
+            {/* Best/Worst Picks */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-[#232042]/70 rounded-xl p-6 border border-[#35315a] flex flex-col gap-2">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-2xl">🏆</span>
+                  <div>
+                    <div className="font-semibold">Best Performance</div>
+                    <div className="text-xs text-gray-400">
+                      BTC -{" "}
+                      {channelData.start_date
+                        ? new Date(channelData.start_date).toLocaleDateString()
+                        : "N/A"}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-2xl font-bold text-green-400">
+                  {channelData.Overall?.["30_days"]
+                    ?.probablity_weighted_returns_percentage
+                    ? `${channelData.Overall["30_days"]
+                      .probablity_weighted_returns_percentage > 0
+                      ? "+"
+                      : ""
+                    }${channelData.Overall[
+                      "30_days"
+                    ].probablity_weighted_returns_percentage.toFixed(1)}%`
+                    : "N/A"}
+                </div>
+              </div>
+              <div className="bg-[#232042]/70 rounded-xl p-6 border border-[#35315a] flex flex-col gap-2">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-2xl">📉</span>
+                  <div>
+                    <div className="font-semibold">7-Day Performance</div>
+                    <div className="text-xs text-gray-400">
+                      BTC -{" "}
+                      {channelData.end_date
+                        ? new Date(channelData.end_date).toLocaleDateString()
+                        : "N/A"}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-2xl font-bold text-red-400">
                   {channelData.Overall?.["7_days"]
                     ?.probablity_weighted_returns_percentage
                     ? `${channelData.Overall["7_days"]
