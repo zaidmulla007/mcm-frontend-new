@@ -196,9 +196,9 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
   const getSentimentColor = (sentiment) => {
     switch (sentiment) {
       case "Strong_Bullish":
-        return "text-to-green-recomendations";
+        return "text-to-purple-400";
       case "Mild_Bullish":
-        return "text-to-green-recomendations";
+        return "text-to-purple-400";
       case "Strong_Bearish":
         return "text-to-red-recomendations";
       case "Mild_Bearish":
@@ -416,7 +416,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                       </td>
                       <td
                         className={`p-2 text-center font-semibold ${analytics.average_roi["1H"] > 0
-                          ? "text-to-green-recomendations"
+                          ? "text-to-purple-400"
                           : analytics.average_roi["1H"] < 0
                             ? "text-to-red-recomendations"
                             : "text-to-purple-400"
@@ -431,7 +431,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                       </td>
                       <td
                         className={`p-2 text-center font-semibold ${analytics.average_roi["24H"] > 0
-                          ? "text-to-green-recomendations"
+                          ? "text-to-purple-400"
                           : analytics.average_roi["24H"] < 0
                             ? "text-to-red-recomendations"
                             : "text-to-purple-400"
@@ -446,7 +446,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                       </td>
                       <td
                         className={`p-2 text-center font-semibold ${analytics.average_roi["7D"] > 0
-                          ? "text-to-green-recomendations"
+                          ? "text-to-purple-400"
                           : analytics.average_roi["7D"] < 0
                             ? "text-to-red-recomendations"
                             : "text-to-purple-400"
@@ -461,7 +461,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                       </td>
                       <td
                         className={`p-2 text-center font-semibold ${analytics.average_roi["30D"] > 0
-                          ? "text-to-green-recomendations"
+                          ? "text-to-purple-400"
                           : analytics.average_roi["30D"] < 0
                             ? "text-to-red-recomendations"
                             : "text-to-purple-400"
@@ -476,7 +476,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                       </td>
                       <td
                         className={`p-2 text-center font-semibold ${analytics.average_roi["60D"] > 0
-                          ? "text-to-green-recomendations"
+                          ? "text-to-purple-400"
                           : analytics.average_roi["60D"] < 0
                             ? "text-to-red-recomendations"
                             : "text-to-purple-400"
@@ -491,7 +491,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                       </td>
                       <td
                         className={`p-2 text-center font-semibold ${analytics.average_roi["90D"] > 0
-                          ? "text-to-green-recomendations"
+                          ? "text-to-purple-400"
                           : analytics.average_roi["90D"] < 0
                             ? "text-to-red-recomendations"
                             : "text-to-purple-400"
@@ -506,7 +506,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                       </td>
                       <td
                         className={`p-2 text-center font-semibold ${analytics.average_roi["180D"] > 0
-                          ? "text-to-green-recomendations"
+                          ? "text-to-purple-400"
                           : analytics.average_roi["180D"] < 0
                             ? "text-to-red-recomendations"
                             : "text-to-purple-400"
@@ -521,7 +521,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                       </td>
                       <td
                         className={`p-2 text-center font-semibold ${analytics.average_roi["1Y"] > 0
-                          ? "text-to-green-recomendations"
+                          ? "text-to-purple-400"
                           : analytics.average_roi["1Y"] < 0
                             ? "text-to-red-recomendations"
                             : "text-to-purple-400"
@@ -569,14 +569,14 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                       <td className="p-3 font-medium text-to-purple">
                         Sentiment Distribution
                       </td>
-                      <td className="p-3 text-center text-to-green-recomendations font-semibold">
+                      <td className="p-3 text-center text-to-purple-400 font-semibold">
                         {formatNumberWithCommas(
                           analytics.sentiment_analysis.sentiment_breakdown[
                           "Strong_Bullish"
                           ] || 0
                         )}
                       </td>
-                      <td className="p-3 text-center text-to-green-recomendations font-semibold">
+                      <td className="p-3 text-center text-to-purple-400 font-semibold">
                         {formatNumberWithCommas(
                           analytics.sentiment_analysis.sentiment_breakdown[
                           "Mild_Bullish"
@@ -742,7 +742,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                     <td className="p-3 text-to-purple">{formatPrice(rec.base?.price)}</td>
                     <td
                       className={`p-3 font-semibold ${oneHourROI > 0
-                        ? "text-to-green-recomendations"
+                        ? "text-to-purple-400"
                         : oneHourROI < 0
                           ? "text-to-red-recomendations"
                           : "text-to-purple-400"
@@ -756,7 +756,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                     </td>
                     <td
                       className={`p-3 font-semibold ${oneDayROI > 0
-                        ? "text-to-green-recomendations"
+                        ? "text-to-purple-400"
                         : oneDayROI < 0
                           ? "text-to-red-recomendations"
                           : "text-to-purple-400"
@@ -770,7 +770,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                     </td>
                     <td
                       className={`p-3 font-semibold ${sevenDayROI > 0
-                        ? "text-to-green-recomendations"
+                        ? "text-to-purple-400"
                         : sevenDayROI < 0
                           ? "text-to-red-recomendations"
                           : "text-to-purple-400"
@@ -783,7 +783,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                     </td>
                     <td
                       className={`p-3 font-semibold ${thirtyDayROI > 0
-                        ? "text-to-green-recomendations"
+                        ? "text-to-purple-400"
                         : thirtyDayROI < 0
                           ? "text-to-red-recomendations"
                           : "text-to-purple-400"
@@ -796,7 +796,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                     </td>
                     <td
                       className={`p-3 font-semibold ${sixtyDayROI > 0
-                        ? "text-to-green-recomendations"
+                        ? "text-to-purple-400"
                         : sixtyDayROI < 0
                           ? "text-to-red-recomendations"
                           : "text-to-purple-400"
@@ -809,7 +809,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                     </td>
                     <td
                       className={`p-3 font-semibold ${ninetyDayROI > 0
-                        ? "text-to-green-recomendations"
+                        ? "text-to-purple-400"
                         : ninetyDayROI < 0
                           ? "text-to-red-recomendations"
                           : "text-to-purple-400"
@@ -822,7 +822,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                     </td>
                     <td
                       className={`p-3 font-semibold ${oneEightyDayROI > 0
-                        ? "text-to-green-recomendations"
+                        ? "text-to-purple-400"
                         : oneEightyDayROI < 0
                           ? "text-to-red-recomendations"
                           : "text-to-purple-400"
@@ -835,7 +835,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                     </td>
                     <td
                       className={`p-3 font-semibold ${oneYearROI > 0
-                        ? "text-to-green-recomendations"
+                        ? "text-to-purple-400"
                         : oneYearROI < 0
                           ? "text-to-red-recomendations"
                           : "text-to-purple-400"
