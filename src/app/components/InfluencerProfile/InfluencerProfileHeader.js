@@ -59,12 +59,12 @@ export default function InfluencerProfileHeader({ channelData }) {
                     <span className="text-white">
                       {channelData.Overall?.start_date
                         ? new Date(
-                            channelData.Overall.start_date
-                          ).toLocaleDateString("en-GB", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          })
+                          channelData.Overall.start_date
+                        ).toLocaleDateString("en-GB", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        })
                         : "Not available"}
                     </span>
                   </div>
@@ -78,12 +78,12 @@ export default function InfluencerProfileHeader({ channelData }) {
                     <span className="text-white">
                       {channelData.Overall?.end_date
                         ? new Date(
-                            channelData.Overall.end_date
-                          ).toLocaleDateString("en-GB", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          })
+                          channelData.Overall.end_date
+                        ).toLocaleDateString("en-GB", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        })
                         : "Not available"}
                     </span>
                   </div>
@@ -94,7 +94,15 @@ export default function InfluencerProfileHeader({ channelData }) {
                 <div className="flex flex-col gap-1">
                   <div className="text-sm text-gray-400 flex items-center gap-2">
                     <span>🔄 Last System Updated:</span>
-                    <span className="text-white">14-04-2025 (UTC)</span>
+                    <span className="text-white">{channelData.last_updated
+                      ? `${new Date(channelData.last_updated).toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        timeZone: "UTC",
+                      })}`
+                      : "Not available"}
+                    </span>
                   </div>
                   <span className="text-xs text-gray-500 ml-10">
                     (dd-mm-yyyy)

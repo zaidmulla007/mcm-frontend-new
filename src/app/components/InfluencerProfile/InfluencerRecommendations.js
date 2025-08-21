@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import axios from "../../api/axios";
 import { useLivePrice } from "./useLivePrice";
+import { FaEye } from "react-icons/fa";
 
 export default function InfluencerRecommendations({ channelID, channelData }) {
   const [recommendations, setRecommendations] = useState([]);
@@ -246,8 +247,43 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
     getRecommendations(0, 100);
   };
 
+  const scrollToFilters = () => {
+    // First, show advanced filters to ensure all filters are visible
+    setShowAdvancedFilters(true);
+
+    // Wait a brief moment for the advanced filters to render
+    setTimeout(() => {
+      // Try to find the top of the recommendations component first
+      const topSection = document.getElementById("influencer-recommendations-top");
+
+      if (topSection) {
+        // Get the position of the element
+        const rect = topSection.getBoundingClientRect();
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+        // Scroll to a position slightly above the component to ensure all filters are visible
+        window.scrollTo({
+          top: scrollTop + rect.top - 100, // 100px offset to show more context above
+          behavior: "smooth"
+        });
+      } else {
+        // Fallback: scroll to filters section directly
+        const filtersSection = document.getElementById("influencer-filters-section");
+        if (filtersSection) {
+          const rect = filtersSection.getBoundingClientRect();
+          const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+          window.scrollTo({
+            top: scrollTop + rect.top - 100, // 100px offset
+            behavior: "smooth"
+          });
+        }
+      }
+    }, 50); // Small delay to ensure advanced filters are rendered
+  };
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto text-to-purple">
+    <div id="influencer-recommendations-top" className="bg-white rounded-xl border border-gray-200 overflow-x-auto text-to-purple">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-6 border-b border-gray-200">
         <h3 className="font-normal text-to-purple">
           Number of mentions of{" "}
@@ -274,7 +310,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
           </span>
           )
         </h3>
-        <div className="flex flex-col gap-3 items-end">
+        <div id="influencer-filters-section" className="flex flex-col gap-3 items-end">
           {/* Main Filters Row */}
           <div className="w-full md:w-auto overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
             <div className="flex gap-3 items-center min-w-max px-2 py-1">
@@ -616,8 +652,30 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
           <table className="min-w-full text-sm">
             <thead>
               <tr className="bg-[#e8e8e8] text-to-purple">
-                <th className="p-2 text-left font-semibold">Date of Post</th>
-                <th className="p-2 text-center font-semibold">Coin</th>
+                <th className="p-2 text-left font-semibold">
+                  <div className="flex items-center gap-2">
+                    <span>Date of Post UTC</span>
+                    <button
+                      onClick={scrollToFilters}
+                      className="text-blue-600 hover:text-blue-700 transition-colors"
+                      title="View filters"
+                    >
+                      <FaEye size={16} />
+                    </button>
+                  </div>
+                </th>
+                <th className="p-2 text-center font-semibold">
+                  <div className="flex items-center justify-center gap-2">
+                    <span>Coin</span>
+                    <button
+                      onClick={scrollToFilters}
+                      className="text-blue-600 hover:text-blue-700 transition-colors"
+                      title="View filters"
+                    >
+                      <FaEye size={16} />
+                    </button>
+                  </div>
+                </th>
                 <th className="p-2 text-center font-semibold">
                   <div className="flex flex-col items-center">
                     {/* Main Label */}
@@ -650,6 +708,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                 <th className="p-2 text-left font-semibold">90D ROI</th>
                 <th className="p-2 text-left font-semibold">180D ROI</th>
                 <th className="p-2 text-left font-semibold">1Y ROI</th>
+                <th className="p-2 text-center font-semibold">Video Title</th>
                 <th className="p-2 text-left font-semibold">Video</th>
               </tr>
             </thead>
@@ -846,6 +905,9 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                           oneYearROI
                         )}%`
                         : "N/A"}
+                    </td>
+                    <td className="p-3">
+                      {rec.title}
                     </td>
                     <td className="p-3">
                       <a
