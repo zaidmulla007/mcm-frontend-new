@@ -12,13 +12,14 @@ import YearlyStatsRow from "../../components/InfluencerProfile/YearlyStatsRow";
 
 const TABS = [
   { label: "Overviewoption1", value: "overview-light" },
+  { label: "Overviewlight2", value: "overview-light1" },
   { label: "Overviewoption2", value: "overview-dark" },
   { label: "Overviewoption3", value: "overview1" },
   { label: "Overviewoption4", value: "overview2" },
   { label: "Overviewoption5", value: "overview3" },
   { label: "Overviewoption6", value: "overview4" },
   // { label: "Correlation Summary", value: "correlationSummary" },
-  { label: "Performance Summary ", value: "correlationSummaryV2" },
+  { label: "Performance Summary", value: "correlationSummaryV2" },
   // { label: "Correlation Summary V2 Dark", value: "correlationSummaryV2Dark" },
   // { label: "Correlation Summary V2 Light", value: "correlationSummaryV2Light" },
   { label: "Recommendations", value: "recommendations" },
@@ -393,38 +394,21 @@ export default function InfluencerProfilePage() {
             {/* Performance Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white rounded-xl p-6 border border-gray-200">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-semibold text-[#0c0023]">
-                    Channel Performance Metrics
-                  </h3>
-                  {channelData?.Ai_scoring?.Yearly && (
-                    <select
-                      value={selectedMetricsYear}
-                      onChange={(e) => setSelectedMetricsYear(e.target.value)}
-                      className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg text-to-purple"
-                    >
-                      {Object.keys(channelData.Ai_scoring.Yearly)
-                        .sort((a, b) => b - a)
-                        .map((year) => (
-                          <option key={year} value={year}>
-                            {year}
-                          </option>
-                        ))}
-                    </select>
-                  )}
-                </div>
+                <h3 className="font-semibold text-[#0c0023] mb-4">
+                  Channel Performance Metrics
+                </h3>
                 <div className="space-y-3">
                   {(() => {
-                    // Get metrics data based on selected year
-                    const metricsData = channelData?.Ai_scoring?.Yearly?.[selectedMetricsYear] ? [
-                      { key: 'clarity', label: 'Clarity Score', value: channelData.Ai_scoring.Yearly[selectedMetricsYear].avg_clarity_of_analysis || 0 },
-                      { key: 'credibility', label: 'Credibility Score', value: channelData.Ai_scoring.Yearly[selectedMetricsYear].avg_credibility_score || 0 },
-                      { key: 'insights', label: 'Actionable Insights', value: channelData.Ai_scoring.Yearly[selectedMetricsYear].avg_actionable_insights || 0 },
-                      { key: 'risk', label: 'Risk Management', value: channelData.Ai_scoring.Yearly[selectedMetricsYear].avg_risk_management || 0 },
-                      { key: 'education', label: 'Educational Value', value: channelData.Ai_scoring.Yearly[selectedMetricsYear].avg_educational_purpose || 0 },
-                      { key: 'recommendations', label: 'Recommendations', value: channelData.Ai_scoring.Yearly[selectedMetricsYear].avg_recommendations || 0 },
-                      { key: 'coins', label: 'View on Coins', value: channelData.Ai_scoring.Yearly[selectedMetricsYear].avg_view_on_coins || 0 },
-                      { key: 'overall', label: 'Overall Score', value: channelData.Ai_scoring.Yearly[selectedMetricsYear].avg_overall_score || 0 }
+                    // Get metrics data based on selected year from Channel Summary Analysis
+                    const metricsData = (summaryType === "yearly" && selectedPeriod && channelData?.Ai_scoring?.Yearly?.[selectedPeriod]) ? [
+                      { key: 'clarity', label: 'Clarity Score', value: channelData.Ai_scoring.Yearly[selectedPeriod].avg_clarity_of_analysis || 0 },
+                      { key: 'credibility', label: 'Credibility Score', value: channelData.Ai_scoring.Yearly[selectedPeriod].avg_credibility_score || 0 },
+                      { key: 'insights', label: 'Actionable Insights', value: channelData.Ai_scoring.Yearly[selectedPeriod].avg_actionable_insights || 0 },
+                      { key: 'risk', label: 'Risk Management', value: channelData.Ai_scoring.Yearly[selectedPeriod].avg_risk_management || 0 },
+                      { key: 'education', label: 'Educational Value', value: channelData.Ai_scoring.Yearly[selectedPeriod].avg_educational_purpose || 0 },
+                      { key: 'recommendations', label: 'Recommendations', value: channelData.Ai_scoring.Yearly[selectedPeriod].avg_recommendations || 0 },
+                      { key: 'coins', label: 'View on Coins', value: channelData.Ai_scoring.Yearly[selectedPeriod].avg_view_on_coins || 0 },
+                      { key: 'overall', label: 'Overall Score', value: channelData.Ai_scoring.Yearly[selectedPeriod].avg_overall_score || 0 }
                     ] : [
                       { key: 'clarity', label: 'Clarity Score', value: channelData.avg_clarity_of_analysis ? parseFloat(channelData.avg_clarity_of_analysis.$numberDecimal) : 0 },
                       { key: 'credibility', label: 'Credibility Score', value: channelData.avg_credibility_score ? parseFloat(channelData.avg_credibility_score.$numberDecimal) : 0 },
@@ -781,6 +765,571 @@ export default function InfluencerProfilePage() {
             </div>
           </div>
         )}
+        {tab === "overview-light1" && (
+          <div className="flex flex-col gap-8">
+            {/* Bio & Sentiment */}
+            <div className="bg-white rounded-xl p-6 mb-2 border border-gray-200">
+              <h3 className="text-lg font-bold mb-2 text-[#0c0023]">
+                About {channelData.influencer_name || channelData.channel_title}
+              </h3>
+              <p className="text-to-purple mb-4">
+                {channelData.channel_description ||
+                  channelData.branding_channel_description ||
+                  "No description available."}
+              </p>
+              <div className="flex gap-8 mt-6">
+                <div className="bg-green-100 rounded-2xl p-6 flex-1 text-center transform hover:scale-105 transition">
+                  <div className="text-5xl font-black text-green-600 mb-2">
+                    {bullishPercentage}%
+                  </div>
+                  <div className="text-sm font-bold text-green-700 uppercase">ROI</div>
+                  <div className="text-sm text-green-700 ">(Avg. Rate of Investment)</div>
+                  {/* <span className="text-to-purple text-xs">Cumulative Rate of Return is Calculated from date of channel launch and last system update</span> */}
+                </div>
+                <div className="bg-green-100 rounded-2xl p-6 flex-1 text-center transform hover:scale-105 transition">
+                  <div className="text-5xl font-black text-green-600 mb-2">
+                    {bearishPercentage}%
+                  </div>
+                  <div className="text-sm font-bold text-green-700 uppercase">RRR</div>
+                  <div className="text-sm text-green-700">(Avg. Rate of Return)</div>
+                </div>
+                <div className="bg-green-100 rounded-2xl p-6 flex-1 text-center transform hover:scale-105 transition">
+                  <div className="text-5xl font-black text-green-600 mb-2">
+                    12
+                  </div>
+                  <div className="text-sm font-bold text-green-700 uppercase">MCM Ranking</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Summary Dropdown Section */}
+            <div className="bg-white rounded-xl p-6 mb-2 border border-gray-200">
+              <h3 className="text-lg font-bold mb-4 text-[#0c0023]">
+                Channel Summary Analysis
+              </h3>
+
+              {/* Type Selection Buttons */}
+              <div className="flex gap-2 mb-4">
+                <button
+                  onClick={() => {
+                    setSummaryType("yearly");
+                    setSelectedPeriod("");
+                  }}
+                  className={`px-4 py-2 rounded-lg font-medium transition ${summaryType === "yearly"
+                    ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
+                    : "bg-gray-100 text-[#0c0023] hover:bg-gray-200"
+                    }`}
+                >
+                  Year
+                </button>
+                <button
+                  onClick={() => {
+                    setSummaryType("quarterly");
+                    setSelectedPeriod("");
+                  }}
+                  className={`px-4 py-2 rounded-lg font-medium transition ${summaryType === "quarterly"
+                    ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
+                    : "bg-gray-100 text-[#0c0023] hover:bg-gray-200"
+                    }`}
+                >
+                  Quarter
+                </button>
+                <button
+                  onClick={() => {
+                    setSummaryType("overall");
+                    setSelectedPeriod("overall");
+                  }}
+                  className={`px-4 py-2 rounded-lg font-medium transition ${summaryType === "overall"
+                    ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
+                    : "bg-gray-100 text-[#0c0023] hover:bg-gray-200"
+                    }`}
+                >
+                  Cumulative
+                </button>
+              </div>
+
+              {/* Period Selection Dropdown */}
+              {summaryType !== "overall" && (
+                <div className="mb-4">
+                  <select
+                    value={selectedPeriod}
+                    onChange={(e) => setSelectedPeriod(e.target.value)}
+                    className="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-lg text-[#0c0023] bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select a {summaryType === "quarterly" ? "quarter" : "year"}...</option>
+                    {summaryType === "quarterly"
+                      ? channelData?.Gemini?.Quarterly && Object.keys(channelData.Gemini.Quarterly)
+                        .sort((a, b) => {
+                          const [yearA, qA] = a.split('_');
+                          const [yearB, qB] = b.split('_');
+                          if (yearA !== yearB) return parseInt(yearB) - parseInt(yearA);
+                          return qB.localeCompare(qA);
+                        })
+                        .map(quarter => (
+                          <option key={quarter} value={quarter}>
+                            {quarter.replace('_', ' ')}
+                          </option>
+                        ))
+                      : channelData?.Gemini?.Yearly && Object.keys(channelData.Gemini.Yearly)
+                        .sort((a, b) => parseInt(b) - parseInt(a))
+                        .map(year => (
+                          <option key={year} value={year}>
+                            {year}
+                          </option>
+                        ))
+                    }
+                  </select>
+                </div>
+              )}
+
+              {/* Summary Display */}
+              {selectedPeriod && (
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  {(() => {
+                    const data = summaryType === "quarterly"
+                      ? channelData?.Gemini?.Quarterly?.[selectedPeriod]
+                      : summaryType === "yearly"
+                        ? channelData?.Gemini?.Yearly?.[selectedPeriod]
+                        : channelData?.Gemini?.Overall;
+
+                    if (!data) return <p className="text-gray-500">No data available for this period.</p>;
+
+                    return (
+                      <div className="space-y-4">
+                        <div className="flex flex-wrap gap-4 mb-4">
+                          <div className="bg-white p-3 rounded-lg border border-gray-200 flex-1 min-w-[200px]">
+                            <div className="text-sm text-gray-600">Period</div>
+                            <div className="font-semibold text-[#0c0023]">
+                              {summaryType === "quarterly"
+                                ? data.quarter?.replace('_', ' ')
+                                : summaryType === "yearly"
+                                  ? data.year
+                                  : "Overall"}
+                            </div>
+                          </div>
+                          <div className="bg-white p-3 rounded-lg border border-gray-200 flex-1 min-w-[200px]">
+                            <div className="text-sm text-gray-600">Credibility Score</div>
+                            <div className="font-semibold text-[#0c0023]">
+                              {data.overall_credibility_score}/10
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <h4 className="font-semibold text-[#0c0023] mb-2">Summary</h4>
+                          <p className="text-gray-700 leading-relaxed">{data.summary}</p>
+                        </div>
+
+                        {data.posting_frequency_analysis && (
+                          <div>
+                            <h4 className="font-semibold text-[#0c0023] mb-2">Posting Frequency Analysis</h4>
+                            <p className="text-gray-700 leading-relaxed">{data.posting_frequency_analysis}</p>
+                          </div>
+                        )}
+
+                        {data.credibility_explanation && (
+                          <div>
+                            <h4 className="font-semibold text-[#0c0023] mb-2">Credibility Analysis</h4>
+                            <p className="text-gray-700 leading-relaxed">{data.credibility_explanation}</p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
+
+            {/* Performance Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-[#0c0023]">
+                    Channel Performance Metrics
+                  </h3>
+                  <button
+                    onClick={() => setTab("correlationSummaryV2")}
+                    className="px-3 py-1.5 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-md"
+                  >
+                    More Details
+                  </button>
+                </div>
+
+                <div className="space-y-6">
+                  {summaryType === "yearly" && channelData?.Ai_scoring?.Yearly
+                    ? Object.entries(channelData.Ai_scoring.Yearly).map(([year, data]) => {
+                      const metricsData = [
+                        { key: "insights", label: "Actionable Insights", value: data.avg_actionable_insights || 0 },
+                        { key: "risk", label: "Risk Management", value: data.avg_risk_management || 0 },
+                        { key: "education", label: "Educational Value", value: data.avg_educational_purpose || 0 },
+                      ];
+
+                      const validMetrics = metricsData.filter((metric) => metric.value > 0);
+
+                      return (
+                        <div key={year} className="space-y-3">
+                          <h4 className="text-md font-semibold text-[#0c0023]">{year}</h4>
+                          {validMetrics.length === 0 ? (
+                            <div className="h-20 flex items-center justify-center text-gray-500 italic">
+                              No performance data available
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              {validMetrics.map((metric) => (
+                                <div key={metric.key} className="flex items-center justify-between">
+                                  <div className="flex items-center w-48">
+                                    <span className="text-sm text-gray-600 font-medium">{metric.label}</span>
+                                  </div>
+                                  <div className="flex-1 mx-4">
+                                    <div className="bg-gray-200 rounded-full h-3 relative overflow-hidden">
+                                      <div
+                                        className="h-full bg-gradient-to-r from-yellow-300 via-orange-300 to-red-300 rounded-full transition-all duration-500 ease-out"
+                                        style={{
+                                          width: `${(metric.value / 10) * 100}%`,
+                                          minWidth: metric.value > 0 ? "8px" : "0px",
+                                        }}
+                                      ></div>
+                                    </div>
+                                  </div>
+                                  <div className="w-16 text-right">
+                                    <span className="text-sm font-semibold text-[#0c0023]">
+                                      {metric.value.toFixed(1)}/10
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                    : (
+                      <div className="h-40 flex items-center justify-center text-gray-500 italic">
+                        No yearly performance data available
+                      </div>
+                    )}
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <h3 className="font-semibold mb-4 text-[#0c0023]">Sentiment Analysis</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-to-purple">Strong Bullish:</span>
+                    <span className="font-semibold text-to-green-recomendations">
+                      {channelData.total_strong_bullish || 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-to-purple">Mild Bullish:</span>
+                    <span className="font-semibold text-to-green-recomendations">
+                      {channelData.total_mild_bullish || 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-to-purple">Strong Bearish:</span>
+                    <span className="font-semibold text-to-red-recomendations">
+                      {channelData.total_strong_bearish || 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-to-purple">Mild Bearish:</span>
+                    <span className="font-semibold text-to-red-recomendations">
+                      {channelData.total_mild_bearish || 0}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Charts Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-[#0c0023]">
+                    Performance Overview (ROI)
+                  </h3>
+                  <button
+                    onClick={() => setTab("recommendations")}
+                    className="px-3 py-1.5 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-md"
+                  >
+                    More Details
+                  </button>
+                </div>
+
+                <div className="space-y-8">
+                  {summaryType === "yearly" && channelData?.Yearly
+                    ? Object.entries(channelData.Yearly).map(([year, dataSource]) => {
+                      const timeFrames = [
+                        { key: "1_hour", label: "1 Hour" },
+                        { key: "24_hours", label: "24 Hours" },
+                        { key: "7_days", label: "7 Days" },
+                        { key: "30_days", label: "30 Days" },
+                        { key: "60_days", label: "60 Days" },
+                        { key: "90_days", label: "90 Days" },
+                        { key: "180_days", label: "180 Days" },
+                        { key: "1_year", label: "1 Year" },
+                      ];
+
+                      const performanceData = timeFrames.map((tf) => ({
+                        label: tf.label,
+                        value: dataSource?.[tf.key]?.probablity_weighted_returns_percentage || 0,
+                      }));
+
+                      const hasData = performanceData.some((d) => d.value !== 0);
+
+                      return (
+                        <div key={year} className="space-y-4">
+                          {/* Year heading */}
+                          <h4 className="text-md font-semibold text-[#0c0023]">{year}</h4>
+
+                          {!hasData ? (
+                            <div className="h-40 flex items-center justify-center text-gray-400 italic">
+                              No performance data available
+                            </div>
+                          ) : (
+                            <div className="h-64 flex flex-col">
+                              <div className="flex-1 flex items-center">
+                                {/* Y-axis labels */}
+                                <div className="flex flex-col justify-between pr-4 min-w-[100px]">
+                                  {[...performanceData].reverse().map((data, index) => (
+                                    <div
+                                      key={index}
+                                      className="text-sm text-gray-700 font-medium py-1"
+                                    >
+                                      {data.label}
+                                    </div>
+                                  ))}
+                                </div>
+
+                                {/* Chart area */}
+                                <div className="flex-1 relative h-full">
+                                  {/* Background grid */}
+                                  <div className="absolute inset-0 grid grid-cols-10">
+                                    {[...Array(10)].map((_, i) => (
+                                      <div key={i} className="border-r border-gray-200"></div>
+                                    ))}
+                                  </div>
+
+                                  {/* Bars */}
+                                  <div className="relative h-full flex flex-col justify-between py-2">
+                                    {[...performanceData].reverse().map((data, index) => {
+                                      const barWidth = Math.abs(data.value);
+                                      const isPositive = data.value >= 0;
+
+                                      return (
+                                        <div
+                                          key={index}
+                                          className="flex items-center relative"
+                                        >
+                                          <div
+                                            className={`h-6 ${isPositive
+                                              ? "bg-gradient-to-r from-green-500 to-green-600"
+                                              : "bg-gradient-to-r from-red-500 to-red-600"
+                                              } rounded-r shadow-sm`}
+                                            style={{
+                                              width: `${barWidth}%`,
+                                              maxWidth: "100%",
+                                              transition: "all 0.3s ease",
+                                            }}
+                                          >
+                                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-to-purple text-xs font-semibold">
+                                              {data.value > 0 ? "+" : ""}
+                                              {data.value.toFixed(1)}%
+                                            </span>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+
+                                  {/* X-axis labels */}
+                                  <div className="absolute -bottom-6 inset-x-0 flex justify-between">
+                                    {[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map(
+                                      (val) => (
+                                        <div key={val} className="text-xs text-gray-500">
+                                          {val}
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Bottom label */}
+                              <div className="text-center mt-8 text-sm text-gray-600">
+                                Performance Percentage (ROI)
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                    : (
+                      <div className="h-40 flex items-center justify-center text-gray-400 italic">
+                        No yearly performance data available
+                      </div>
+                    )}
+                </div>
+              </div>
+              <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <h3 className="font-semibold mb-4 text-[#0c0023]">Win Rate Analysis</h3>
+                <div className="space-y-8">
+                  {summaryType === "yearly" && channelData?.normal?.Yearly
+                    ? Object.entries(channelData.normal.Yearly).map(([year, dataSource]) => {
+                      const periods = [
+                        { key: '1_hour', label: '1 Hour' },
+                        { key: '24_hours', label: '24 Hours' },
+                        { key: '7_days', label: '7 Days' },
+                        { key: '30_days', label: '30 Days' },
+                        { key: '60_days', label: '60 Days' },
+                        { key: '90_days', label: '90 Days' },
+                        { key: '180_days', label: '180 Days' },
+                        { key: '1_year', label: '1 Year' }
+                      ];
+
+                      const winRates = periods.map(period => ({
+                        ...period,
+                        value: dataSource?.[period.key]?.price_probablity_of_winning_percentage || 0
+                      }));
+
+                      const maxWinRate = Math.max(...winRates.map(item => item.value), 100);
+                      const hasData = winRates.some(item => item.value !== 0);
+
+                      return (
+                        <div key={year} className="space-y-4">
+                          {/* Year heading */}
+                          <h4 className="text-md font-semibold text-[#0c0023]">{year}</h4>
+
+                          {!hasData ? (
+                            <div className="h-40 flex items-center justify-center text-gray-500 italic">
+                              No win rate data available
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              {winRates.map((period) => (
+                                <div key={period.key} className="flex items-center justify-between">
+                                  <div className="flex items-center w-32">
+                                    <span className="text-sm text-gray-600 font-medium">{period.label}</span>
+                                  </div>
+                                  <div className="flex-1 mx-4">
+                                    <div className="bg-gray-200 rounded-full h-3 relative overflow-hidden">
+                                      <div
+                                        className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500 ease-out"
+                                        style={{
+                                          width: `${(period.value / maxWinRate) * 100}%`,
+                                          minWidth: period.value > 0 ? '8px' : '0px'
+                                        }}
+                                      ></div>
+                                    </div>
+                                  </div>
+                                  <div className="w-16 text-right">
+                                    <span className="text-sm font-semibold text-[#0c0023]">
+                                      {period.value > 0 ? `${period.value.toFixed(1)}%` : 'N/A'}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                    : (
+                      <div className="h-40 flex items-center justify-center text-gray-500 italic">
+                        No yearly win rate data available
+                      </div>
+                    )}
+                </div>
+              </div>
+            </div>
+
+            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white rounded-xl p-6 border border-gray-200 flex flex-col gap-2">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-2xl">🏆</span>
+                  <div>
+                    <div className="font-semibold text-[#0c0023]">Total No. of Videos Posted</div>
+                  </div>
+                </div>
+                <div className="text-2xl font-bold text-to-purple">
+                  {channelData.total_records || 0}
+                </div>
+              </div>
+              <div className="bg-white rounded-xl p-6 border border-gray-200 flex flex-col gap-2">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-2xl">📉</span>
+                  <div>
+                    <div className="font-semibold text-[#0c0023]">Crypto Related Videos -overall period</div>
+                  </div>
+                </div>
+                <div className="text-2xl font-bold text-to-purple">
+                  {channelData.crypto_related || 0}
+                </div>
+              </div>
+            </div> */}
+            {/* Best/Worst Picks */}
+            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white rounded-xl p-6 border border-gray-200 flex flex-col gap-2">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-2xl">🏆</span>
+                  <div>
+                    <div className="font-semibold text-[#0c0023]">Best Performance</div>
+                    <div className="text-xs text-to-purple">
+                      BTC -{" "}
+                      {channelData.start_date
+                        ? new Date(channelData.start_date).toLocaleDateString()
+                        : "N/A"}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-2xl font-bold text-to-green-recomendations">
+                  {(() => {
+                    const dataSource = (summaryType === "yearly" && selectedPeriod)
+                      ? channelData.Yearly?.[selectedPeriod]
+                      : channelData.Overall;
+                    const performanceValue = dataSource?.["30_days"]?.probablity_weighted_returns_percentage;
+
+                    return performanceValue
+                      ? `${performanceValue > 0 ? "+" : ""}${performanceValue.toFixed(1)}%`
+                      : "N/A";
+                  })()}
+                </div>
+              </div>
+              <div className="bg-white rounded-xl p-6 border border-gray-200 flex flex-col gap-2">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-2xl">📉</span>
+                  <div>
+                    <div className="font-semibold text-[#0c0023]">7-Day Performance</div>
+                    <div className="text-xs text-to-purple">
+                      BTC -{" "}
+                      {channelData.end_date
+                        ? new Date(channelData.end_date).toLocaleDateString()
+                        : "N/A"}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-2xl font-bold text-to-red-recomendations">
+                  {(() => {
+                    const dataSource = (summaryType === "yearly" && selectedPeriod)
+                      ? channelData.Yearly?.[selectedPeriod]
+                      : channelData.Overall;
+                    const performanceValue = dataSource?.["7_days"]?.probablity_weighted_returns_percentage;
+
+                    return performanceValue
+                      ? `${performanceValue > 0 ? "+" : ""}${performanceValue.toFixed(1)}%`
+                      : "N/A";
+                  })()}
+                </div>
+              </div>
+            </div> */}
+            <YearlyPerformanceTable
+              yearlyData={yearlyData}
+              quarterlyData={quarterlyData}
+              channelData={channelData}
+            />
+          </div>
+        )}
         {tab === "overview-dark" && (
           <div className="flex flex-col gap-8">
             {/* Bio & Sentiment */}
@@ -1013,6 +1562,7 @@ export default function InfluencerProfilePage() {
             <YearlyPerformanceTable
               yearlyData={yearlyData}
               quarterlyData={quarterlyData}
+              channelData={channelData}
             />
           </div>
         )}

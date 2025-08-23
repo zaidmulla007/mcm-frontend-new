@@ -2,7 +2,7 @@ import { useState } from "react";
 import SentimentGauge from "./SentimentGauge";
 import GaugeComponent from "react-gauge-component";
 
-export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
+export default function YearlyPerformanceTable({ yearlyData, quarterlyData, channelData }) {
     const [selectedTimeframe, setSelectedTimeframe] = useState("30");
     const [selectedPeriod, setSelectedPeriod] = useState("");
     const [selectedSentiment, setSelectedSentiment] = useState("");
@@ -15,6 +15,12 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
     const availableYears = Object.keys(yearlyData || {})
         .sort()
         .reverse();
+
+    // Get hyperactive yearly data from channelData
+    const hyperactiveYearly = channelData?.hyperactive?.Yearly || {};
+
+    // Get normal yearly data from channelData
+    const normalYearly = channelData?.normal?.Yearly || {};
 
     // Define getWinColor function at component level
     const getWinColor = (value) => {
@@ -169,6 +175,84 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
         }
 
         return getYearDataWithTimeframe(yearKey);
+    };
+
+    // Calculate hyperactivity for each year
+    const calculateHyperactiveYearMetrics = (yearKey) => {
+        // Handle dynamic columns (last 7 days, last 15 days) - always return null to show "-"
+        if (yearKey === "last7days" || yearKey === "last15days") {
+            return null;
+        }
+
+        const hyperactiveData = hyperactiveYearly[yearKey];
+        if (!hyperactiveData) return null;
+
+        const timeframeKey =
+            selectedTimeframe === "1"
+                ? "1_hour"
+                : selectedTimeframe === "24"
+                    ? "24_hours"
+                    : selectedTimeframe === "7"
+                        ? "7_days"
+                        : selectedTimeframe === "30"
+                            ? "30_days"
+                            : selectedTimeframe === "90"
+                                ? "90_days"
+                                : selectedTimeframe === "180"
+                                    ? "180_days"
+                                    : selectedTimeframe === "365"
+                                        ? "1_year"
+                                        : "30_days";
+
+        const timeframeData = hyperactiveData[timeframeKey];
+        if (!timeframeData) return null;
+
+        // Calculate hyperactivity as price_true_count + price_false_count
+        const hyperactivity = (timeframeData.price_true_count || 0) + (timeframeData.price_false_count || 0);
+
+        return {
+            hyperactivity,
+            timeframeData
+        };
+    };
+
+    // Calculate normal yearly metrics for each year
+    const calculateNormalYearMetrics = (yearKey) => {
+        // Handle dynamic columns (last 7 days, last 15 days) - always return null to show "-"
+        if (yearKey === "last7days" || yearKey === "last15days") {
+            return null;
+        }
+
+        const normalData = normalYearly[yearKey];
+        if (!normalData) return null;
+
+        const timeframeKey =
+            selectedTimeframe === "1"
+                ? "1_hour"
+                : selectedTimeframe === "24"
+                    ? "24_hours"
+                    : selectedTimeframe === "7"
+                        ? "7_days"
+                        : selectedTimeframe === "30"
+                            ? "30_days"
+                            : selectedTimeframe === "90"
+                                ? "90_days"
+                                : selectedTimeframe === "180"
+                                    ? "180_days"
+                                    : selectedTimeframe === "365"
+                                        ? "1_year"
+                                        : "30_days";
+
+        const timeframeData = normalData[timeframeKey];
+        if (!timeframeData) return null;
+
+        // Calculate normal activity as price_true_count + price_false_count
+        const normalActivity = (timeframeData.price_true_count || 0) + (timeframeData.price_false_count || 0);
+
+        return {
+            normalActivity,
+            timeframeData
+        };
     };
 
     // Calculate metrics for each year
@@ -368,13 +452,11 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                                     Hyper Activity
                                 </td>
                                 {dynamicColumns.map((column) => {
-                                    const metrics = calculateYearMetrics(column.key);
-                                    // For now, showing the same data as the main row
-                                    // You can modify this logic to show actual hyper activity data when available
+                                    const hyperactiveMetrics = calculateHyperactiveYearMetrics(column.key);
                                     return (
                                         <td key={column.key} className="py-3 px-4 text-center">
                                             <div className="font-bold text-xl text-to-purple">
-                                                {metrics ? Math.floor(metrics.totalRecommendations * 0.6) : "-"}
+                                                {hyperactiveMetrics ? hyperactiveMetrics.hyperactivity : "-"}
                                             </div>
                                         </td>
                                     );
@@ -389,13 +471,11 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                                     Without Hyper Activity
                                 </td>
                                 {dynamicColumns.map((column) => {
-                                    const metrics = calculateYearMetrics(column.key);
-                                    // For now, showing the same data as the main row
-                                    // You can modify this logic to show actual non-hyper activity data when available
+                                    const normalMetrics = calculateNormalYearMetrics(column.key);
                                     return (
                                         <td key={column.key} className="py-3 px-4 text-center">
                                             <div className="font-bold text-xl text-to-purple">
-                                                {metrics ? Math.floor(metrics.totalRecommendations * 0.4) : "-"}
+                                                {normalMetrics ? normalMetrics.normalActivity : "-"}
                                             </div>
                                         </td>
                                     );
@@ -483,8 +563,8 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                                     Hyper Activity
                                 </td>
                                 {dynamicColumns.map((column) => {
-                                    const metrics = calculateYearMetrics(column.key);
-                                    if (!metrics) {
+                                    const hyperactiveMetrics = calculateHyperactiveYearMetrics(column.key);
+                                    if (!hyperactiveMetrics) {
                                         return (
                                             <td key={column.key} className="light-hyper-activity-cell">
                                                 <div className="light-empty-metric">-</div>
@@ -492,7 +572,7 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                                         );
                                     }
 
-                                    const adjustedWin = (metrics.winPercentage || 0) * 0.7; // 30% lower
+                                    const adjustedWin = hyperactiveMetrics.timeframeData?.price_probablity_of_winning_percentage || 0;
 
                                     return (
                                         <td key={column.key} className="light-hyper-activity-cell text-center">
@@ -541,8 +621,8 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                                     Without Hyper Activity
                                 </td>
                                 {dynamicColumns.map((column) => {
-                                    const metrics = calculateYearMetrics(column.key);
-                                    if (!metrics) {
+                                    const normalMetrics = calculateNormalYearMetrics(column.key);
+                                    if (!normalMetrics) {
                                         return (
                                             <td key={column.key} className="light-without-hyper-cell">
                                                 <div className="light-empty-metric">-</div>
@@ -550,7 +630,7 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                                         );
                                     }
 
-                                    const adjustedWin = (metrics.winPercentage || 0) * 0.3; // 70% lower
+                                    const adjustedWin = normalMetrics.timeframeData?.price_probablity_of_winning_percentage || 0;
 
                                     return (
                                         <td key={column.key} className="light-without-hyper-cell text-center">
@@ -679,8 +759,8 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                                 </td>
 
                                 {dynamicColumns.map((column) => {
-                                    const metrics = calculateYearMetrics(column.key);
-                                    if (!metrics) {
+                                    const hyperMetrics = calculateHyperactiveYearMetrics(column.key);
+                                    if (!hyperMetrics || !hyperMetrics.timeframeData) {
                                         return (
                                             <td key={column.key} className="light-win-loss-cell">
                                                 <div className="light-empty-metric">-</div>
@@ -688,8 +768,8 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                                         );
                                     }
 
-                                    // Apply 20% boost
-                                    const returnValue = (metrics.averageReturn || 0) * 1.2;
+                                    // Get probability weighted returns percentage from hyperactive data
+                                    const returnValue = hyperMetrics.timeframeData.probablity_weighted_returns_percentage || 0;
 
                                     // Segmented bar settings
                                     const barWidth = 100; // px
@@ -740,8 +820,8 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                                 </td>
 
                                 {dynamicColumns.map((column) => {
-                                    const metrics = calculateYearMetrics(column.key);
-                                    if (!metrics) {
+                                    const normalMetrics = calculateNormalYearMetrics(column.key);
+                                    if (!normalMetrics || !normalMetrics.timeframeData) {
                                         return (
                                             <td key={column.key} className="light-win-loss-cell">
                                                 <div className="light-empty-metric">-</div>
@@ -749,8 +829,8 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                                         );
                                     }
 
-                                    // Apply 20% reduction
-                                    const returnValue = (metrics.averageReturn || 0) * 0.8;
+                                    // Get probability weighted returns percentage from normal data
+                                    const returnValue = normalMetrics.timeframeData.probablity_weighted_returns_percentage || 0;
 
                                     // Segmented bar settings
                                     const barWidth = 100; // px
