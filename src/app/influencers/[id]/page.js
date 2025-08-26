@@ -1,6 +1,6 @@
 "use client";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import axios from "../../api/axios";
 import InfluencerProfileHeader from "../../components/InfluencerProfile/InfluencerProfileHeader";
 import InfluencerRecommendations from "../../components/InfluencerProfile/InfluencerRecommendations";
@@ -9,6 +9,7 @@ import YearlyPerformanceTableDark from "@/app/components/InfluencerProfile/Yearl
 import YearlyPerformanceTableLight from "@/app/components/InfluencerProfile/YearlyPerformanceTableLight";
 import InfluencerRecommendationsLight from "../../components/InfluencerProfile/InfluencerRecommendationsLight";
 import YearlyStatsRow from "../../components/InfluencerProfile/YearlyStatsRow";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const TABS = [
   { label: "Overviewoption1", value: "overview-light" },
@@ -38,6 +39,9 @@ export default function InfluencerProfilePage() {
   const [selectedMetricsYear, setSelectedMetricsYear] = useState(new Date().getFullYear().toString());
   const params = useParams();
   const channelID = params.id;
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isSummaryOpen, setIsSummaryOpen] = useState(false);
+  const [hoveredColumn, setHoveredColumn] = useState(null);
 
   const getChannelData = async () => {
     try {
@@ -94,6 +98,12 @@ export default function InfluencerProfilePage() {
       getChannelData();
     }
   }, [channelID]);
+  const quarterLabels = {
+    q1: "Jan - Mar (Q1)",
+    q2: "Apr - Jun (Q2)",
+    q3: "Jul - Sep (Q3)",
+    q4: "Oct - Dec (Q4)",
+  };
 
   // Set default year to current year when data loads
   useEffect(() => {
@@ -492,194 +502,313 @@ export default function InfluencerProfilePage() {
             {/* Charts Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white rounded-xl p-6 border border-gray-200">
-                <h3 className="font-semibold mb-4 text-[#0c0023]">Performance Overview(ROI)</h3>
-                <div className="h-64">
-                  {(() => {
-                    const timeFrames = [
-                      { key: '1_hour', label: '1H' },
-                      { key: '24_hours', label: '24H' },
-                      { key: '7_days', label: '7D' },
-                      { key: '30_days', label: '30D' },
-                      { key: '60_days', label: '60D' },
-                      { key: '90_days', label: '90D' },
-                      { key: '180_days', label: '180D' },
-                      { key: '1_year', label: '1Y' }
-                    ];
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-black">Performance Overview (ROI)</h3>
 
-                    const getPerformanceData = () => {
-                      // Use yearly data if a year is selected, otherwise use Overall
-                      const dataSource = (summaryType === "yearly" && selectedPeriod)
-                        ? channelData.Yearly?.[selectedPeriod]
-                        : channelData.Overall;
+                  {/* <button
+                    onClick={() => setTab("recommendations")}
+                    className="px-3 py-1.5 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-md"
+                  >
+                    More Details
+                  </button> */}
+                </div>
+                <p className="text-md mb-3 text-to-purple">Hover Mouse for info</p>
+                {/* Table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse text-sm text-black">
+                    <thead>
+                      <tr>
+                        <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple" rowSpan={2}>Year</th>
+                        <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple" rowSpan={2}>Quarter</th>
+                        <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple" colSpan={8}>Holding period (From the date of post)</th>
+                      </tr>
+                      <tr>
+                        <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                            onMouseEnter={() => setHoveredColumn('1_hour')}
+                            onMouseLeave={() => setHoveredColumn(null)}>1 Hour</th>
+                        <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                            onMouseEnter={() => setHoveredColumn('24_hours')}
+                            onMouseLeave={() => setHoveredColumn(null)}>24 Hours</th>
+                        <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                            onMouseEnter={() => setHoveredColumn('7_days')}
+                            onMouseLeave={() => setHoveredColumn(null)}>7 Days</th>
+                        <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                            onMouseEnter={() => setHoveredColumn('30_days')}
+                            onMouseLeave={() => setHoveredColumn(null)}>30 Days</th>
+                        <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                            onMouseEnter={() => setHoveredColumn('60_days')}
+                            onMouseLeave={() => setHoveredColumn(null)}>60 Days</th>
+                        <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                            onMouseEnter={() => setHoveredColumn('90_days')}
+                            onMouseLeave={() => setHoveredColumn(null)}>90 Days</th>
+                        <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                            onMouseEnter={() => setHoveredColumn('180_days')}
+                            onMouseLeave={() => setHoveredColumn(null)}>180 Days</th>
+                        <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                            onMouseEnter={() => setHoveredColumn('1_year')}
+                            onMouseLeave={() => setHoveredColumn(null)}>1 Year</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {channelData?.Yearly &&
+                        Object.entries(channelData.Yearly)
+                          .sort(([a], [b]) => Number(b) - Number(a))
+                          .map(([year, yearData]) => {
+                            const yearQuarters = channelData?.Quarterly
+                              ? Object.entries(channelData.Quarterly)
+                                .filter(([quarter]) => quarter && quarter.startsWith(year))
+                                .sort(([a], [b]) => {
+                                  const qA = parseInt(a.split("-")[1]?.replace("Q", "") || "0");
+                                  const qB = parseInt(b.split("-")[1]?.replace("Q", "") || "0");
+                                  return qA - qB;
+                                })
+                              : [];
 
-                      return timeFrames.map(tf => ({
-                        label: tf.label,
-                        value: dataSource?.[tf.key]?.probablity_weighted_returns_percentage || 0
-                      }));
-                    };
+                            return (
+                              <Fragment key={year}>
+                                {/* Year row */}
+                                <tr className="hover:bg-gray-50">
+                                  <td
+                                    className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple"
+                                    rowSpan={yearQuarters.length + 1}
+                                  >
+                                    {year}
+                                  </td>
+                                  {/* <td className="border border-gray-300 px-3 py-1 text-to-purple">{year}</td>
+                                  <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["1_hour"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["1_hour"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td>
+                                  <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["24_hours"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["24_hours"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td>
+                                  <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["7_days"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["7_days"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td>
+                                  <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["30_days"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["30_days"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td>
+                                  <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["60_days"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["60_days"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td>
+                                  <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["90_days"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["90_days"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td>
+                                  <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["180_days"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["180_days"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td>
+                                  <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["1_year"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["1_year"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td> */}
+                                </tr>
 
-                    const performanceData = getPerformanceData();
-
-                    const maxValue = Math.max(...performanceData.map(d => Math.abs(d.value)), 10);
-                    const minValue = Math.min(...performanceData.map(d => d.value), -10);
-                    const hasData = performanceData.some(d => d.value !== 0);
-
-                    if (!hasData) {
-                      return (
-                        <div className="h-full flex items-center justify-center text-gray-400 italic">
-                          No performance data available
-                        </div>
-                      );
-                    }
-
-                    // Horizontal bar graph - clean style
-                    const maxPerformanceValue = Math.max(...performanceData.map(d => Math.abs(d.value)), 100);
-
-                    return (
-                      <div className="h-full flex flex-col">
-                        <div className="flex-1 flex items-center">
-                          {/* Y-axis labels */}
-                          <div className="flex flex-col justify-between pr-4 min-w-[100px]">
-                            {[...performanceData].reverse().map((data, index) => (
-                              <div key={index} className="text-sm text-gray-700 font-medium py-1">
-                                {
-                                  data.label === '1H' ? '1 Hour' :
-                                    data.label === '24H' ? '24 Hours' :
-                                      data.label === '7D' ? '7 Days' :
-                                        data.label === '30D' ? '30 Days' :
-                                          data.label === '60D' ? '60 Days' :
-                                            data.label === '90D' ? '90 Days' :
-                                              data.label === '180D' ? '180 Days' :
-                                                '1 Year'}
-                              </div>
-                            ))}
-                          </div>
-
-                          {/* Chart area */}
-                          <div className="flex-1 relative h-full">
-                            {/* Background grid */}
-                            <div className="absolute inset-0 grid grid-cols-10">
-                              {[...Array(10)].map((_, i) => (
-                                <div key={i} className="border-r border-gray-200"></div>
-                              ))}
-                            </div>
-
-                            {/* Bars */}
-                            <div className="relative h-full flex flex-col justify-between py-2">
-                              {[...performanceData].reverse().map((data, index) => {
-                                const barWidth = Math.abs(data.value);
-                                const isPositive = data.value >= 0;
-
-                                return (
-                                  <div key={index} className="flex items-center relative">
-                                    <div
-                                      className={`h-6 ${isPositive
-                                        ? 'bg-gradient-to-r from-green-500 to-green-600'
-                                        : 'bg-gradient-to-r from-red-500 to-red-600'
-                                        } rounded-r shadow-sm`}
-                                      style={{
-                                        width: `${barWidth}%`,
-                                        maxWidth: '100%',
-                                        transition: 'all 0.3s ease'
-                                      }}
+                                {/* Quarter rows */}
+                                {yearQuarters.map(([quarter, quarterData]) => (
+                                  <tr key={quarter} className="hover:bg-gray-50">
+                                    <td className="border border-gray-300 px-3 py-1 text-xs text-to-purple">
+                                      {quarterLabels[quarter.slice(-2).toLowerCase()] ?? quarter}
+                                    </td>
+                                    <td
+                                      className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${
+                                        hoveredColumn === '1_hour'
+                                          ? quarterData?.["1_hour"]?.probablity_weighted_returns_percentage <= 0
+                                            ? "text-red-800 font-bold"
+                                            : "text-to-purple font-bold"
+                                          : quarterData?.["1_hour"]?.probablity_weighted_returns_percentage <= 0
+                                            ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                            : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                      }`}
+                                      onMouseEnter={() => setHoveredColumn('1_hour')}
+                                      onMouseLeave={() => setHoveredColumn(null)}
                                     >
-                                      {/* Value label inside bar */}
-                                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-to-purple text-xs font-semibold">
-                                        {data.value > 0 ? '+' : ''}{data.value.toFixed(1)}%
-                                      </span>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
+                                      {quarterData?.["1_hour"]?.probablity_weighted_returns_percentage != null
+                                        ? `${quarterData["1_hour"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                        : ""}
+                                    </td>
 
-                            {/* X-axis labels */}
-                            <div className="absolute -bottom-6 inset-x-0 flex justify-between">
-                              {[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map((val) => (
-                                <div key={val} className="text-xs text-gray-500">
-                                  {val}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
+                                    <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${
+                                      hoveredColumn === '24_hours'
+                                        ? quarterData?.["24_hours"]?.probablity_weighted_returns_percentage <= 0
+                                          ? "text-red-800 font-bold"
+                                          : "text-to-purple font-bold"
+                                        : quarterData?.["24_hours"]?.probablity_weighted_returns_percentage <= 0
+                                          ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                          : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                    }`}
+                                    onMouseEnter={() => setHoveredColumn('24_hours')}
+                                    onMouseLeave={() => setHoveredColumn(null)}>
+                                      {quarterData?.["24_hours"]?.probablity_weighted_returns_percentage != null
+                                        ? `${quarterData["24_hours"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                        : ""}
+                                    </td>
 
-                        {/* Bottom label */}
-                        <div className="text-center mt-8 text-sm text-gray-600">
-                          Performance Percentage (ROI)
-                        </div>
-                      </div>
-                    );
-                  })()}
+                                    <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${
+                                      hoveredColumn === '7_days'
+                                        ? quarterData?.["7_days"]?.probablity_weighted_returns_percentage <= 0
+                                          ? "text-red-800 font-bold"
+                                          : "text-to-purple font-bold"
+                                        : quarterData?.["7_days"]?.probablity_weighted_returns_percentage <= 0
+                                          ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                          : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                    }`}
+                                    onMouseEnter={() => setHoveredColumn('7_days')}
+                                    onMouseLeave={() => setHoveredColumn(null)}>
+                                      {quarterData?.["7_days"]?.probablity_weighted_returns_percentage != null
+                                        ? `${quarterData["7_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                        : ""}
+                                    </td>
+
+                                    <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${
+                                      hoveredColumn === '30_days'
+                                        ? quarterData?.["30_days"]?.probablity_weighted_returns_percentage <= 0
+                                          ? "text-red-800 font-bold"
+                                          : "text-to-purple font-bold"
+                                        : quarterData?.["30_days"]?.probablity_weighted_returns_percentage <= 0
+                                          ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                          : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                    }`}
+                                    onMouseEnter={() => setHoveredColumn('30_days')}
+                                    onMouseLeave={() => setHoveredColumn(null)}>
+                                      {quarterData?.["30_days"]?.probablity_weighted_returns_percentage != null
+                                        ? `${quarterData["30_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                        : ""}
+                                    </td>
+
+                                    <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${
+                                      hoveredColumn === '60_days'
+                                        ? quarterData?.["60_days"]?.probablity_weighted_returns_percentage <= 0
+                                          ? "text-red-800 font-bold"
+                                          : "text-to-purple font-bold"
+                                        : quarterData?.["60_days"]?.probablity_weighted_returns_percentage <= 0
+                                          ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                          : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                    }`}
+                                    onMouseEnter={() => setHoveredColumn('60_days')}
+                                    onMouseLeave={() => setHoveredColumn(null)}>
+                                      {quarterData?.["60_days"]?.probablity_weighted_returns_percentage != null
+                                        ? `${quarterData["60_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                        : ""}
+                                    </td>
+
+                                    <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${
+                                      hoveredColumn === '90_days'
+                                        ? quarterData?.["90_days"]?.probablity_weighted_returns_percentage <= 0
+                                          ? "text-red-800 font-bold"
+                                          : "text-to-purple font-bold"
+                                        : quarterData?.["90_days"]?.probablity_weighted_returns_percentage <= 0
+                                          ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                          : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                    }`}
+                                    onMouseEnter={() => setHoveredColumn('90_days')}
+                                    onMouseLeave={() => setHoveredColumn(null)}>
+                                      {quarterData?.["90_days"]?.probablity_weighted_returns_percentage != null
+                                        ? `${quarterData["90_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                        : ""}
+                                    </td>
+
+                                    <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${
+                                      hoveredColumn === '180_days'
+                                        ? quarterData?.["180_days"]?.probablity_weighted_returns_percentage <= 0
+                                          ? "text-red-800 font-bold"
+                                          : "text-to-purple font-bold"
+                                        : quarterData?.["180_days"]?.probablity_weighted_returns_percentage <= 0
+                                          ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                          : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                    }`}
+                                    onMouseEnter={() => setHoveredColumn('180_days')}
+                                    onMouseLeave={() => setHoveredColumn(null)}>
+                                      {quarterData?.["180_days"]?.probablity_weighted_returns_percentage != null
+                                        ? `${quarterData["180_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                        : ""}
+                                    </td>
+
+                                    <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${
+                                      hoveredColumn === '1_year'
+                                        ? quarterData?.["1_year"]?.probablity_weighted_returns_percentage <= 0
+                                          ? "text-red-800 font-bold"
+                                          : "text-to-purple font-bold"
+                                        : quarterData?.["1_year"]?.probablity_weighted_returns_percentage <= 0
+                                          ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                          : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                    }`}
+                                    onMouseEnter={() => setHoveredColumn('1_year')}
+                                    onMouseLeave={() => setHoveredColumn(null)}>
+                                      {quarterData?.["1_year"]?.probablity_weighted_returns_percentage != null
+                                        ? `${quarterData["1_year"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                        : ""}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </Fragment>
+                            );
+                          })}
+                    </tbody>
+                  </table>
                 </div>
               </div>
               <div className="bg-white rounded-xl p-6 border border-gray-200">
                 <h3 className="font-semibold mb-4 text-[#0c0023]">Win Rate Analysis</h3>
-                <div className="space-y-3">
-                  {(() => {
-                    const periods = [
-                      { key: '1_hour', label: '1 Hour' },
-                      { key: '24_hours', label: '24 Hours' },
-                      { key: '7_days', label: '7 Days' },
-                      { key: '30_days', label: '30 Days' },
-                      { key: '60_days', label: '60 Days' },
-                      { key: '90_days', label: '90 Days' },
-                      { key: '180_days', label: '180 Days' },
-                      { key: '1_year', label: '1 Year' }
-                    ];
+                <div className="space-y-8">
+                  {summaryType === "yearly" && channelData?.normal?.Yearly
+                    ? Object.entries(channelData.normal.Yearly).map(([year, dataSource]) => {
+                      const periods = [
+                        { key: "1_hour", label: "1 Hour" },
+                        { key: "24_hours", label: "24 Hours" },
+                        { key: "7_days", label: "7 Days" },
+                        { key: "30_days", label: "30 Days" },
+                        { key: "60_days", label: "60 Days" },
+                        { key: "90_days", label: "90 Days" },
+                        { key: "180_days", label: "180 Days" },
+                        { key: "1_year", label: "1 Year" },
+                      ];
 
-                    const getWinRates = () => {
-                      // Use yearly data if a year is selected, otherwise use Overall
-                      const dataSource = (summaryType === "yearly" && selectedPeriod)
-                        ? channelData.normal.Yearly?.[selectedPeriod]
-                        : channelData.normal.Overall;
-
-                      return periods.map(period => ({
+                      const winRates = periods.map((period) => ({
                         ...period,
-                        value: dataSource?.[period.key]?.price_probablity_of_winning_percentage || 0
+                        value:
+                          dataSource?.[period.key]?.price_probablity_of_winning_percentage ||
+                          0,
                       }));
-                    };
 
-                    const winRates = getWinRates();
+                      const maxWinRate = Math.max(...winRates.map((item) => item.value), 100);
+                      const hasData = winRates.some((item) => item.value !== 0);
+                      const currentYear = new Date().getFullYear(); // ✅ current year
 
-                    const maxWinRate = Math.max(...winRates.map(item => item.value), 100);
-
-                    if (winRates.every(item => item.value === 0)) {
                       return (
-                        <div className="h-40 flex items-center justify-center text-gray-500 italic">
-                          No win rate data available
+                        <div key={year} className="space-y-4">
+                          {/* Year heading */}
+                          <h4 className="text-md font-semibold text-[#0c0023]">
+                            {year}{Number(year) === currentYear ? "*" : ""}
+                          </h4>
+
+                          {!hasData ? (
+                            <div className="h-40 flex items-center justify-center text-gray-500 italic">
+                              No win rate data available
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              {winRates.map((period) => (
+                                <div
+                                  key={period.key}
+                                  className="flex items-center justify-between"
+                                >
+                                  <div className="flex items-center w-32">
+                                    <span className="text-sm text-gray-600 font-medium">
+                                      {period.label}
+                                    </span>
+                                  </div>
+                                  <div className="flex-1 mx-4">
+                                    <div className="bg-gray-200 rounded-full h-3 relative overflow-hidden">
+                                      <div
+                                        className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500 ease-out"
+                                        style={{
+                                          width: `${(period.value / maxWinRate) * 100}%`,
+                                          minWidth: period.value > 0 ? "8px" : "0px",
+                                        }}
+                                      ></div>
+                                    </div>
+                                  </div>
+                                  <div className="w-16 text-right">
+                                    <span className="text-sm font-semibold text-[#0c0023]">
+                                      {period.value > 0
+                                        ? `${period.value.toFixed(1)}%`
+                                        : "N/A"}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       );
-                    }
-
-                    return (
-                      <div className="space-y-2">
-                        {winRates.map((period, index) => (
-                          <div key={period.key} className="flex items-center justify-between">
-                            <div className="flex items-center w-24">
-                              <span className="text-sm text-gray-600 font-medium">{period.label}</span>
-                            </div>
-                            <div className="flex-1 mx-4">
-                              <div className="bg-gray-200 rounded-full h-3 relative overflow-hidden">
-                                <div
-                                  className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500 ease-out"
-                                  style={{
-                                    width: `${(period.value / maxWinRate) * 100}%`,
-                                    minWidth: period.value > 0 ? '8px' : '0px'
-                                  }}
-                                ></div>
-                              </div>
-                            </div>
-                            <div className="w-16 text-right">
-                              <span className="text-sm font-semibold text-[#0c0023]">
-                                {period.value > 0 ? `${period.value.toFixed(1)}%` : 'N/A'}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
+                    })
+                    : (
+                      <div className="h-40 flex items-center justify-center text-gray-500 italic">
+                        No yearly win rate data available
                       </div>
-                    );
-                  })()}
+                    )}
                 </div>
               </div>
             </div>
@@ -768,39 +897,57 @@ export default function InfluencerProfilePage() {
         {tab === "overview-light1" && (
           <div className="flex flex-col gap-8">
             {/* Bio & Sentiment */}
+            {/* About Section */}
             <div className="bg-white rounded-xl p-6 mb-2 border border-gray-200">
               <h3 className="text-lg font-bold mb-2 text-[#0c0023]">
                 About {channelData.influencer_name || channelData.channel_title}
               </h3>
-              <p className="text-to-purple mb-4">
-                {channelData.channel_description ||
-                  channelData.branding_channel_description ||
-                  "No description available."}
-              </p>
-              <div className="flex gap-8 mt-6">
-                <div className="bg-green-100 rounded-2xl p-6 flex-1 text-center transform hover:scale-105 transition">
-                  <div className="text-5xl font-black text-green-600 mb-2">
-                    {bullishPercentage}%
+
+              {/* Toggle button */}
+              <button
+                onClick={() => setIsAboutOpen(!isAboutOpen)}
+                className="text-sm text-purple-600 hover:underline mb-2"
+              >
+                {isAboutOpen ? "Hide Details" : "Read More"}
+              </button>
+
+              {/* Collapsible content */}
+              {isAboutOpen && (
+                <>
+                  <p className="text-to-purple mb-4">
+                    {channelData.channel_description ||
+                      channelData.branding_channel_description ||
+                      "No description available."}
+                  </p>
+
+                  <div className="flex gap-8 mt-6">
+                    <div className="bg-green-100 rounded-2xl p-6 flex-1 text-center transform hover:scale-105 transition">
+                      <div className="text-5xl font-black text-green-600 mb-2">
+                        {bullishPercentage}%
+                      </div>
+                      <div className="text-sm font-bold text-green-700 uppercase">ROI</div>
+                      <div className="text-sm text-green-700">(Avg. Rate of Investment)</div>
+                    </div>
+
+                    <div className="bg-green-100 rounded-2xl p-6 flex-1 text-center transform hover:scale-105 transition">
+                      <div className="text-5xl font-black text-green-600 mb-2">
+                        {bearishPercentage}%
+                      </div>
+                      <div className="text-sm font-bold text-green-700 uppercase">RRR</div>
+                      <div className="text-sm text-green-700">(Avg. Rate of Return)</div>
+                    </div>
+
+                    <div className="bg-green-100 rounded-2xl p-6 flex-1 text-center transform hover:scale-105 transition">
+                      <div className="text-5xl font-black text-green-600 mb-2">12</div>
+                      <div className="text-sm font-bold text-green-700 uppercase">
+                        MCM Ranking
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-sm font-bold text-green-700 uppercase">ROI</div>
-                  <div className="text-sm text-green-700 ">(Avg. Rate of Investment)</div>
-                  {/* <span className="text-to-purple text-xs">Cumulative Rate of Return is Calculated from date of channel launch and last system update</span> */}
-                </div>
-                <div className="bg-green-100 rounded-2xl p-6 flex-1 text-center transform hover:scale-105 transition">
-                  <div className="text-5xl font-black text-green-600 mb-2">
-                    {bearishPercentage}%
-                  </div>
-                  <div className="text-sm font-bold text-green-700 uppercase">RRR</div>
-                  <div className="text-sm text-green-700">(Avg. Rate of Return)</div>
-                </div>
-                <div className="bg-green-100 rounded-2xl p-6 flex-1 text-center transform hover:scale-105 transition">
-                  <div className="text-5xl font-black text-green-600 mb-2">
-                    12
-                  </div>
-                  <div className="text-sm font-bold text-green-700 uppercase">MCM Ranking</div>
-                </div>
-              </div>
+                </>
+              )}
             </div>
+
 
             {/* Summary Dropdown Section */}
             <div className="bg-white rounded-xl p-6 mb-2 border border-gray-200">
@@ -808,135 +955,166 @@ export default function InfluencerProfilePage() {
                 Channel Summary Analysis
               </h3>
 
-              {/* Type Selection Buttons */}
-              <div className="flex gap-2 mb-4">
-                <button
-                  onClick={() => {
-                    setSummaryType("yearly");
-                    setSelectedPeriod("");
-                  }}
-                  className={`px-4 py-2 rounded-lg font-medium transition ${summaryType === "yearly"
-                    ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
-                    : "bg-gray-100 text-[#0c0023] hover:bg-gray-200"
-                    }`}
-                >
-                  Year
-                </button>
-                <button
-                  onClick={() => {
-                    setSummaryType("quarterly");
-                    setSelectedPeriod("");
-                  }}
-                  className={`px-4 py-2 rounded-lg font-medium transition ${summaryType === "quarterly"
-                    ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
-                    : "bg-gray-100 text-[#0c0023] hover:bg-gray-200"
-                    }`}
-                >
-                  Quarter
-                </button>
-                <button
-                  onClick={() => {
-                    setSummaryType("overall");
-                    setSelectedPeriod("overall");
-                  }}
-                  className={`px-4 py-2 rounded-lg font-medium transition ${summaryType === "overall"
-                    ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
-                    : "bg-gray-100 text-[#0c0023] hover:bg-gray-200"
-                    }`}
-                >
-                  Cumulative
-                </button>
-              </div>
+              {/* Toggle Button */}
+              <button
+                onClick={() => setIsSummaryOpen(!isSummaryOpen)}
+                className="text-sm text-purple-600 hover:underline mb-2"
+              >
+                {isSummaryOpen ? "Hide Summary" : "View Summary"}
+              </button>
 
-              {/* Period Selection Dropdown */}
-              {summaryType !== "overall" && (
-                <div className="mb-4">
-                  <select
-                    value={selectedPeriod}
-                    onChange={(e) => setSelectedPeriod(e.target.value)}
-                    className="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-lg text-[#0c0023] bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select a {summaryType === "quarterly" ? "quarter" : "year"}...</option>
-                    {summaryType === "quarterly"
-                      ? channelData?.Gemini?.Quarterly && Object.keys(channelData.Gemini.Quarterly)
-                        .sort((a, b) => {
-                          const [yearA, qA] = a.split('_');
-                          const [yearB, qB] = b.split('_');
-                          if (yearA !== yearB) return parseInt(yearB) - parseInt(yearA);
-                          return qB.localeCompare(qA);
-                        })
-                        .map(quarter => (
-                          <option key={quarter} value={quarter}>
-                            {quarter.replace('_', ' ')}
-                          </option>
-                        ))
-                      : channelData?.Gemini?.Yearly && Object.keys(channelData.Gemini.Yearly)
-                        .sort((a, b) => parseInt(b) - parseInt(a))
-                        .map(year => (
-                          <option key={year} value={year}>
-                            {year}
-                          </option>
-                        ))
-                    }
-                  </select>
-                </div>
-              )}
+              {isSummaryOpen && (
+                <>
+                  {/* Type Selection Buttons */}
+                  <div className="flex gap-2 mb-4">
+                    <button
+                      onClick={() => {
+                        setSummaryType("yearly");
+                        setSelectedPeriod("");
+                      }}
+                      className={`px-4 py-2 rounded-lg font-medium transition ${summaryType === "yearly"
+                        ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
+                        : "bg-gray-100 text-[#0c0023] hover:bg-gray-200"
+                        }`}
+                    >
+                      Year
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSummaryType("quarterly");
+                        setSelectedPeriod("");
+                      }}
+                      className={`px-4 py-2 rounded-lg font-medium transition ${summaryType === "quarterly"
+                        ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
+                        : "bg-gray-100 text-[#0c0023] hover:bg-gray-200"
+                        }`}
+                    >
+                      Quarter
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSummaryType("overall");
+                        setSelectedPeriod("overall");
+                      }}
+                      className={`px-4 py-2 rounded-lg font-medium transition ${summaryType === "overall"
+                        ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
+                        : "bg-gray-100 text-[#0c0023] hover:bg-gray-200"
+                        }`}
+                    >
+                      Cumulative
+                    </button>
+                  </div>
 
-              {/* Summary Display */}
-              {selectedPeriod && (
-                <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  {(() => {
-                    const data = summaryType === "quarterly"
-                      ? channelData?.Gemini?.Quarterly?.[selectedPeriod]
-                      : summaryType === "yearly"
-                        ? channelData?.Gemini?.Yearly?.[selectedPeriod]
-                        : channelData?.Gemini?.Overall;
+                  {/* Period Selection Dropdown */}
+                  {summaryType !== "overall" && (
+                    <div className="mb-4">
+                      <select
+                        value={selectedPeriod}
+                        onChange={(e) => setSelectedPeriod(e.target.value)}
+                        className="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-lg text-[#0c0023] bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">
+                          Select a {summaryType === "quarterly" ? "quarter" : "year"}...
+                        </option>
+                        {summaryType === "quarterly"
+                          ? channelData?.Gemini?.Quarterly &&
+                          Object.keys(channelData.Gemini.Quarterly)
+                            .sort((a, b) => {
+                              const [yearA, qA] = a.split("_");
+                              const [yearB, qB] = b.split("_");
+                              if (yearA !== yearB) return parseInt(yearB) - parseInt(yearA);
+                              return qB.localeCompare(qA);
+                            })
+                            .map((quarter) => (
+                              <option key={quarter} value={quarter}>
+                                {quarter.replace("_", " ")}
+                              </option>
+                            ))
+                          : channelData?.Gemini?.Yearly &&
+                          Object.keys(channelData.Gemini.Yearly)
+                            .sort((a, b) => parseInt(b) - parseInt(a))
+                            .map((year) => (
+                              <option key={year} value={year}>
+                                {year}
+                              </option>
+                            ))}
+                      </select>
+                    </div>
+                  )}
 
-                    if (!data) return <p className="text-gray-500">No data available for this period.</p>;
+                  {/* Summary Display */}
+                  {selectedPeriod && (
+                    <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      {(() => {
+                        const data =
+                          summaryType === "quarterly"
+                            ? channelData?.Gemini?.Quarterly?.[selectedPeriod]
+                            : summaryType === "yearly"
+                              ? channelData?.Gemini?.Yearly?.[selectedPeriod]
+                              : channelData?.Gemini?.Overall;
 
-                    return (
-                      <div className="space-y-4">
-                        <div className="flex flex-wrap gap-4 mb-4">
-                          <div className="bg-white p-3 rounded-lg border border-gray-200 flex-1 min-w-[200px]">
-                            <div className="text-sm text-gray-600">Period</div>
-                            <div className="font-semibold text-[#0c0023]">
-                              {summaryType === "quarterly"
-                                ? data.quarter?.replace('_', ' ')
-                                : summaryType === "yearly"
-                                  ? data.year
-                                  : "Overall"}
+                        if (!data)
+                          return (
+                            <p className="text-gray-500">
+                              No data available for this period.
+                            </p>
+                          );
+
+                        return (
+                          <div className="space-y-4">
+                            <div className="flex flex-wrap gap-4 mb-4">
+                              <div className="bg-white p-3 rounded-lg border border-gray-200 flex-1 min-w-[200px]">
+                                <div className="text-sm text-gray-600">Period</div>
+                                <div className="font-semibold text-[#0c0023]">
+                                  {summaryType === "quarterly"
+                                    ? data.quarter?.replace("_", " ")
+                                    : summaryType === "yearly"
+                                      ? data.year
+                                      : "Overall"}
+                                </div>
+                              </div>
+                              <div className="bg-white p-3 rounded-lg border border-gray-200 flex-1 min-w-[200px]">
+                                <div className="text-sm text-gray-600">
+                                  Credibility Score
+                                </div>
+                                <div className="font-semibold text-[#0c0023]">
+                                  {data.overall_credibility_score}/10
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                          <div className="bg-white p-3 rounded-lg border border-gray-200 flex-1 min-w-[200px]">
-                            <div className="text-sm text-gray-600">Credibility Score</div>
-                            <div className="font-semibold text-[#0c0023]">
-                              {data.overall_credibility_score}/10
+
+                            <div>
+                              <h4 className="font-semibold text-[#0c0023] mb-2">Summary</h4>
+                              <p className="text-gray-700 leading-relaxed">{data.summary}</p>
                             </div>
-                          </div>
-                        </div>
 
-                        <div>
-                          <h4 className="font-semibold text-[#0c0023] mb-2">Summary</h4>
-                          <p className="text-gray-700 leading-relaxed">{data.summary}</p>
-                        </div>
+                            {data.posting_frequency_analysis && (
+                              <div>
+                                <h4 className="font-semibold text-[#0c0023] mb-2">
+                                  Posting Frequency Analysis
+                                </h4>
+                                <p className="text-gray-700 leading-relaxed">
+                                  {data.posting_frequency_analysis}
+                                </p>
+                              </div>
+                            )}
 
-                        {data.posting_frequency_analysis && (
-                          <div>
-                            <h4 className="font-semibold text-[#0c0023] mb-2">Posting Frequency Analysis</h4>
-                            <p className="text-gray-700 leading-relaxed">{data.posting_frequency_analysis}</p>
+                            {data.credibility_explanation && (
+                              <div>
+                                <h4 className="font-semibold text-[#0c0023] mb-2">
+                                  Credibility Analysis
+                                </h4>
+                                <p className="text-gray-700 leading-relaxed">
+                                  {data.credibility_explanation}
+                                </p>
+                              </div>
+                            )}
                           </div>
-                        )}
-
-                        {data.credibility_explanation && (
-                          <div>
-                            <h4 className="font-semibold text-[#0c0023] mb-2">Credibility Analysis</h4>
-                            <p className="text-gray-700 leading-relaxed">{data.credibility_explanation}</p>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </div>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
@@ -956,53 +1134,189 @@ export default function InfluencerProfilePage() {
                 </div>
 
                 <div className="space-y-6">
+                  <div className="pt-4 text-md text-gray-600 space-y-1">
+                    <p><strong>Actionable Insights:</strong> Presence and quality of actionable insights. Higher score when the reader can take specific actions.</p>
+                    <p><strong>Risk Management:</strong> How well risk strategies are addressed (e.g. sizing, risk-reward ratios, portfolio allocation).</p>
+                    <p><strong>Educational Value:</strong> Higher when explanations of why certain moves are expected are included.</p>
+                    <p><strong>Credibility Score:</strong> Trustworthiness and accuracy of the content.</p>
+                    <p><strong>Overall Score:</strong> Combined score reflecting overall quality across all metrics.</p>
+                  </div>
                   {summaryType === "yearly" && channelData?.Ai_scoring?.Yearly
-                    ? Object.entries(channelData.Ai_scoring.Yearly).map(([year, data]) => {
-                      const metricsData = [
-                        { key: "insights", label: "Actionable Insights", value: data.avg_actionable_insights || 0 },
-                        { key: "risk", label: "Risk Management", value: data.avg_risk_management || 0 },
-                        { key: "education", label: "Educational Value", value: data.avg_educational_purpose || 0 },
+                    ? (() => {
+                      // Prepare data for charts
+                      const years = Object.keys(channelData.Ai_scoring.Yearly).sort();
+
+                      // Define metrics with their properties
+                      const metrics = [
+                        { key: 'actionable_insights', label: 'Actionable Insights', field: 'avg_actionable_insights', color: '#8b5cf6' },
+                        { key: 'risk_management', label: 'Risk Management', field: 'avg_risk_management', color: '#3b82f6' },
+                        { key: 'educational_value', label: 'Educational Value', field: 'avg_educational_purpose', color: '#10b981' },
+                        { key: 'credibility_score', label: 'Credibility Score', field: 'avg_credibility_score', color: '#f59e0b' },
+                        { key: 'overall_score', label: 'Overall Score', field: 'avg_overall_score', color: '#ec4899' }
                       ];
 
-                      const validMetrics = metricsData.filter((metric) => metric.value > 0);
+                      // Create separate chart data for each metric
+                      const chartsData = metrics.map(metric => {
+                        const data = years.map(year => ({
+                          year: year,
+                          value: channelData.Ai_scoring.Yearly[year][metric.field] || 0
+                        })).filter(d => d.value > 0);
+
+                        return {
+                          ...metric,
+                          data: data,
+                          hasData: data.length > 0
+                        };
+                      }).filter(chart => chart.hasData);
 
                       return (
-                        <div key={year} className="space-y-3">
-                          <h4 className="text-md font-semibold text-[#0c0023]">{year}</h4>
-                          {validMetrics.length === 0 ? (
-                            <div className="h-20 flex items-center justify-center text-gray-500 italic">
-                              No performance data available
+                        <div className="space-y-4">
+                          {chartsData.length === 0 ? (
+                            <div className="h-40 flex items-center justify-center text-gray-500 italic">
+                              No yearly performance data available
                             </div>
                           ) : (
-                            <div className="space-y-2">
-                              {validMetrics.map((metric) => (
-                                <div key={metric.key} className="flex items-center justify-between">
-                                  <div className="flex items-center w-48">
-                                    <span className="text-sm text-gray-600 font-medium">{metric.label}</span>
+                            <>
+                              {/* First Row: Actionable Insights and Risk Management */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {chartsData.filter(m => ['actionable_insights', 'risk_management'].includes(m.key)).map((metric) => (
+                                  <div key={metric.key} className="space-y-2">
+                                    <h4 className="text-sm font-semibold text-[#0c0023]">{metric.label}</h4>
+                                    <ResponsiveContainer width="100%" height={180}>
+                                      <BarChart
+                                        data={metric.data}
+                                        margin={{ top: 10, right: 20, left: 0, bottom: 30 }}
+                                      >
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                        <XAxis
+                                          dataKey="year"
+                                          tick={{ fontSize: 11 }}
+                                          stroke="#666"
+                                        />
+                                        <YAxis
+                                          domain={[0, 10]}
+                                          ticks={[0, 5, 10]}
+                                          tick={{ fontSize: 11 }}
+                                          stroke="#666"
+                                        />
+                                        <Tooltip
+                                          formatter={(value) => [`${value.toFixed(1)}`, metric.label]}
+                                          contentStyle={{
+                                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                            border: '1px solid #e0e0e0',
+                                            borderRadius: '8px',
+                                            padding: '8px'
+                                          }}
+                                          labelStyle={{ fontWeight: 'bold', marginBottom: '4px' }}
+                                        />
+                                        <Bar
+                                          dataKey="value"
+                                          fill={metric.color}
+                                          radius={[8, 8, 0, 0]}
+                                          barSize={50}
+                                        />
+                                      </BarChart>
+                                    </ResponsiveContainer>
                                   </div>
-                                  <div className="flex-1 mx-4">
-                                    <div className="bg-gray-200 rounded-full h-3 relative overflow-hidden">
-                                      <div
-                                        className="h-full bg-gradient-to-r from-yellow-300 via-orange-300 to-red-300 rounded-full transition-all duration-500 ease-out"
-                                        style={{
-                                          width: `${(metric.value / 10) * 100}%`,
-                                          minWidth: metric.value > 0 ? "8px" : "0px",
-                                        }}
-                                      ></div>
-                                    </div>
+                                ))}
+                              </div>
+
+                              {/* Second Row: Educational Value and Credibility Score */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {chartsData.filter(m => ['educational_value', 'credibility_score'].includes(m.key)).map((metric) => (
+                                  <div key={metric.key} className="space-y-2">
+                                    <h4 className="text-sm font-semibold text-[#0c0023]">{metric.label}</h4>
+                                    <ResponsiveContainer width="100%" height={180}>
+                                      <BarChart
+                                        data={metric.data}
+                                        margin={{ top: 10, right: 20, left: 0, bottom: 30 }}
+                                      >
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                        <XAxis
+                                          dataKey="year"
+                                          tick={{ fontSize: 11 }}
+                                          stroke="#666"
+                                        />
+                                        <YAxis
+                                          domain={[0, 10]}
+                                          ticks={[0, 5, 10]}
+                                          tick={{ fontSize: 11 }}
+                                          stroke="#666"
+                                        />
+                                        <Tooltip
+                                          formatter={(value) => [`${value.toFixed(1)}`, metric.label]}
+                                          contentStyle={{
+                                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                            border: '1px solid #e0e0e0',
+                                            borderRadius: '8px',
+                                            padding: '8px'
+                                          }}
+                                          labelStyle={{ fontWeight: 'bold', marginBottom: '4px' }}
+                                        />
+                                        <Bar
+                                          dataKey="value"
+                                          fill={metric.color}
+                                          radius={[8, 8, 0, 0]}
+                                          barSize={50}
+                                        />
+                                      </BarChart>
+                                    </ResponsiveContainer>
                                   </div>
-                                  <div className="w-16 text-right">
-                                    <span className="text-sm font-semibold text-[#0c0023]">
-                                      {metric.value.toFixed(1)}/10
-                                    </span>
+                                ))}
+                              </div>
+
+                              {/* Third Row: Overall Score */}
+                              <div className="grid grid-cols-1 gap-4">
+                                {chartsData.filter(m => m.key === 'overall_score').map((metric) => (
+                                  <div key={metric.key} className="space-y-2 md:w-1/2 mx-auto">
+                                    <h4 className="text-sm font-semibold text-[#0c0023]">{metric.label}</h4>
+                                    <ResponsiveContainer width="100%" height={180}>
+                                      <BarChart
+                                        data={metric.data}
+                                        margin={{ top: 10, right: 20, left: 0, bottom: 30 }}
+                                      >
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                        <XAxis
+                                          dataKey="year"
+                                          tick={{ fontSize: 11 }}
+                                          stroke="#666"
+                                        />
+                                        <YAxis
+                                          domain={[0, 10]}
+                                          ticks={[0, 5, 10]}
+                                          tick={{ fontSize: 11 }}
+                                          stroke="#666"
+                                        />
+                                        <Tooltip
+                                          formatter={(value) => [`${value.toFixed(1)}`, metric.label]}
+                                          contentStyle={{
+                                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                            border: '1px solid #e0e0e0',
+                                            borderRadius: '8px',
+                                            padding: '8px'
+                                          }}
+                                          labelStyle={{ fontWeight: 'bold', marginBottom: '4px' }}
+                                        />
+                                        <Bar
+                                          dataKey="value"
+                                          fill={metric.color}
+                                          radius={[8, 8, 0, 0]}
+                                          barSize={50}
+                                        />
+                                      </BarChart>
+                                    </ResponsiveContainer>
                                   </div>
-                                </div>
-                              ))}
-                            </div>
+                                ))}
+                              </div>
+
+                              <p className="text-xs text-gray-500 text-right mt-2">
+                                * Current year data may be incomplete
+                              </p>
+                            </>
                           )}
                         </div>
                       );
-                    })
+                    })()
                     : (
                       <div className="h-40 flex items-center justify-center text-gray-500 italic">
                         No yearly performance data available
@@ -1010,7 +1324,6 @@ export default function InfluencerProfilePage() {
                     )}
                 </div>
               </div>
-
               <div className="bg-white rounded-xl p-6 border border-gray-200">
                 <h3 className="font-semibold mb-4 text-[#0c0023]">Sentiment Analysis</h3>
                 <div className="space-y-3">
@@ -1041,6 +1354,8 @@ export default function InfluencerProfilePage() {
                 </div>
               </div>
             </div>
+
+
 
             {/* Charts Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1077,11 +1392,14 @@ export default function InfluencerProfilePage() {
                       }));
 
                       const hasData = performanceData.some((d) => d.value !== 0);
+                      const currentYear = new Date().getFullYear(); // ✅ current year
 
                       return (
                         <div key={year} className="space-y-4">
                           {/* Year heading */}
-                          <h4 className="text-md font-semibold text-[#0c0023]">{year}</h4>
+                          <h4 className="text-md font-semibold text-[#0c0023]">
+                            {year}{Number(year) === currentYear ? "*" : ""}
+                          </h4>
 
                           {!hasData ? (
                             <div className="h-40 flex items-center justify-center text-gray-400 italic">
@@ -1178,28 +1496,33 @@ export default function InfluencerProfilePage() {
                   {summaryType === "yearly" && channelData?.normal?.Yearly
                     ? Object.entries(channelData.normal.Yearly).map(([year, dataSource]) => {
                       const periods = [
-                        { key: '1_hour', label: '1 Hour' },
-                        { key: '24_hours', label: '24 Hours' },
-                        { key: '7_days', label: '7 Days' },
-                        { key: '30_days', label: '30 Days' },
-                        { key: '60_days', label: '60 Days' },
-                        { key: '90_days', label: '90 Days' },
-                        { key: '180_days', label: '180 Days' },
-                        { key: '1_year', label: '1 Year' }
+                        { key: "1_hour", label: "1 Hour" },
+                        { key: "24_hours", label: "24 Hours" },
+                        { key: "7_days", label: "7 Days" },
+                        { key: "30_days", label: "30 Days" },
+                        { key: "60_days", label: "60 Days" },
+                        { key: "90_days", label: "90 Days" },
+                        { key: "180_days", label: "180 Days" },
+                        { key: "1_year", label: "1 Year" },
                       ];
 
-                      const winRates = periods.map(period => ({
+                      const winRates = periods.map((period) => ({
                         ...period,
-                        value: dataSource?.[period.key]?.price_probablity_of_winning_percentage || 0
+                        value:
+                          dataSource?.[period.key]?.price_probablity_of_winning_percentage ||
+                          0,
                       }));
 
-                      const maxWinRate = Math.max(...winRates.map(item => item.value), 100);
-                      const hasData = winRates.some(item => item.value !== 0);
+                      const maxWinRate = Math.max(...winRates.map((item) => item.value), 100);
+                      const hasData = winRates.some((item) => item.value !== 0);
+                      const currentYear = new Date().getFullYear(); // ✅ current year
 
                       return (
                         <div key={year} className="space-y-4">
                           {/* Year heading */}
-                          <h4 className="text-md font-semibold text-[#0c0023]">{year}</h4>
+                          <h4 className="text-md font-semibold text-[#0c0023]">
+                            {year}{Number(year) === currentYear ? "*" : ""}
+                          </h4>
 
                           {!hasData ? (
                             <div className="h-40 flex items-center justify-center text-gray-500 italic">
@@ -1208,9 +1531,14 @@ export default function InfluencerProfilePage() {
                           ) : (
                             <div className="space-y-2">
                               {winRates.map((period) => (
-                                <div key={period.key} className="flex items-center justify-between">
+                                <div
+                                  key={period.key}
+                                  className="flex items-center justify-between"
+                                >
                                   <div className="flex items-center w-32">
-                                    <span className="text-sm text-gray-600 font-medium">{period.label}</span>
+                                    <span className="text-sm text-gray-600 font-medium">
+                                      {period.label}
+                                    </span>
                                   </div>
                                   <div className="flex-1 mx-4">
                                     <div className="bg-gray-200 rounded-full h-3 relative overflow-hidden">
@@ -1218,14 +1546,16 @@ export default function InfluencerProfilePage() {
                                         className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500 ease-out"
                                         style={{
                                           width: `${(period.value / maxWinRate) * 100}%`,
-                                          minWidth: period.value > 0 ? '8px' : '0px'
+                                          minWidth: period.value > 0 ? "8px" : "0px",
                                         }}
                                       ></div>
                                     </div>
                                   </div>
                                   <div className="w-16 text-right">
                                     <span className="text-sm font-semibold text-[#0c0023]">
-                                      {period.value > 0 ? `${period.value.toFixed(1)}%` : 'N/A'}
+                                      {period.value > 0
+                                        ? `${period.value.toFixed(1)}%`
+                                        : "N/A"}
                                     </span>
                                   </div>
                                 </div>

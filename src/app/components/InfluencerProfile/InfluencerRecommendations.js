@@ -730,12 +730,14 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                         year: "numeric",
                         month: "2-digit",
                         day: "2-digit",
+                        timeZone: "UTC",
                       })}{" "}
                       <br />
                       {new Date(rec.publishedAt).toLocaleTimeString(undefined, {
                         hour: "2-digit",
                         minute: "2-digit",
                         second: "2-digit",
+                        timeZone: "UTC",
                       })}
                     </td>
                     <td className="p-3 flex items-center gap-2">
@@ -774,12 +776,12 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                                   <button
                                     className="text-xs cursor-pointer"
                                     style={{ color: "#2b7fff" }}
-                                    title={`Last updated: ${new Date(timestamp).toLocaleString()}`}
+                                    // title={`Last updated: ${new Date(timestamp).toUTCString().replace(" GMT", " UTC")}`}
                                   >
                                     ⓘ
                                   </button>
                                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
-                                    Last updated: {new Date(timestamp).toLocaleString()}
+                                    Last updated: {new Date(timestamp).toUTCString().replace(" GMT", " UTC")}
                                   </div>
                                 </div>
                               )}

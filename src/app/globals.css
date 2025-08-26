@@ -322,6 +322,8 @@ select.light-dropdown {
   text-align: center;
 }
 
+td.hover\:text-to-purple:hover,
+.hover\:text-to-purple:hover,
 .text-to-purple{
   color:#0c0023 !important;
 }
