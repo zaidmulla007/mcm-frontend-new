@@ -1,0 +1,236 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { FaUser, FaEnvelope, FaPhone, FaCalendarAlt, FaArrowLeft } from "react-icons/fa";
+import { motion } from "framer-motion";
+
+export default function ProfilePage() {
+  const router = useRouter();
+  const [userInfo, setUserInfo] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    mobile: '',
+    dateStart: '',
+    dateEnd: ''
+  });
+
+  useEffect(() => {
+    // Check if user is logged in
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      router.push('/login');
+      return;
+    }
+
+    // Get user info from localStorage - check both possible key formats
+    const userData = {
+      firstName: localStorage.getItem('fname') || localStorage.getItem('userFirstName') || '',
+      lastName: localStorage.getItem('lname') || localStorage.getItem('userLastName') || '',
+      email: localStorage.getItem('email') || localStorage.getItem('userEmail') || '',
+      mobile: localStorage.getItem('mobile') || localStorage.getItem('userMobile') || '',
+      dateStart: localStorage.getItem('dateStart') || '',
+      dateEnd: localStorage.getItem('dateEnd') || ''
+    };
+    
+    setUserInfo(userData);
+  }, [router]);
+
+  const formatDate = (dateString) => {
+    if (!dateString || dateString === 'null') return 'Not set';
+    
+    // Check if it's already formatted (DD-MM-YYYY)
+    if (dateString.includes('-') && dateString.split('-')[2]?.length === 4) {
+      return dateString;
+    }
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Not set';
+      
+      return date.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }).replace(/\//g, '-');
+    } catch {
+      return 'Not set';
+    }
+  };
+
+  const calculateDaysRemaining = () => {
+    if (!userInfo.dateEnd || userInfo.dateEnd === 'null') return null;
+    
+    try {
+      let endDate;
+      
+      // Handle DD-MM-YYYY format
+      if (userInfo.dateEnd.includes('-') && userInfo.dateEnd.split('-')[2]?.length === 4) {
+        const [day, month, year] = userInfo.dateEnd.split('-');
+        endDate = new Date(year, month - 1, day); // month is 0-indexed in Date constructor
+      } else {
+        endDate = new Date(userInfo.dateEnd);
+      }
+      
+      if (isNaN(endDate.getTime())) return null;
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Reset time to start of day
+      endDate.setHours(0, 0, 0, 0); // Reset time to start of day
+      
+      const diffTime = endDate - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays < 0) return 'Expired';
+      if (diffDays === 0) return 'Expires today';
+      if (diffDays === 1) return '1 day remaining';
+      return `${diffDays} days remaining`;
+    } catch {
+      return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#19162b] text-white p-4">
+      <div className="max-w-4xl mx-auto">
+        <Link
+          href="/influencers"
+          className="inline-flex items-center gap-2 text-purple-400 hover:text-purple-300 mb-6 transition"
+        >
+          <FaArrowLeft />
+          <span>Back to Dashboard</span>
+        </Link>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-[#232042] rounded-2xl p-8 shadow-xl"
+        >
+          <h1 className="text-3xl font-bold mb-8 text-white">
+            My Profile
+          </h1>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Personal Information */}
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-white mb-4">Personal Information</h2>
+              
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                    <FaUser className="text-purple-400" size={20} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Full Name</p>
+                    <p className="font-medium">
+                      {userInfo.firstName && userInfo.lastName 
+                        ? `${userInfo.firstName} ${userInfo.lastName}`
+                        : 'Not provided'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                    <FaEnvelope className="text-purple-400" size={20} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Email Address</p>
+                    <p className="font-medium">{userInfo.email || 'Not provided'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                    <FaPhone className="text-purple-400" size={20} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Mobile Number</p>
+                    <p className="font-medium">{userInfo.mobile || 'Not provided'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Subscription Information */}
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-white mb-4">Subscription Details</h2>
+              
+              <div className="space-y-4">
+                <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm text-gray-400">Subscription Status</span>
+                    <span className="px-3 py-1 bg-green-500/20 text-green-400 text-xs rounded-full">
+                      Active
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <FaCalendarAlt className="text-purple-400" size={16} />
+                      <div>
+                        <p className="text-sm text-gray-400">Start Date</p>
+                        <p className="font-medium">{formatDate(userInfo.dateStart)}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <FaCalendarAlt className="text-purple-400" size={16} />
+                      <div>
+                        <p className="text-sm text-gray-400">End Date</p>
+                        <p className="font-medium">{formatDate(userInfo.dateEnd)}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {calculateDaysRemaining() && (
+                    <div className="mt-4 pt-4 border-t border-purple-500/30">
+                      <p className="text-center text-sm font-medium text-white">
+                        {calculateDaysRemaining()}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* <Link
+                  href="/manage-subscription"
+                  className="block w-full text-center bg-gradient-to-r from-purple-500 to-blue-500 px-4 py-3 rounded-lg font-semibold shadow hover:scale-105 transition"
+                >
+                  Manage Subscription
+                </Link> */}
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="mt-8 pt-8 border-t border-purple-500/30">
+            <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
+            <div className="flex gap-4 flex-wrap">
+              <Link
+                href="/"
+                className="px-6 py-2 bg-purple-500/20 rounded-lg hover:bg-purple-500/30 transition"
+              >
+                Home
+              </Link>
+              {/* <Link
+                href="/leaderboard"
+                className="px-6 py-2 bg-purple-500/20 rounded-lg hover:bg-purple-500/30 transition"
+              >
+                View Leaderboard
+              </Link> */}
+              <button
+                onClick={() => window.open('mailto:admin@mcm.com', '_self')}
+                className="px-6 py-2 bg-purple-500/20 rounded-lg hover:bg-purple-500/30 transition"
+              >
+                Contact Support
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+}

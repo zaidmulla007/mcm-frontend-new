@@ -9,7 +9,7 @@ import YearlyPerformanceTableDark from "@/app/components/InfluencerProfile/Yearl
 import YearlyPerformanceTableLight from "@/app/components/InfluencerProfile/YearlyPerformanceTableLight";
 import InfluencerRecommendationsLight from "../../components/InfluencerProfile/InfluencerRecommendationsLight";
 import YearlyStatsRow from "../../components/InfluencerProfile/YearlyStatsRow";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 
 const TABS = [
   { label: "Overviewoption1", value: "overview-light" },
@@ -42,7 +42,10 @@ export default function InfluencerProfilePage() {
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [hoveredColumn, setHoveredColumn] = useState(null);
-
+  const [hoveredRow, setHoveredRow] = useState(null);
+  // Add these to your existing useState declarations
+  const [hoveredColumnWinRate, setHoveredColumnWinRate] = useState(null);
+  const [hoveredRowWinRate, setHoveredRowWinRate] = useState(null);
   const getChannelData = async () => {
     try {
       setLoading(true);
@@ -498,19 +501,280 @@ export default function InfluencerProfilePage() {
                 </div>
               </div>
             </div>
+            <div className="bg-white rounded-xl p-6 border border-gray-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-black">Performance Overview (ROI)</h3>
+              </div>
+              <p className="text-md mb-3 text-to-purple">Hover Mouse for info</p>
+              {/* Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-sm text-black">
+                  <thead>
+                    <tr>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple" rowSpan={2}>Year</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple" rowSpan={2}>Quarter</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple" colSpan={8}>Holding period (From the date of post)/Recommendations</th>
+                    </tr>
+                    <tr>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                        onMouseEnter={() => setHoveredColumn('1_hour')}
+                        onMouseLeave={() => setHoveredColumn(null)}>1 Hour</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                        onMouseEnter={() => setHoveredColumn('24_hours')}
+                        onMouseLeave={() => setHoveredColumn(null)}>24 Hours</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                        onMouseEnter={() => setHoveredColumn('7_days')}
+                        onMouseLeave={() => setHoveredColumn(null)}>7 Days</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                        onMouseEnter={() => setHoveredColumn('30_days')}
+                        onMouseLeave={() => setHoveredColumn(null)}>30 Days</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                        onMouseEnter={() => setHoveredColumn('60_days')}
+                        onMouseLeave={() => setHoveredColumn(null)}>60 Days</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                        onMouseEnter={() => setHoveredColumn('90_days')}
+                        onMouseLeave={() => setHoveredColumn(null)}>90 Days</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                        onMouseEnter={() => setHoveredColumn('180_days')}
+                        onMouseLeave={() => setHoveredColumn(null)}>180 Days</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                        onMouseEnter={() => setHoveredColumn('1_year')}
+                        onMouseLeave={() => setHoveredColumn(null)}>1 Year</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {channelData?.Yearly &&
+                      Object.entries(channelData.Yearly)
+                        .sort(([a], [b]) => Number(b) - Number(a))
+                        .map(([year, yearData]) => {
+                          const yearQuarters = channelData?.Quarterly
+                            ? Object.entries(channelData.Quarterly)
+                              .filter(([quarter]) => quarter && quarter.startsWith(year))
+                              .sort(([a], [b]) => {
+                                const qA = parseInt(a.split("-")[1]?.replace("Q", "") || "0");
+                                const qB = parseInt(b.split("-")[1]?.replace("Q", "") || "0");
+                                return qA - qB;
+                              })
+                            : [];
 
+                          return (
+                            <Fragment key={year}>
+                              {/* Year row */}
+                              <tr className="hover:bg-gray-50">
+                                <td
+                                  className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple"
+                                  rowSpan={yearQuarters.length + 1}
+                                >
+                                  {year === '2025' ? `${year}*` : year}
+                                </td>
+                                {/* <td className="border border-gray-300 px-3 py-1 text-to-purple">{year}</td>
+                                  <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["1_hour"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["1_hour"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td>
+                                  <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["24_hours"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["24_hours"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td>
+                                  <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["7_days"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["7_days"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td>
+                                  <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["30_days"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["30_days"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td>
+                                  <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["60_days"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["60_days"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td>
+                                  <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["90_days"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["90_days"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td>
+                                  <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["180_days"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["180_days"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td>
+                                  <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["1_year"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["1_year"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td> */}
+                              </tr>
+
+                              {/* Quarter rows */}
+                              {yearQuarters.map(([quarter, quarterData]) => (
+                                <tr key={quarter} className="hover:bg-gray-50">
+                                  <td className="border border-gray-300 px-3 py-1 text-xs text-to-purple">
+                                    {quarterLabels[quarter.slice(-2).toLowerCase()] ?? quarter}
+                                  </td>
+                                  <td
+                                    className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumn === '1_hour'
+                                      ? quarterData?.["1_hour"]?.probablity_weighted_returns_percentage <= 0
+                                        ? "text-red-800 font-bold"
+                                        : "text-to-purple font-bold"
+                                      : quarterData?.["1_hour"]?.probablity_weighted_returns_percentage <= 0
+                                        ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                        : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                      } ${hoveredColumn === '1_hour' && hoveredRow === quarter ? 'bg-yellow-200' : ''
+                                      }`}
+                                    onMouseEnter={() => {
+                                      setHoveredColumn('1_hour');
+                                      setHoveredRow(quarter);
+                                    }}
+                                    onMouseLeave={() => {
+                                      setHoveredColumn(null);
+                                      setHoveredRow(null);
+                                    }}
+                                  >
+                                    {quarterData?.["1_hour"]?.probablity_weighted_returns_percentage != null
+                                      ? `${quarterData["1_hour"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                      : <span className={hoveredColumn === '1_hour' ? "text-red-800 font-bold" : "text-red-200 hover:text-red-800 hover:font-bold"}>N/A</span>}
+                                  </td>
+
+                                  <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumn === '24_hours'
+                                    ? quarterData?.["24_hours"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-800 font-bold"
+                                      : "text-to-purple font-bold"
+                                    : quarterData?.["24_hours"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                      : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                    } ${hoveredColumn === '24_hours' && hoveredRow === quarter ? 'bg-yellow-200' : ''
+                                    }`}
+                                    onMouseEnter={() => {
+                                      setHoveredColumn('24_hours');
+                                      setHoveredRow(quarter);
+                                    }}
+                                    onMouseLeave={() => {
+                                      setHoveredColumn(null);
+                                      setHoveredRow(null);
+                                    }}>
+                                    {quarterData?.["24_hours"]?.probablity_weighted_returns_percentage != null
+                                      ? `${quarterData["24_hours"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                      : <span className={hoveredColumn === '24_hours' ? "text-red-800 font-bold" : "text-red-200 hover:text-red-800 hover:font-bold"}>N/A</span>}
+                                  </td>
+
+                                  <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumn === '7_days'
+                                    ? quarterData?.["7_days"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-800 font-bold"
+                                      : "text-to-purple font-bold"
+                                    : quarterData?.["7_days"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                      : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                    } ${hoveredColumn === '7_days' && hoveredRow === quarter ? 'bg-yellow-200' : ''
+                                    }`}
+                                    onMouseEnter={() => {
+                                      setHoveredColumn('7_days');
+                                      setHoveredRow(quarter);
+                                    }}
+                                    onMouseLeave={() => {
+                                      setHoveredColumn(null);
+                                      setHoveredRow(null);
+                                    }}>
+                                    {quarterData?.["7_days"]?.probablity_weighted_returns_percentage != null
+                                      ? `${quarterData["7_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                      : <span className={hoveredColumn === '7_days' ? "text-red-800 font-bold" : "text-red-200 hover:text-red-800 hover:font-bold"}>N/A</span>}
+                                  </td>
+
+                                  <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumn === '30_days'
+                                    ? quarterData?.["30_days"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-800 font-bold"
+                                      : "text-to-purple font-bold"
+                                    : quarterData?.["30_days"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                      : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                    } ${hoveredColumn === '30_days' && hoveredRow === quarter ? 'bg-yellow-200' : ''
+                                    }`}
+                                    onMouseEnter={() => {
+                                      setHoveredColumn('30_days');
+                                      setHoveredRow(quarter);
+                                    }}
+                                    onMouseLeave={() => {
+                                      setHoveredColumn(null);
+                                      setHoveredRow(null);
+                                    }}>
+                                    {quarterData?.["30_days"]?.probablity_weighted_returns_percentage != null
+                                      ? `${quarterData["30_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                      : <span className={hoveredColumn === '30_days' ? "text-red-800 font-bold" : "text-red-200 hover:text-red-800 hover:font-bold"}>N/A</span>}
+                                  </td>
+
+                                  <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumn === '60_days'
+                                    ? quarterData?.["60_days"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-800 font-bold"
+                                      : "text-to-purple font-bold"
+                                    : quarterData?.["60_days"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                      : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                    } ${hoveredColumn === '60_days' && hoveredRow === quarter ? 'bg-yellow-200' : ''
+                                    }`}
+                                    onMouseEnter={() => {
+                                      setHoveredColumn('60_days');
+                                      setHoveredRow(quarter);
+                                    }}
+                                    onMouseLeave={() => {
+                                      setHoveredColumn(null);
+                                      setHoveredRow(null);
+                                    }}>
+                                    {quarterData?.["60_days"]?.probablity_weighted_returns_percentage != null
+                                      ? `${quarterData["60_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                      : <span className={hoveredColumn === '60_days' ? "text-red-800 font-bold" : "text-red-200 hover:text-red-800 hover:font-bold"}>N/A</span>}
+                                  </td>
+
+                                  <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumn === '90_days'
+                                    ? quarterData?.["90_days"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-800 font-bold"
+                                      : "text-to-purple font-bold"
+                                    : quarterData?.["90_days"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                      : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                    } ${hoveredColumn === '90_days' && hoveredRow === quarter ? 'bg-yellow-200' : ''
+                                    }`}
+                                    onMouseEnter={() => {
+                                      setHoveredColumn('90_days');
+                                      setHoveredRow(quarter);
+                                    }}
+                                    onMouseLeave={() => {
+                                      setHoveredColumn(null);
+                                      setHoveredRow(null);
+                                    }}>
+                                    {quarterData?.["90_days"]?.probablity_weighted_returns_percentage != null
+                                      ? `${quarterData["90_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                      : <span className={hoveredColumn === '90_days' ? "text-red-800 font-bold" : "text-red-200 hover:text-red-800 hover:font-bold"}>N/A</span>}
+                                  </td>
+
+                                  <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumn === '180_days'
+                                    ? quarterData?.["180_days"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-800 font-bold"
+                                      : "text-to-purple font-bold"
+                                    : quarterData?.["180_days"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                      : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                    } ${hoveredColumn === '180_days' && hoveredRow === quarter ? 'bg-yellow-200' : ''
+                                    }`}
+                                    onMouseEnter={() => {
+                                      setHoveredColumn('180_days');
+                                      setHoveredRow(quarter);
+                                    }}
+                                    onMouseLeave={() => {
+                                      setHoveredColumn(null);
+                                      setHoveredRow(null);
+                                    }}>
+                                    {quarterData?.["180_days"]?.probablity_weighted_returns_percentage != null
+                                      ? `${quarterData["180_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                      : <span className={hoveredColumn === '180_days' ? "text-red-800 font-bold" : "text-red-200 hover:text-red-800 hover:font-bold"}>N/A</span>}
+                                  </td>
+
+                                  <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumn === '1_year'
+                                    ? quarterData?.["1_year"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-800 font-bold"
+                                      : "text-to-purple font-bold"
+                                    : quarterData?.["1_year"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                      : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                    } ${hoveredColumn === '1_year' && hoveredRow === quarter ? 'bg-yellow-200' : ''
+                                    }`}
+                                    onMouseEnter={() => {
+                                      setHoveredColumn('1_year');
+                                      setHoveredRow(quarter);
+                                    }}
+                                    onMouseLeave={() => {
+                                      setHoveredColumn(null);
+                                      setHoveredRow(null);
+                                    }}>
+                                    {quarterData?.["1_year"]?.probablity_weighted_returns_percentage != null
+                                      ? `${quarterData["1_year"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                      : <span className={hoveredColumn === '1_year' ? "text-red-800 font-bold" : "text-red-200 hover:text-red-800 hover:font-bold"}>N/A</span>}
+                                  </td>
+                                </tr>
+                              ))}
+                            </Fragment>
+                          );
+                        })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
             {/* Charts Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white rounded-xl p-6 border border-gray-200">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold text-black">Performance Overview (ROI)</h3>
-
-                  {/* <button
-                    onClick={() => setTab("recommendations")}
-                    className="px-3 py-1.5 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-md"
-                  >
-                    More Details
-                  </button> */}
                 </div>
                 <p className="text-md mb-3 text-to-purple">Hover Mouse for info</p>
                 {/* Table */}
@@ -520,33 +784,33 @@ export default function InfluencerProfilePage() {
                       <tr>
                         <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple" rowSpan={2}>Year</th>
                         <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple" rowSpan={2}>Quarter</th>
-                        <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple" colSpan={8}>Holding period (From the date of post)</th>
+                        <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple" colSpan={8}>Holding period (From the date of post)/Recommendations</th>
                       </tr>
                       <tr>
                         <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
-                            onMouseEnter={() => setHoveredColumn('1_hour')}
-                            onMouseLeave={() => setHoveredColumn(null)}>1 Hour</th>
+                          onMouseEnter={() => setHoveredColumn('1_hour')}
+                          onMouseLeave={() => setHoveredColumn(null)}>1 Hour</th>
                         <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
-                            onMouseEnter={() => setHoveredColumn('24_hours')}
-                            onMouseLeave={() => setHoveredColumn(null)}>24 Hours</th>
+                          onMouseEnter={() => setHoveredColumn('24_hours')}
+                          onMouseLeave={() => setHoveredColumn(null)}>24 Hours</th>
                         <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
-                            onMouseEnter={() => setHoveredColumn('7_days')}
-                            onMouseLeave={() => setHoveredColumn(null)}>7 Days</th>
+                          onMouseEnter={() => setHoveredColumn('7_days')}
+                          onMouseLeave={() => setHoveredColumn(null)}>7 Days</th>
                         <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
-                            onMouseEnter={() => setHoveredColumn('30_days')}
-                            onMouseLeave={() => setHoveredColumn(null)}>30 Days</th>
+                          onMouseEnter={() => setHoveredColumn('30_days')}
+                          onMouseLeave={() => setHoveredColumn(null)}>30 Days</th>
                         <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
-                            onMouseEnter={() => setHoveredColumn('60_days')}
-                            onMouseLeave={() => setHoveredColumn(null)}>60 Days</th>
+                          onMouseEnter={() => setHoveredColumn('60_days')}
+                          onMouseLeave={() => setHoveredColumn(null)}>60 Days</th>
                         <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
-                            onMouseEnter={() => setHoveredColumn('90_days')}
-                            onMouseLeave={() => setHoveredColumn(null)}>90 Days</th>
+                          onMouseEnter={() => setHoveredColumn('90_days')}
+                          onMouseLeave={() => setHoveredColumn(null)}>90 Days</th>
                         <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
-                            onMouseEnter={() => setHoveredColumn('180_days')}
-                            onMouseLeave={() => setHoveredColumn(null)}>180 Days</th>
+                          onMouseEnter={() => setHoveredColumn('180_days')}
+                          onMouseLeave={() => setHoveredColumn(null)}>180 Days</th>
                         <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
-                            onMouseEnter={() => setHoveredColumn('1_year')}
-                            onMouseLeave={() => setHoveredColumn(null)}>1 Year</th>
+                          onMouseEnter={() => setHoveredColumn('1_year')}
+                          onMouseLeave={() => setHoveredColumn(null)}>1 Year</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -572,7 +836,7 @@ export default function InfluencerProfilePage() {
                                     className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple"
                                     rowSpan={yearQuarters.length + 1}
                                   >
-                                    {year}
+                                    {year === '2025' ? `${year}*` : year}
                                   </td>
                                   {/* <td className="border border-gray-300 px-3 py-1 text-to-purple">{year}</td>
                                   <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["1_hour"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["1_hour"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td>
@@ -592,130 +856,178 @@ export default function InfluencerProfilePage() {
                                       {quarterLabels[quarter.slice(-2).toLowerCase()] ?? quarter}
                                     </td>
                                     <td
-                                      className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${
-                                        hoveredColumn === '1_hour'
-                                          ? quarterData?.["1_hour"]?.probablity_weighted_returns_percentage <= 0
-                                            ? "text-red-800 font-bold"
-                                            : "text-to-purple font-bold"
-                                          : quarterData?.["1_hour"]?.probablity_weighted_returns_percentage <= 0
-                                            ? "text-red-200 hover:text-red-800 hover:font-bold"
-                                            : "text-gray-300 hover:text-to-purple hover:font-bold"
-                                      }`}
-                                      onMouseEnter={() => setHoveredColumn('1_hour')}
-                                      onMouseLeave={() => setHoveredColumn(null)}
+                                      className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumn === '1_hour'
+                                        ? quarterData?.["1_hour"]?.probablity_weighted_returns_percentage <= 0
+                                          ? "text-red-800 font-bold"
+                                          : "text-to-purple font-bold"
+                                        : quarterData?.["1_hour"]?.probablity_weighted_returns_percentage <= 0
+                                          ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                          : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                        } ${hoveredColumn === '1_hour' && hoveredRow === quarter ? 'bg-yellow-200' : ''
+                                        }`}
+                                      onMouseEnter={() => {
+                                        setHoveredColumn('1_hour');
+                                        setHoveredRow(quarter);
+                                      }}
+                                      onMouseLeave={() => {
+                                        setHoveredColumn(null);
+                                        setHoveredRow(null);
+                                      }}
                                     >
                                       {quarterData?.["1_hour"]?.probablity_weighted_returns_percentage != null
                                         ? `${quarterData["1_hour"].probablity_weighted_returns_percentage.toFixed(2)}%`
                                         : ""}
                                     </td>
 
-                                    <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${
-                                      hoveredColumn === '24_hours'
-                                        ? quarterData?.["24_hours"]?.probablity_weighted_returns_percentage <= 0
-                                          ? "text-red-800 font-bold"
-                                          : "text-to-purple font-bold"
-                                        : quarterData?.["24_hours"]?.probablity_weighted_returns_percentage <= 0
-                                          ? "text-red-200 hover:text-red-800 hover:font-bold"
-                                          : "text-gray-300 hover:text-to-purple hover:font-bold"
-                                    }`}
-                                    onMouseEnter={() => setHoveredColumn('24_hours')}
-                                    onMouseLeave={() => setHoveredColumn(null)}>
+                                    <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumn === '24_hours'
+                                      ? quarterData?.["24_hours"]?.probablity_weighted_returns_percentage <= 0
+                                        ? "text-red-800 font-bold"
+                                        : "text-to-purple font-bold"
+                                      : quarterData?.["24_hours"]?.probablity_weighted_returns_percentage <= 0
+                                        ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                        : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                      } ${hoveredColumn === '24_hours' && hoveredRow === quarter ? 'bg-yellow-200' : ''
+                                      }`}
+                                      onMouseEnter={() => {
+                                        setHoveredColumn('24_hours');
+                                        setHoveredRow(quarter);
+                                      }}
+                                      onMouseLeave={() => {
+                                        setHoveredColumn(null);
+                                        setHoveredRow(null);
+                                      }}>
                                       {quarterData?.["24_hours"]?.probablity_weighted_returns_percentage != null
                                         ? `${quarterData["24_hours"].probablity_weighted_returns_percentage.toFixed(2)}%`
                                         : ""}
                                     </td>
 
-                                    <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${
-                                      hoveredColumn === '7_days'
-                                        ? quarterData?.["7_days"]?.probablity_weighted_returns_percentage <= 0
-                                          ? "text-red-800 font-bold"
-                                          : "text-to-purple font-bold"
-                                        : quarterData?.["7_days"]?.probablity_weighted_returns_percentage <= 0
-                                          ? "text-red-200 hover:text-red-800 hover:font-bold"
-                                          : "text-gray-300 hover:text-to-purple hover:font-bold"
-                                    }`}
-                                    onMouseEnter={() => setHoveredColumn('7_days')}
-                                    onMouseLeave={() => setHoveredColumn(null)}>
+                                    <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumn === '7_days'
+                                      ? quarterData?.["7_days"]?.probablity_weighted_returns_percentage <= 0
+                                        ? "text-red-800 font-bold"
+                                        : "text-to-purple font-bold"
+                                      : quarterData?.["7_days"]?.probablity_weighted_returns_percentage <= 0
+                                        ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                        : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                      } ${hoveredColumn === '7_days' && hoveredRow === quarter ? 'bg-yellow-200' : ''
+                                      }`}
+                                      onMouseEnter={() => {
+                                        setHoveredColumn('7_days');
+                                        setHoveredRow(quarter);
+                                      }}
+                                      onMouseLeave={() => {
+                                        setHoveredColumn(null);
+                                        setHoveredRow(null);
+                                      }}>
                                       {quarterData?.["7_days"]?.probablity_weighted_returns_percentage != null
                                         ? `${quarterData["7_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
                                         : ""}
                                     </td>
 
-                                    <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${
-                                      hoveredColumn === '30_days'
-                                        ? quarterData?.["30_days"]?.probablity_weighted_returns_percentage <= 0
-                                          ? "text-red-800 font-bold"
-                                          : "text-to-purple font-bold"
-                                        : quarterData?.["30_days"]?.probablity_weighted_returns_percentage <= 0
-                                          ? "text-red-200 hover:text-red-800 hover:font-bold"
-                                          : "text-gray-300 hover:text-to-purple hover:font-bold"
-                                    }`}
-                                    onMouseEnter={() => setHoveredColumn('30_days')}
-                                    onMouseLeave={() => setHoveredColumn(null)}>
+                                    <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumn === '30_days'
+                                      ? quarterData?.["30_days"]?.probablity_weighted_returns_percentage <= 0
+                                        ? "text-red-800 font-bold"
+                                        : "text-to-purple font-bold"
+                                      : quarterData?.["30_days"]?.probablity_weighted_returns_percentage <= 0
+                                        ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                        : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                      } ${hoveredColumn === '30_days' && hoveredRow === quarter ? 'bg-yellow-200' : ''
+                                      }`}
+                                      onMouseEnter={() => {
+                                        setHoveredColumn('30_days');
+                                        setHoveredRow(quarter);
+                                      }}
+                                      onMouseLeave={() => {
+                                        setHoveredColumn(null);
+                                        setHoveredRow(null);
+                                      }}>
                                       {quarterData?.["30_days"]?.probablity_weighted_returns_percentage != null
                                         ? `${quarterData["30_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
                                         : ""}
                                     </td>
 
-                                    <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${
-                                      hoveredColumn === '60_days'
-                                        ? quarterData?.["60_days"]?.probablity_weighted_returns_percentage <= 0
-                                          ? "text-red-800 font-bold"
-                                          : "text-to-purple font-bold"
-                                        : quarterData?.["60_days"]?.probablity_weighted_returns_percentage <= 0
-                                          ? "text-red-200 hover:text-red-800 hover:font-bold"
-                                          : "text-gray-300 hover:text-to-purple hover:font-bold"
-                                    }`}
-                                    onMouseEnter={() => setHoveredColumn('60_days')}
-                                    onMouseLeave={() => setHoveredColumn(null)}>
+                                    <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumn === '60_days'
+                                      ? quarterData?.["60_days"]?.probablity_weighted_returns_percentage <= 0
+                                        ? "text-red-800 font-bold"
+                                        : "text-to-purple font-bold"
+                                      : quarterData?.["60_days"]?.probablity_weighted_returns_percentage <= 0
+                                        ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                        : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                      } ${hoveredColumn === '60_days' && hoveredRow === quarter ? 'bg-yellow-200' : ''
+                                      }`}
+                                      onMouseEnter={() => {
+                                        setHoveredColumn('60_days');
+                                        setHoveredRow(quarter);
+                                      }}
+                                      onMouseLeave={() => {
+                                        setHoveredColumn(null);
+                                        setHoveredRow(null);
+                                      }}>
                                       {quarterData?.["60_days"]?.probablity_weighted_returns_percentage != null
                                         ? `${quarterData["60_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
                                         : ""}
                                     </td>
 
-                                    <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${
-                                      hoveredColumn === '90_days'
-                                        ? quarterData?.["90_days"]?.probablity_weighted_returns_percentage <= 0
-                                          ? "text-red-800 font-bold"
-                                          : "text-to-purple font-bold"
-                                        : quarterData?.["90_days"]?.probablity_weighted_returns_percentage <= 0
-                                          ? "text-red-200 hover:text-red-800 hover:font-bold"
-                                          : "text-gray-300 hover:text-to-purple hover:font-bold"
-                                    }`}
-                                    onMouseEnter={() => setHoveredColumn('90_days')}
-                                    onMouseLeave={() => setHoveredColumn(null)}>
+                                    <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumn === '90_days'
+                                      ? quarterData?.["90_days"]?.probablity_weighted_returns_percentage <= 0
+                                        ? "text-red-800 font-bold"
+                                        : "text-to-purple font-bold"
+                                      : quarterData?.["90_days"]?.probablity_weighted_returns_percentage <= 0
+                                        ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                        : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                      } ${hoveredColumn === '90_days' && hoveredRow === quarter ? 'bg-yellow-200' : ''
+                                      }`}
+                                      onMouseEnter={() => {
+                                        setHoveredColumn('90_days');
+                                        setHoveredRow(quarter);
+                                      }}
+                                      onMouseLeave={() => {
+                                        setHoveredColumn(null);
+                                        setHoveredRow(null);
+                                      }}>
                                       {quarterData?.["90_days"]?.probablity_weighted_returns_percentage != null
                                         ? `${quarterData["90_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
                                         : ""}
                                     </td>
 
-                                    <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${
-                                      hoveredColumn === '180_days'
-                                        ? quarterData?.["180_days"]?.probablity_weighted_returns_percentage <= 0
-                                          ? "text-red-800 font-bold"
-                                          : "text-to-purple font-bold"
-                                        : quarterData?.["180_days"]?.probablity_weighted_returns_percentage <= 0
-                                          ? "text-red-200 hover:text-red-800 hover:font-bold"
-                                          : "text-gray-300 hover:text-to-purple hover:font-bold"
-                                    }`}
-                                    onMouseEnter={() => setHoveredColumn('180_days')}
-                                    onMouseLeave={() => setHoveredColumn(null)}>
+                                    <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumn === '180_days'
+                                      ? quarterData?.["180_days"]?.probablity_weighted_returns_percentage <= 0
+                                        ? "text-red-800 font-bold"
+                                        : "text-to-purple font-bold"
+                                      : quarterData?.["180_days"]?.probablity_weighted_returns_percentage <= 0
+                                        ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                        : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                      } ${hoveredColumn === '180_days' && hoveredRow === quarter ? 'bg-yellow-200' : ''
+                                      }`}
+                                      onMouseEnter={() => {
+                                        setHoveredColumn('180_days');
+                                        setHoveredRow(quarter);
+                                      }}
+                                      onMouseLeave={() => {
+                                        setHoveredColumn(null);
+                                        setHoveredRow(null);
+                                      }}>
                                       {quarterData?.["180_days"]?.probablity_weighted_returns_percentage != null
                                         ? `${quarterData["180_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
                                         : ""}
                                     </td>
 
-                                    <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${
-                                      hoveredColumn === '1_year'
-                                        ? quarterData?.["1_year"]?.probablity_weighted_returns_percentage <= 0
-                                          ? "text-red-800 font-bold"
-                                          : "text-to-purple font-bold"
-                                        : quarterData?.["1_year"]?.probablity_weighted_returns_percentage <= 0
-                                          ? "text-red-200 hover:text-red-800 hover:font-bold"
-                                          : "text-gray-300 hover:text-to-purple hover:font-bold"
-                                    }`}
-                                    onMouseEnter={() => setHoveredColumn('1_year')}
-                                    onMouseLeave={() => setHoveredColumn(null)}>
+                                    <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumn === '1_year'
+                                      ? quarterData?.["1_year"]?.probablity_weighted_returns_percentage <= 0
+                                        ? "text-red-800 font-bold"
+                                        : "text-to-purple font-bold"
+                                      : quarterData?.["1_year"]?.probablity_weighted_returns_percentage <= 0
+                                        ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                        : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                      } ${hoveredColumn === '1_year' && hoveredRow === quarter ? 'bg-yellow-200' : ''
+                                      }`}
+                                      onMouseEnter={() => {
+                                        setHoveredColumn('1_year');
+                                        setHoveredRow(quarter);
+                                      }}
+                                      onMouseLeave={() => {
+                                        setHoveredColumn(null);
+                                        setHoveredRow(null);
+                                      }}>
                                       {quarterData?.["1_year"]?.probablity_weighted_returns_percentage != null
                                         ? `${quarterData["1_year"].probablity_weighted_returns_percentage.toFixed(2)}%`
                                         : ""}
@@ -920,7 +1232,7 @@ export default function InfluencerProfilePage() {
                       "No description available."}
                   </p>
 
-                  <div className="flex gap-8 mt-6">
+                  {/* <div className="flex gap-8 mt-6">
                     <div className="bg-green-100 rounded-2xl p-6 flex-1 text-center transform hover:scale-105 transition">
                       <div className="text-5xl font-black text-green-600 mb-2">
                         {bullishPercentage}%
@@ -943,7 +1255,7 @@ export default function InfluencerProfilePage() {
                         MCM Ranking
                       </div>
                     </div>
-                  </div>
+                  </div> */}
                 </>
               )}
             </div>
@@ -951,8 +1263,8 @@ export default function InfluencerProfilePage() {
 
             {/* Summary Dropdown Section */}
             <div className="bg-white rounded-xl p-6 mb-2 border border-gray-200">
-              <h3 className="text-lg font-bold mb-4 text-[#0c0023]">
-                Channel Summary Analysis
+              <h3 className="text-lg font-bold mb-2 text-[#0c0023]">
+                Channel Summary Analysis (Year On Year)
               </h3>
 
               {/* Toggle Button */}
@@ -1116,6 +1428,717 @@ export default function InfluencerProfilePage() {
                   )}
                 </>
               )}
+            </div>
+
+
+            <div className="bg-white rounded-xl p-6 mb-2 border border-gray-200">
+              <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-[#0c0023]">
+                    Channel Performance Metrics (Year On Year)
+                  </h3>
+                  {/* <button
+                    onClick={() => setTab("correlationSummaryV2")}
+                    className="px-3 py-1.5 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-md"
+                  >
+                    More Details
+                  </button> */}
+                </div>
+
+                <div className="space-y-6">
+                  {summaryType === "yearly" && channelData?.Ai_scoring?.Yearly
+                    ? (() => {
+                      // Prepare data for charts
+                      const years = Object.keys(channelData.Ai_scoring.Yearly).sort();
+
+                      // Define metrics with their properties
+                      const metrics = [
+                        {
+                          key: 'overall_score',
+                          label: 'Overall Score',
+                          field: 'avg_overall_score',
+                          color: '#ec4899',
+                          definition: 'Combined score reflecting overall quality across all metrics.'
+                        },
+                        {
+                          key: 'actionable_insights',
+                          label: 'Actionable Insights',
+                          field: 'avg_actionable_insights',
+                          color: '#8b5cf6',
+                          definition: 'Presence and quality of actionable insights. Higher score when the reader can take specific actions.'
+                        },
+                        {
+                          key: 'risk_management',
+                          label: 'Risk Management',
+                          field: 'avg_risk_management',
+                          color: '#3b82f6',
+                          definition: 'How well risk strategies are addressed (e.g. sizing, risk-reward ratios, portfolio allocation).'
+                        },
+                        {
+                          key: 'educational_value',
+                          label: 'Educational Value',
+                          field: 'avg_educational_purpose',
+                          color: '#10b981',
+                          definition: 'Higher when explanations of why certain moves are expected are included.'
+                        },
+                        {
+                          key: 'credibility_score',
+                          label: 'Credibility Score',
+                          field: 'avg_credibility_score',
+                          color: '#f59e0b',
+                          definition: 'Trustworthiness and accuracy of the content.'
+                        }
+                      ];
+
+                      // Create separate chart data for each metric
+                      const chartsData = metrics.map(metric => {
+                        const data = years.map(year => ({
+                          year: year,
+                          value: channelData.Ai_scoring.Yearly[year][metric.field] || 0
+                        })).filter(d => d.value > 0);
+
+                        return {
+                          ...metric,
+                          data: data,
+                          hasData: data.length > 0
+                        };
+                      }).filter(chart => chart.hasData);
+
+                      return (
+                        <div className="space-y-4">
+                          {chartsData.length === 0 ? (
+                            <div className="h-40 flex items-center justify-center text-gray-500 italic">
+                              No yearly performance data available
+                            </div>
+                          ) : (
+                            <>
+                              {/* All metrics in one row */}
+                              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                                {chartsData.map((metric) => (
+                                  <div key={metric.key} className="space-y-2">
+                                    <div className="flex items-center justify-center gap-2 mb-2">
+                                      <h4 className="text-sm font-semibold text-[#0c0023]">{metric.label}</h4>
+                                      <div className="relative group">
+                                        <svg
+                                          className="w-4 h-4 text-gray-500 cursor-pointer hover:text-gray-700 transition-colors"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          stroke="currentColor"
+                                        >
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                                          {metric.definition}
+                                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                                            <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <ResponsiveContainer width="100%" height={180}>
+                                      <BarChart
+                                        data={metric.data}
+                                        margin={{ top: 10, right: 10, left: 0, bottom: 30 }}
+                                      >
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                        <XAxis
+                                          dataKey="year"
+                                          tick={{ fontSize: 10 }}
+                                          stroke="#666"
+                                        />
+                                        <YAxis
+                                          domain={[0, 10]}
+                                          ticks={[0, 5, 10]}
+                                          tick={{ fontSize: 10 }}
+                                          stroke="#666"
+                                        />
+                                        <Bar
+                                          dataKey="value"
+                                          fill={metric.color}
+                                          radius={[8, 8, 0, 0]}
+                                          barSize={30}
+                                        >
+                                          <LabelList
+                                            dataKey="value"
+                                            position="top"
+                                            formatter={(value) => value.toFixed(1)}
+                                            style={{ fontSize: '12px', fontWeight: 'bold', fill: '#333' }}
+                                          />
+                                        </Bar>
+                                      </BarChart>
+                                    </ResponsiveContainer>
+                                  </div>
+                                ))}
+                              </div>
+
+                              <p className="text-xs text-gray-500 text-right mt-2">
+                                * Current year data may be incomplete
+                              </p>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })()
+                    : (
+                      <div className="h-40 flex items-center justify-center text-gray-500 italic">
+                        No yearly performance data available
+                      </div>
+                    )}
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl p-6 mb-2 border border-gray-200">
+              <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <h3 className="font-semibold mb-4 text-[#0c0023]">Sentiment Analysis (Year On Year)</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-to-purple">Strong Bullish:</span>
+                    <span className="font-semibold text-to-green-recomendations">
+                      {channelData.total_strong_bullish || 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-to-purple">Mild Bullish:</span>
+                    <span className="font-semibold text-to-green-recomendations">
+                      {channelData.total_mild_bullish || 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-to-purple">Strong Bearish:</span>
+                    <span className="font-semibold text-to-red-recomendations">
+                      {channelData.total_strong_bearish || 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-to-purple">Mild Bearish:</span>
+                    <span className="font-semibold text-to-red-recomendations">
+                      {channelData.total_mild_bearish || 0}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 border border-gray-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-black">Performance Overview ROI (Year On Year)</h3>
+              </div>
+              <p className="text-md mb-3 text-to-purple">Hover Mouse for info</p>
+              {/* Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-sm text-black">
+                  <thead>
+                    <tr>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple" rowSpan={2}>Year</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple" rowSpan={2}>Quarter</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple" colSpan={8}>Holding Period (From the Date of Post/Recommendations)</th>
+                    </tr>
+                    <tr>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                        onMouseEnter={() => setHoveredColumn('1_hour')}
+                        onMouseLeave={() => setHoveredColumn(null)}>1 Hour</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                        onMouseEnter={() => setHoveredColumn('24_hours')}
+                        onMouseLeave={() => setHoveredColumn(null)}>24 Hours</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                        onMouseEnter={() => setHoveredColumn('7_days')}
+                        onMouseLeave={() => setHoveredColumn(null)}>7 Days</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                        onMouseEnter={() => setHoveredColumn('30_days')}
+                        onMouseLeave={() => setHoveredColumn(null)}>30 Days</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                        onMouseEnter={() => setHoveredColumn('60_days')}
+                        onMouseLeave={() => setHoveredColumn(null)}>60 Days</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                        onMouseEnter={() => setHoveredColumn('90_days')}
+                        onMouseLeave={() => setHoveredColumn(null)}>90 Days</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                        onMouseEnter={() => setHoveredColumn('180_days')}
+                        onMouseLeave={() => setHoveredColumn(null)}>180 Days</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                        onMouseEnter={() => setHoveredColumn('1_year')}
+                        onMouseLeave={() => setHoveredColumn(null)}>1 Year</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {channelData?.Yearly &&
+                      Object.entries(channelData.Yearly)
+                        .sort(([a], [b]) => Number(b) - Number(a))
+                        .map(([year, yearData]) => {
+                          const yearQuarters = channelData?.Quarterly
+                            ? Object.entries(channelData.Quarterly)
+                              .filter(([quarter]) => quarter && quarter.startsWith(year))
+                              .sort(([a], [b]) => {
+                                const qA = parseInt(a.split("-")[1]?.replace("Q", "") || "0");
+                                const qB = parseInt(b.split("-")[1]?.replace("Q", "") || "0");
+                                return qA - qB;
+                              })
+                            : [];
+
+                          return (
+                            <Fragment key={year}>
+                              {/* Year row */}
+                              <tr className="hover:bg-gray-50">
+                                <td
+                                  className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple"
+                                  rowSpan={yearQuarters.length + 1}
+                                >
+                                  {year === '2025' ? `${year}*` : year}
+                                </td>
+                                {/* <td className="border border-gray-300 px-3 py-1 text-to-purple">{year}</td>
+                                  <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["1_hour"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["1_hour"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td>
+                                  <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["24_hours"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["24_hours"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td>
+                                  <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["7_days"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["7_days"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td>
+                                  <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["30_days"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["30_days"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td>
+                                  <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["60_days"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["60_days"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td>
+                                  <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["90_days"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["90_days"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td>
+                                  <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["180_days"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["180_days"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td>
+                                  <td className={`border border-gray-300 px-2 py-1 text-center ${yearData?.["1_year"]?.probablity_weighted_returns_percentage <= 0 ? "text-red-400 hover:text-red-600" : "text-gray-500 hover:text-to-purple"}`}>{yearData?.["1_year"]?.probablity_weighted_returns_percentage?.toFixed(0) ?? ""}</td> */}
+                              </tr>
+
+                              {/* Quarter rows */}
+                              {yearQuarters.map(([quarter, quarterData]) => (
+                                <tr key={quarter} className="hover:bg-gray-50">
+                                  <td className="border border-gray-300 px-3 py-1 text-xs text-to-purple">
+                                    {quarterLabels[quarter.slice(-2).toLowerCase()] ?? quarter}
+                                  </td>
+                                  <td
+                                    className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumn === '1_hour'
+                                      ? quarterData?.["1_hour"]?.probablity_weighted_returns_percentage <= 0
+                                        ? "text-red-800 font-bold"
+                                        : "text-to-purple font-bold"
+                                      : quarterData?.["1_hour"]?.probablity_weighted_returns_percentage <= 0
+                                        ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                        : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                      } ${hoveredColumn === '1_hour' && hoveredRow === quarter ? 'bg-yellow-200' : ''
+                                      }`}
+                                    onMouseEnter={() => {
+                                      setHoveredColumn('1_hour');
+                                      setHoveredRow(quarter);
+                                    }}
+                                    onMouseLeave={() => {
+                                      setHoveredColumn(null);
+                                      setHoveredRow(null);
+                                    }}
+                                  >
+                                    {quarterData?.["1_hour"]?.probablity_weighted_returns_percentage != null
+                                      ? `${quarterData["1_hour"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                      : <span className={hoveredColumn === '1_hour' ? "text-red-800 font-bold" : "text-red-200 hover:text-red-800 hover:font-bold"}>N/A</span>}
+                                  </td>
+
+                                  <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumn === '24_hours'
+                                    ? quarterData?.["24_hours"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-800 font-bold"
+                                      : "text-to-purple font-bold"
+                                    : quarterData?.["24_hours"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                      : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                    } ${hoveredColumn === '24_hours' && hoveredRow === quarter ? 'bg-yellow-200' : ''
+                                    }`}
+                                    onMouseEnter={() => {
+                                      setHoveredColumn('24_hours');
+                                      setHoveredRow(quarter);
+                                    }}
+                                    onMouseLeave={() => {
+                                      setHoveredColumn(null);
+                                      setHoveredRow(null);
+                                    }}>
+                                    {quarterData?.["24_hours"]?.probablity_weighted_returns_percentage != null
+                                      ? `${quarterData["24_hours"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                      : <span className={hoveredColumn === '24_hours' ? "text-red-800 font-bold" : "text-red-200 hover:text-red-800 hover:font-bold"}>N/A</span>}
+                                  </td>
+
+                                  <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumn === '7_days'
+                                    ? quarterData?.["7_days"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-800 font-bold"
+                                      : "text-to-purple font-bold"
+                                    : quarterData?.["7_days"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                      : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                    } ${hoveredColumn === '7_days' && hoveredRow === quarter ? 'bg-yellow-200' : ''
+                                    }`}
+                                    onMouseEnter={() => {
+                                      setHoveredColumn('7_days');
+                                      setHoveredRow(quarter);
+                                    }}
+                                    onMouseLeave={() => {
+                                      setHoveredColumn(null);
+                                      setHoveredRow(null);
+                                    }}>
+                                    {quarterData?.["7_days"]?.probablity_weighted_returns_percentage != null
+                                      ? `${quarterData["7_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                      : <span className={hoveredColumn === '7_days' ? "text-red-800 font-bold" : "text-red-200 hover:text-red-800 hover:font-bold"}>N/A</span>}
+                                  </td>
+
+                                  <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumn === '30_days'
+                                    ? quarterData?.["30_days"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-800 font-bold"
+                                      : "text-to-purple font-bold"
+                                    : quarterData?.["30_days"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                      : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                    } ${hoveredColumn === '30_days' && hoveredRow === quarter ? 'bg-yellow-200' : ''
+                                    }`}
+                                    onMouseEnter={() => {
+                                      setHoveredColumn('30_days');
+                                      setHoveredRow(quarter);
+                                    }}
+                                    onMouseLeave={() => {
+                                      setHoveredColumn(null);
+                                      setHoveredRow(null);
+                                    }}>
+                                    {quarterData?.["30_days"]?.probablity_weighted_returns_percentage != null
+                                      ? `${quarterData["30_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                      : <span className={hoveredColumn === '30_days' ? "text-red-800 font-bold" : "text-red-200 hover:text-red-800 hover:font-bold"}>N/A</span>}
+                                  </td>
+
+                                  <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumn === '60_days'
+                                    ? quarterData?.["60_days"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-800 font-bold"
+                                      : "text-to-purple font-bold"
+                                    : quarterData?.["60_days"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                      : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                    } ${hoveredColumn === '60_days' && hoveredRow === quarter ? 'bg-yellow-200' : ''
+                                    }`}
+                                    onMouseEnter={() => {
+                                      setHoveredColumn('60_days');
+                                      setHoveredRow(quarter);
+                                    }}
+                                    onMouseLeave={() => {
+                                      setHoveredColumn(null);
+                                      setHoveredRow(null);
+                                    }}>
+                                    {quarterData?.["60_days"]?.probablity_weighted_returns_percentage != null
+                                      ? `${quarterData["60_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                      : <span className={hoveredColumn === '60_days' ? "text-red-800 font-bold" : "text-red-200 hover:text-red-800 hover:font-bold"}>N/A</span>}
+                                  </td>
+
+                                  <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumn === '90_days'
+                                    ? quarterData?.["90_days"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-800 font-bold"
+                                      : "text-to-purple font-bold"
+                                    : quarterData?.["90_days"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                      : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                    } ${hoveredColumn === '90_days' && hoveredRow === quarter ? 'bg-yellow-200' : ''
+                                    }`}
+                                    onMouseEnter={() => {
+                                      setHoveredColumn('90_days');
+                                      setHoveredRow(quarter);
+                                    }}
+                                    onMouseLeave={() => {
+                                      setHoveredColumn(null);
+                                      setHoveredRow(null);
+                                    }}>
+                                    {quarterData?.["90_days"]?.probablity_weighted_returns_percentage != null
+                                      ? `${quarterData["90_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                      : <span className={hoveredColumn === '90_days' ? "text-red-800 font-bold" : "text-red-200 hover:text-red-800 hover:font-bold"}>N/A</span>}
+                                  </td>
+
+                                  <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumn === '180_days'
+                                    ? quarterData?.["180_days"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-800 font-bold"
+                                      : "text-to-purple font-bold"
+                                    : quarterData?.["180_days"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                      : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                    } ${hoveredColumn === '180_days' && hoveredRow === quarter ? 'bg-yellow-200' : ''
+                                    }`}
+                                    onMouseEnter={() => {
+                                      setHoveredColumn('180_days');
+                                      setHoveredRow(quarter);
+                                    }}
+                                    onMouseLeave={() => {
+                                      setHoveredColumn(null);
+                                      setHoveredRow(null);
+                                    }}>
+                                    {quarterData?.["180_days"]?.probablity_weighted_returns_percentage != null
+                                      ? `${quarterData["180_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                      : <span className={hoveredColumn === '180_days' ? "text-red-800 font-bold" : "text-red-200 hover:text-red-800 hover:font-bold"}>N/A</span>}
+                                  </td>
+
+                                  <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumn === '1_year'
+                                    ? quarterData?.["1_year"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-800 font-bold"
+                                      : "text-to-purple font-bold"
+                                    : quarterData?.["1_year"]?.probablity_weighted_returns_percentage <= 0
+                                      ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                      : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                    } ${hoveredColumn === '1_year' && hoveredRow === quarter ? 'bg-yellow-200' : ''
+                                    }`}
+                                    onMouseEnter={() => {
+                                      setHoveredColumn('1_year');
+                                      setHoveredRow(quarter);
+                                    }}
+                                    onMouseLeave={() => {
+                                      setHoveredColumn(null);
+                                      setHoveredRow(null);
+                                    }}>
+                                    {quarterData?.["1_year"]?.probablity_weighted_returns_percentage != null
+                                      ? `${quarterData["1_year"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                      : <span className={hoveredColumn === '1_year' ? "text-red-800 font-bold" : "text-red-200 hover:text-red-800 hover:font-bold"}>N/A</span>}
+                                  </td>
+                                </tr>
+                              ))}
+                            </Fragment>
+                          );
+                        })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+
+            <div className="bg-white rounded-xl p-6 border border-gray-200">
+              <h3 className="font-semibold mb-4 text-[#0c0023]">Win Rate Analysis (Year On Year)</h3>
+
+              {/* Table with independent hover states */}
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-sm text-black">
+                  <thead>
+                    <tr>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple" rowSpan={2}>Year</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple" colSpan={8}>Holding Period (From the Date of Post/Recommendations)</th>
+                    </tr>
+                    <tr>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                        onMouseEnter={() => setHoveredColumnWinRate('1_hour')}
+                        onMouseLeave={() => setHoveredColumnWinRate(null)}>1 Hour</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                        onMouseEnter={() => setHoveredColumnWinRate('24_hours')}
+                        onMouseLeave={() => setHoveredColumnWinRate(null)}>24 Hours</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                        onMouseEnter={() => setHoveredColumnWinRate('7_days')}
+                        onMouseLeave={() => setHoveredColumnWinRate(null)}>7 Days</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                        onMouseEnter={() => setHoveredColumnWinRate('30_days')}
+                        onMouseLeave={() => setHoveredColumnWinRate(null)}>30 Days</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                        onMouseEnter={() => setHoveredColumnWinRate('60_days')}
+                        onMouseLeave={() => setHoveredColumnWinRate(null)}>60 Days</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                        onMouseEnter={() => setHoveredColumnWinRate('90_days')}
+                        onMouseLeave={() => setHoveredColumnWinRate(null)}>90 Days</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                        onMouseEnter={() => setHoveredColumnWinRate('180_days')}
+                        onMouseLeave={() => setHoveredColumnWinRate(null)}>180 Days</th>
+                      <th className="border border-gray-300 bg-gray-50 px-3 py-1 font-medium text-to-purple cursor-pointer"
+                        onMouseEnter={() => setHoveredColumnWinRate('1_year')}
+                        onMouseLeave={() => setHoveredColumnWinRate(null)}>1 Year</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {channelData?.normal?.Yearly &&
+                      Object.entries(channelData.normal.Yearly)
+                        .sort(([a], [b]) => Number(b) - Number(a))
+                        .map(([year, yearData]) => {
+                          const currentYear = new Date().getFullYear();
+
+                          return (
+                            <tr key={year} className="hover:bg-gray-50">
+                              <td className="border border-gray-300 px-3 py-1 font-medium text-to-purple">
+                                {year}{Number(year) === currentYear ? "*" : ""}
+                              </td>
+
+                              {/* 1 Hour */}
+                              <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumnWinRate === '1_hour'
+                                ? yearData?.["1_hour"]?.price_probablity_of_winning_percentage <= 50
+                                  ? "text-red-800 font-bold"
+                                  : "text-to-purple font-bold"
+                                : yearData?.["1_hour"]?.price_probablity_of_winning_percentage <= 50
+                                  ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                  : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                } ${hoveredColumnWinRate === '1_hour' && hoveredRowWinRate === year ? 'bg-yellow-200' : ''
+                                }`}
+                                onMouseEnter={() => {
+                                  setHoveredColumnWinRate('1_hour');
+                                  setHoveredRowWinRate(year);
+                                }}
+                                onMouseLeave={() => {
+                                  setHoveredColumnWinRate(null);
+                                  setHoveredRowWinRate(null);
+                                }}
+                              >
+                                {yearData?.["1_hour"]?.price_probablity_of_winning_percentage != null
+                                  ? `${yearData["1_hour"].price_probablity_of_winning_percentage.toFixed(1)}%`
+                                  : "N/A"}
+                              </td>
+
+                              {/* 24 Hours */}
+                              <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumnWinRate === '24_hours'
+                                ? yearData?.["24_hours"]?.price_probablity_of_winning_percentage <= 50
+                                  ? "text-red-800 font-bold"
+                                  : "text-to-purple font-bold"
+                                : yearData?.["24_hours"]?.price_probablity_of_winning_percentage <= 50
+                                  ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                  : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                } ${hoveredColumnWinRate === '24_hours' && hoveredRowWinRate === year ? 'bg-yellow-200' : ''
+                                }`}
+                                onMouseEnter={() => {
+                                  setHoveredColumnWinRate('24_hours');
+                                  setHoveredRowWinRate(year);
+                                }}
+                                onMouseLeave={() => {
+                                  setHoveredColumnWinRate(null);
+                                  setHoveredRowWinRate(null);
+                                }}
+                              >
+                                {yearData?.["24_hours"]?.price_probablity_of_winning_percentage != null
+                                  ? `${yearData["24_hours"].price_probablity_of_winning_percentage.toFixed(1)}%`
+                                  : "N/A"}
+                              </td>
+
+                              {/* 7 Days */}
+                              <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumnWinRate === '7_days'
+                                ? yearData?.["7_days"]?.price_probablity_of_winning_percentage <= 50
+                                  ? "text-red-800 font-bold"
+                                  : "text-to-purple font-bold"
+                                : yearData?.["7_days"]?.price_probablity_of_winning_percentage <= 50
+                                  ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                  : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                } ${hoveredColumnWinRate === '7_days' && hoveredRowWinRate === year ? 'bg-yellow-200' : ''
+                                }`}
+                                onMouseEnter={() => {
+                                  setHoveredColumnWinRate('7_days');
+                                  setHoveredRowWinRate(year);
+                                }}
+                                onMouseLeave={() => {
+                                  setHoveredColumnWinRate(null);
+                                  setHoveredRowWinRate(null);
+                                }}
+                              >
+                                {yearData?.["7_days"]?.price_probablity_of_winning_percentage != null
+                                  ? `${yearData["7_days"].price_probablity_of_winning_percentage.toFixed(1)}%`
+                                  : "N/A"}
+                              </td>
+
+                              {/* 30 Days */}
+                              <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumnWinRate === '30_days'
+                                ? yearData?.["30_days"]?.price_probablity_of_winning_percentage <= 50
+                                  ? "text-red-800 font-bold"
+                                  : "text-to-purple font-bold"
+                                : yearData?.["30_days"]?.price_probablity_of_winning_percentage <= 50
+                                  ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                  : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                } ${hoveredColumnWinRate === '30_days' && hoveredRowWinRate === year ? 'bg-yellow-200' : ''
+                                }`}
+                                onMouseEnter={() => {
+                                  setHoveredColumnWinRate('30_days');
+                                  setHoveredRowWinRate(year);
+                                }}
+                                onMouseLeave={() => {
+                                  setHoveredColumnWinRate(null);
+                                  setHoveredRowWinRate(null);
+                                }}
+                              >
+                                {yearData?.["30_days"]?.price_probablity_of_winning_percentage != null
+                                  ? `${yearData["30_days"].price_probablity_of_winning_percentage.toFixed(1)}%`
+                                  : "N/A"}
+                              </td>
+
+                              {/* 60 Days */}
+                              <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumnWinRate === '60_days'
+                                ? yearData?.["60_days"]?.price_probablity_of_winning_percentage <= 50
+                                  ? "text-red-800 font-bold"
+                                  : "text-to-purple font-bold"
+                                : yearData?.["60_days"]?.price_probablity_of_winning_percentage <= 50
+                                  ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                  : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                } ${hoveredColumnWinRate === '60_days' && hoveredRowWinRate === year ? 'bg-yellow-200' : ''
+                                }`}
+                                onMouseEnter={() => {
+                                  setHoveredColumnWinRate('60_days');
+                                  setHoveredRowWinRate(year);
+                                }}
+                                onMouseLeave={() => {
+                                  setHoveredColumnWinRate(null);
+                                  setHoveredRowWinRate(null);
+                                }}
+                              >
+                                {yearData?.["60_days"]?.price_probablity_of_winning_percentage != null
+                                  ? `${yearData["60_days"].price_probablity_of_winning_percentage.toFixed(1)}%`
+                                  : "N/A"}
+                              </td>
+
+                              {/* 90 Days */}
+                              <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumnWinRate === '90_days'
+                                ? yearData?.["90_days"]?.price_probablity_of_winning_percentage <= 50
+                                  ? "text-red-800 font-bold"
+                                  : "text-to-purple font-bold"
+                                : yearData?.["90_days"]?.price_probablity_of_winning_percentage <= 50
+                                  ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                  : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                } ${hoveredColumnWinRate === '90_days' && hoveredRowWinRate === year ? 'bg-yellow-200' : ''
+                                }`}
+                                onMouseEnter={() => {
+                                  setHoveredColumnWinRate('90_days');
+                                  setHoveredRowWinRate(year);
+                                }}
+                                onMouseLeave={() => {
+                                  setHoveredColumnWinRate(null);
+                                  setHoveredRowWinRate(null);
+                                }}
+                              >
+                                {yearData?.["90_days"]?.price_probablity_of_winning_percentage != null
+                                  ? `${yearData["90_days"].price_probablity_of_winning_percentage.toFixed(1)}%`
+                                  : "N/A"}
+                              </td>
+
+                              {/* 180 Days */}
+                              <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumnWinRate === '180_days'
+                                ? yearData?.["180_days"]?.price_probablity_of_winning_percentage <= 50
+                                  ? "text-red-800 font-bold"
+                                  : "text-to-purple font-bold"
+                                : yearData?.["180_days"]?.price_probablity_of_winning_percentage <= 50
+                                  ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                  : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                } ${hoveredColumnWinRate === '180_days' && hoveredRowWinRate === year ? 'bg-yellow-200' : ''
+                                }`}
+                                onMouseEnter={() => {
+                                  setHoveredColumnWinRate('180_days');
+                                  setHoveredRowWinRate(year);
+                                }}
+                                onMouseLeave={() => {
+                                  setHoveredColumnWinRate(null);
+                                  setHoveredRowWinRate(null);
+                                }}
+                              >
+                                {yearData?.["180_days"]?.price_probablity_of_winning_percentage != null
+                                  ? `${yearData["180_days"].price_probablity_of_winning_percentage.toFixed(1)}%`
+                                  : "N/A"}
+                              </td>
+
+                              {/* 1 Year */}
+                              <td className={`border border-gray-300 px-2 py-1 text-center cursor-pointer ${hoveredColumnWinRate === '1_year'
+                                ? yearData?.["1_year"]?.price_probablity_of_winning_percentage <= 50
+                                  ? "text-red-800 font-bold"
+                                  : "text-to-purple font-bold"
+                                : yearData?.["1_year"]?.price_probablity_of_winning_percentage <= 50
+                                  ? "text-red-200 hover:text-red-800 hover:font-bold"
+                                  : "text-gray-300 hover:text-to-purple hover:font-bold"
+                                } ${hoveredColumnWinRate === '1_year' && hoveredRowWinRate === year ? 'bg-yellow-200' : ''
+                                }`}
+                                onMouseEnter={() => {
+                                  setHoveredColumnWinRate('1_year');
+                                  setHoveredRowWinRate(year);
+                                }}
+                                onMouseLeave={() => {
+                                  setHoveredColumnWinRate(null);
+                                  setHoveredRowWinRate(null);
+                                }}
+                              >
+                                {yearData?.["1_year"]?.price_probablity_of_winning_percentage != null
+                                  ? `${yearData["1_year"].price_probablity_of_winning_percentage.toFixed(1)}%`
+                                  : "N/A"}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {/* Performance Metrics */}

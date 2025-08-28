@@ -1,7 +1,9 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
+import { FaUserCircle, FaUser, FaCreditCard, FaSignOutAlt } from "react-icons/fa";
 
 const navLinks = [
   { name: "Home", href: "/" },
@@ -15,6 +17,61 @@ const navLinks = [
 
 export default function ClientHeader() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userInfo, setUserInfo] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    mobile: '',
+    dateStart: '',
+    dateEnd: ''
+  });
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    // Check if user is logged in by checking localStorage
+    const accessToken = localStorage.getItem('accessToken');
+    if (accessToken) {
+      setIsLoggedIn(true);
+      // Get user info from localStorage
+      setUserInfo({
+        firstName: localStorage.getItem('fname') || localStorage.getItem('userFirstName') || '',
+        lastName: localStorage.getItem('lname') || localStorage.getItem('userLastName') || '',
+        email: localStorage.getItem('email') || localStorage.getItem('userEmail') || '',
+        mobile: localStorage.getItem('mobile') || localStorage.getItem('userMobile') || '',
+        dateStart: localStorage.getItem('dateStart') || '',
+        dateEnd: localStorage.getItem('dateEnd') || ''
+      });
+    }
+  }, [pathname]); // Re-check when route changes
+
+  useEffect(() => {
+    // Close dropdown when clicking outside
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleLogout = () => {
+    // Clear all localStorage items
+    localStorage.clear();
+    setIsLoggedIn(false);
+    setShowDropdown(false);
+    router.push('/login');
+  };
+
+  const getDisplayName = () => {
+    if (userInfo.firstName && userInfo.lastName) {
+      return `${userInfo.firstName} ${userInfo.lastName}`;
+    }
+    return userInfo.email || 'User';
+  };
   
   return (
     <header className="sticky top-0 z-30 w-full bg-[#19162b]/95 backdrop-blur border-b border-[#232042] shadow-sm">
@@ -30,7 +87,8 @@ export default function ClientHeader() {
         {/* Navigation */}
         <nav className="hidden md:flex gap-6 ml-8">
           {navLinks.map((link) => {
-            const isActive = pathname === link.href;
+            const isActive = pathname === link.href || 
+              (link.href !== "/" && pathname.startsWith(link.href));
             return (
               <Link
                 key={link.name}
@@ -72,12 +130,65 @@ export default function ClientHeader() {
               </svg>
             </span>
           </div>
-          <Link
-            href="/login"
-            className="bg-gradient-to-r from-purple-500 to-blue-500 px-4 py-2 rounded-lg font-semibold text-sm shadow hover:scale-105 transition"
-          >
-            Login / Sign Up
-          </Link>
+          {isLoggedIn ? (
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setShowDropdown(!showDropdown)}
+                className="flex items-center gap-2 bg-[#232042] px-4 py-2 rounded-lg hover:bg-[#2a2454] transition"
+              >
+                <FaUserCircle size={24} className="text-purple-400" />
+                <span className="text-sm font-medium text-white">{getDisplayName()}</span>
+              </button>
+              
+              {showDropdown && (
+                <div className="absolute right-0 mt-2 w-64 bg-[#232042] rounded-lg shadow-lg border border-purple-500/30 overflow-hidden">
+                  <div className="p-4 border-b border-purple-500/30">
+                    <p className="text-sm font-semibold text-white">
+                      {userInfo.firstName && userInfo.lastName 
+                        ? `${userInfo.firstName} ${userInfo.lastName}`
+                        : 'User Profile'}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">{userInfo.email}</p>
+                  </div>
+                  
+                  <div className="py-2">
+                    <Link
+                      href="/profile"
+                      className="flex items-center gap-3 px-4 py-2 hover:bg-purple-500/20 transition text-sm"
+                      onClick={() => setShowDropdown(false)}
+                    >
+                      <FaUser className="text-purple-400" />
+                      <span className="text-white">My Profile</span>
+                    </Link>
+                    
+                    <Link
+                      href="/manage-subscription"
+                      className="flex items-center gap-3 px-4 py-2 hover:bg-purple-500/20 transition text-sm"
+                      onClick={() => setShowDropdown(false)}
+                    >
+                      <FaCreditCard className="text-purple-400" />
+                      <span className="text-white">Manage Subscriptions</span>
+                    </Link>
+                    
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-3 px-4 py-2 hover:bg-purple-500/20 transition text-sm w-full text-left border-t border-purple-500/30 mt-2"
+                    >
+                      <FaSignOutAlt className="text-purple-400" />
+                      <span className="text-white">Logout</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              className="bg-gradient-to-r from-purple-500 to-blue-500 px-4 py-2 rounded-lg font-semibold text-sm shadow hover:scale-105 transition"
+            >
+              Login / Sign Up
+            </Link>
+          )}
         </div>
       </div>
     </header>

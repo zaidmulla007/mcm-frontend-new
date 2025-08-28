@@ -13,7 +13,7 @@ export default function Login() {
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
   const [timer, setTimer] = useState(0);
-  const [selectedCountry, setSelectedCountry] = useState(countryCodes.find(c => c.code === "US"));
+  const [selectedCountry, setSelectedCountry] = useState(countryCodes.find(c => c.code === "IN"));
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [searchCountry, setSearchCountry] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -30,6 +30,60 @@ export default function Login() {
   });
   const [canSendOtp, setCanSendOtp] = useState(false);
   const router = useRouter();
+
+  const handleEmailBlur = () => {
+    if (formData.email && formData.email.length > 0 && !validateEmail(formData.email)) {
+      let errorMessage = 'Please enter a valid email address';
+
+      if (!formData.email.includes('@')) {
+        errorMessage = 'Email address must contain @ symbol';
+      } else if (!formData.email.includes('.')) {
+        errorMessage = 'Email must include a domain extension (e.g., .com, .org)';
+      } else if (formData.email.endsWith('@')) {
+        errorMessage = 'Please complete the email address after @';
+      } else if (formData.email.endsWith('.')) {
+        errorMessage = 'Please complete the domain extension';
+      } else if (formData.email.includes('..')) {
+        errorMessage = 'Email cannot contain consecutive dots';
+      } else if (formData.email.includes('@.')) {
+        errorMessage = 'Email cannot have a dot immediately after @';
+      }
+
+      Swal.fire({
+        title: 'Invalid Email!',
+        text: errorMessage,
+        icon: 'warning',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#8b5cf6',
+        background: '#232042',
+        color: '#ffffff'
+      });
+    }
+  };
+
+  const handlePhoneBlur = (e) => {
+    // Get the current value directly from the event target to avoid state sync issues
+    const currentPhoneNumber = e.target.value.replace(/\D/g, '');
+
+    if (currentPhoneNumber && currentPhoneNumber.length > 0) {
+      const lengths = getPhoneNumberLength(selectedCountry.code);
+      const phoneLength = currentPhoneNumber.length;
+
+      // Only show warning if phone number is incomplete (less than minimum required)
+      if (phoneLength < lengths.min) {
+        Swal.fire({
+          title: 'Incomplete Phone Number!',
+          text: `${selectedCountry.name} phone numbers require ${lengths.min === lengths.max ? 'exactly' : 'at least'} ${lengths.min} digits. You entered only ${phoneLength} digits.`,
+          icon: 'warning',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#8b5cf6',
+          background: '#232042',
+          color: '#ffffff'
+        });
+      }
+      // Don't show any alert if the number is valid (within min and max range)
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -53,11 +107,54 @@ export default function Login() {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     let newFormData;
+
     if (name === "phoneNumber") {
       const cleaned = value.replace(/\D/g, '');
+      const lengths = getPhoneNumberLength(selectedCountry.code);
+
+      // Prevent entering more digits than maximum allowed
+      if (cleaned.length > lengths.max) {
+        // Show SweetAlert when trying to exceed max digits
+        Swal.fire({
+          title: 'Phone Number Too Long!',
+          text: `${selectedCountry.name} takes only ${lengths.max} digits. You cannot enter more than ${lengths.max} digits.`,
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#8b5cf6',
+          background: '#232042',
+          color: '#ffffff',
+          timer: 3000,
+          timerProgressBar: true
+        });
+
+        // Prevent the extra digit from being added
+        return;
+      }
+
       newFormData = {
         ...formData,
         [name]: cleaned
+      };
+
+      // Show success message when exact number is reached
+      if (cleaned.length === lengths.max && lengths.min === lengths.max) {
+        Swal.fire({
+          title: 'Perfect!',
+          text: `You've entered the correct ${lengths.max} digits for ${selectedCountry.name}.`,
+          icon: 'success',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#8b5cf6',
+          background: '#232042',
+          color: '#ffffff',
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false
+        });
+      }
+    } else if (name === "email") {
+      newFormData = {
+        ...formData,
+        [name]: value
       };
     } else {
       newFormData = {
@@ -65,16 +162,19 @@ export default function Login() {
         [name]: value
       };
     }
+
     setFormData(newFormData);
 
     // Check if all required fields are filled for signup
     if (!isLogin) {
+      const hasValidEmail = newFormData.email ? validateEmail(newFormData.email) : true;
+      const hasValidPhone = validatePhoneNumber(newFormData.phoneNumber, selectedCountry.code);
+
       const allFieldsFilled = newFormData.firstName &&
         newFormData.lastName &&
-        newFormData.email &&
         newFormData.phoneNumber &&
-        validateEmail(newFormData.email) &&
-        validatePhoneNumber(newFormData.phoneNumber, selectedCountry.code);
+        hasValidEmail &&
+        hasValidPhone;
       setCanSendOtp(allFieldsFilled);
     }
   };
@@ -84,48 +184,244 @@ export default function Login() {
     country.dial_code.includes(searchCountry)
   );
 
-  const validatePhoneNumber = (phoneNumber, countryCode) => {
-    const phoneRegexes = {
-      US: /^\d{10}$/,
-      GB: /^\d{10,11}$/,
-      IN: /^\d{10}$/,
-      CA: /^\d{10}$/,
-      AU: /^\d{9,10}$/,
-      DE: /^\d{10,11}$/,
-      FR: /^\d{9}$/,
-      IT: /^\d{9,10}$/,
-      ES: /^\d{9}$/,
-      BR: /^\d{10,11}$/,
-      MX: /^\d{10}$/,
-      JP: /^\d{10,11}$/,
-      CN: /^\d{11}$/,
-      KR: /^\d{10,11}$/,
-      RU: /^\d{10}$/,
-      SA: /^\d{9}$/,
-      AE: /^\d{9}$/,
-      SG: /^\d{8}$/,
-      MY: /^\d{9,10}$/,
-      ID: /^\d{10,12}$/,
-      TH: /^\d{9,10}$/,
-      VN: /^\d{9,10}$/,
-      PH: /^\d{10}$/,
-      PK: /^\d{10}$/,
-      BD: /^\d{10}$/,
-      NG: /^\d{10,11}$/,
-      EG: /^\d{10}$/,
-      TR: /^\d{10}$/,
-      IR: /^\d{10}$/,
-      ZA: /^\d{9}$/,
-      KE: /^\d{9}$/,
-      default: /^\d{7,15}$/
+  const getPhoneNumberLength = (countryCode) => {
+    const phoneLengths = {
+      AF: { min: 9, max: 9 }, // Afghanistan
+      AL: { min: 9, max: 9 }, // Albania
+      DZ: { min: 9, max: 9 }, // Algeria
+      AD: { min: 6, max: 9 }, // Andorra
+      AO: { min: 9, max: 9 }, // Angola
+      AR: { min: 10, max: 10 }, // Argentina (without 9)
+      AM: { min: 8, max: 8 }, // Armenia
+      AU: { min: 9, max: 10 }, // Australia
+      AT: { min: 10, max: 13 }, // Austria
+      AZ: { min: 9, max: 9 }, // Azerbaijan
+      BH: { min: 8, max: 8 }, // Bahrain
+      BD: { min: 10, max: 10 }, // Bangladesh
+      BY: { min: 9, max: 9 }, // Belarus
+      BE: { min: 9, max: 10 }, // Belgium
+      BZ: { min: 7, max: 7 }, // Belize
+      BJ: { min: 8, max: 8 }, // Benin
+      BT: { min: 8, max: 8 }, // Bhutan
+      BO: { min: 8, max: 8 }, // Bolivia
+      BA: { min: 8, max: 9 }, // Bosnia and Herzegovina
+      BW: { min: 7, max: 8 }, // Botswana
+      BR: { min: 10, max: 11 }, // Brazil
+      BN: { min: 7, max: 7 }, // Brunei
+      BG: { min: 9, max: 9 }, // Bulgaria
+      BF: { min: 8, max: 8 }, // Burkina Faso
+      BI: { min: 8, max: 8 }, // Burundi
+      KH: { min: 8, max: 9 }, // Cambodia
+      CM: { min: 9, max: 9 }, // Cameroon
+      CA: { min: 10, max: 10 }, // Canada
+      CV: { min: 7, max: 7 }, // Cape Verde
+      CF: { min: 8, max: 8 }, // Central African Republic
+      TD: { min: 8, max: 8 }, // Chad
+      CL: { min: 9, max: 9 }, // Chile
+      CN: { min: 11, max: 11 }, // China
+      CO: { min: 10, max: 10 }, // Colombia
+      KM: { min: 7, max: 7 }, // Comoros
+      CG: { min: 9, max: 9 }, // Congo
+      CR: { min: 8, max: 8 }, // Costa Rica
+      HR: { min: 8, max: 9 }, // Croatia
+      CU: { min: 8, max: 8 }, // Cuba
+      CY: { min: 8, max: 8 }, // Cyprus
+      CZ: { min: 9, max: 9 }, // Czech Republic
+      DK: { min: 8, max: 8 }, // Denmark
+      DJ: { min: 8, max: 8 }, // Djibouti
+      DO: { min: 10, max: 10 }, // Dominican Republic
+      EC: { min: 9, max: 9 }, // Ecuador
+      EG: { min: 10, max: 10 }, // Egypt
+      SV: { min: 8, max: 8 }, // El Salvador
+      GQ: { min: 9, max: 9 }, // Equatorial Guinea
+      ER: { min: 7, max: 7 }, // Eritrea
+      EE: { min: 7, max: 8 }, // Estonia
+      ET: { min: 9, max: 9 }, // Ethiopia
+      FJ: { min: 7, max: 7 }, // Fiji
+      FI: { min: 9, max: 10 }, // Finland
+      FR: { min: 9, max: 9 }, // France
+      GA: { min: 7, max: 7 }, // Gabon
+      GM: { min: 7, max: 7 }, // Gambia
+      GE: { min: 9, max: 9 }, // Georgia
+      DE: { min: 10, max: 11 }, // Germany
+      GH: { min: 9, max: 9 }, // Ghana
+      GR: { min: 10, max: 10 }, // Greece
+      GT: { min: 8, max: 8 }, // Guatemala
+      GN: { min: 9, max: 9 }, // Guinea
+      GW: { min: 9, max: 9 }, // Guinea-Bissau
+      GY: { min: 7, max: 7 }, // Guyana
+      HT: { min: 8, max: 8 }, // Haiti
+      HN: { min: 8, max: 8 }, // Honduras
+      HK: { min: 8, max: 8 }, // Hong Kong
+      HU: { min: 9, max: 9 }, // Hungary
+      IS: { min: 7, max: 7 }, // Iceland
+      IN: { min: 10, max: 10 }, // India
+      ID: { min: 10, max: 12 }, // Indonesia
+      IR: { min: 10, max: 10 }, // Iran
+      IQ: { min: 10, max: 10 }, // Iraq
+      IE: { min: 9, max: 9 }, // Ireland
+      IL: { min: 9, max: 9 }, // Israel
+      IT: { min: 9, max: 10 }, // Italy
+      JM: { min: 10, max: 10 }, // Jamaica
+      JP: { min: 10, max: 11 }, // Japan
+      JO: { min: 9, max: 9 }, // Jordan
+      KZ: { min: 10, max: 10 }, // Kazakhstan
+      KE: { min: 9, max: 9 }, // Kenya
+      KI: { min: 5, max: 5 }, // Kiribati
+      KP: { min: 10, max: 10 }, // North Korea
+      KR: { min: 10, max: 11 }, // South Korea
+      KW: { min: 8, max: 8 }, // Kuwait
+      KG: { min: 9, max: 9 }, // Kyrgyzstan
+      LA: { min: 8, max: 10 }, // Laos
+      LV: { min: 8, max: 8 }, // Latvia
+      LB: { min: 8, max: 8 }, // Lebanon
+      LS: { min: 8, max: 8 }, // Lesotho
+      LR: { min: 7, max: 8 }, // Liberia
+      LY: { min: 9, max: 10 }, // Libya
+      LI: { min: 7, max: 7 }, // Liechtenstein
+      LT: { min: 8, max: 8 }, // Lithuania
+      LU: { min: 9, max: 9 }, // Luxembourg
+      MO: { min: 8, max: 8 }, // Macao
+      MK: { min: 8, max: 8 }, // Macedonia
+      MG: { min: 9, max: 9 }, // Madagascar
+      MW: { min: 9, max: 9 }, // Malawi
+      MY: { min: 9, max: 10 }, // Malaysia
+      MV: { min: 7, max: 7 }, // Maldives
+      ML: { min: 8, max: 8 }, // Mali
+      MT: { min: 8, max: 8 }, // Malta
+      MH: { min: 7, max: 7 }, // Marshall Islands
+      MR: { min: 8, max: 8 }, // Mauritania
+      MU: { min: 7, max: 8 }, // Mauritius
+      MX: { min: 10, max: 10 }, // Mexico
+      MD: { min: 8, max: 8 }, // Moldova
+      MC: { min: 8, max: 8 }, // Monaco
+      MN: { min: 8, max: 8 }, // Mongolia
+      ME: { min: 8, max: 8 }, // Montenegro
+      MA: { min: 9, max: 9 }, // Morocco
+      MZ: { min: 9, max: 9 }, // Mozambique
+      MM: { min: 9, max: 10 }, // Myanmar
+      NA: { min: 9, max: 9 }, // Namibia
+      NR: { min: 7, max: 7 }, // Nauru
+      NP: { min: 10, max: 10 }, // Nepal
+      NL: { min: 9, max: 9 }, // Netherlands
+      NZ: { min: 9, max: 10 }, // New Zealand
+      NI: { min: 8, max: 8 }, // Nicaragua
+      NE: { min: 8, max: 8 }, // Niger
+      NG: { min: 10, max: 11 }, // Nigeria
+      NO: { min: 8, max: 8 }, // Norway
+      OM: { min: 8, max: 8 }, // Oman
+      PK: { min: 10, max: 10 }, // Pakistan
+      PW: { min: 7, max: 7 }, // Palau
+      PS: { min: 9, max: 9 }, // Palestine
+      PA: { min: 8, max: 8 }, // Panama
+      PG: { min: 8, max: 8 }, // Papua New Guinea
+      PY: { min: 9, max: 9 }, // Paraguay
+      PE: { min: 9, max: 9 }, // Peru
+      PH: { min: 10, max: 10 }, // Philippines
+      PL: { min: 9, max: 9 }, // Poland
+      PT: { min: 9, max: 9 }, // Portugal
+      QA: { min: 8, max: 8 }, // Qatar
+      RO: { min: 10, max: 10 }, // Romania
+      RU: { min: 10, max: 10 }, // Russia
+      RW: { min: 9, max: 9 }, // Rwanda
+      KN: { min: 10, max: 10 }, // Saint Kitts and Nevis
+      LC: { min: 10, max: 10 }, // Saint Lucia
+      VC: { min: 10, max: 10 }, // Saint Vincent
+      WS: { min: 7, max: 7 }, // Samoa
+      SM: { min: 10, max: 10 }, // San Marino
+      ST: { min: 7, max: 7 }, // Sao Tome and Principe
+      SA: { min: 9, max: 9 }, // Saudi Arabia
+      SN: { min: 9, max: 9 }, // Senegal
+      RS: { min: 9, max: 9 }, // Serbia
+      SC: { min: 7, max: 7 }, // Seychelles
+      SL: { min: 8, max: 8 }, // Sierra Leone
+      SG: { min: 8, max: 8 }, // Singapore
+      SK: { min: 9, max: 9 }, // Slovakia
+      SI: { min: 9, max: 9 }, // Slovenia
+      SB: { min: 7, max: 7 }, // Solomon Islands
+      SO: { min: 8, max: 8 }, // Somalia
+      ZA: { min: 9, max: 9 }, // South Africa
+      SS: { min: 9, max: 9 }, // South Sudan
+      ES: { min: 9, max: 9 }, // Spain
+      LK: { min: 9, max: 9 }, // Sri Lanka
+      SD: { min: 9, max: 9 }, // Sudan
+      SR: { min: 7, max: 7 }, // Suriname
+      SZ: { min: 8, max: 8 }, // Swaziland
+      SE: { min: 9, max: 9 }, // Sweden
+      CH: { min: 9, max: 9 }, // Switzerland
+      SY: { min: 9, max: 9 }, // Syria
+      TW: { min: 9, max: 10 }, // Taiwan
+      TJ: { min: 9, max: 9 }, // Tajikistan
+      TZ: { min: 9, max: 9 }, // Tanzania
+      TH: { min: 9, max: 10 }, // Thailand
+      TL: { min: 7, max: 8 }, // Timor-Leste
+      TG: { min: 8, max: 8 }, // Togo
+      TO: { min: 7, max: 7 }, // Tonga
+      TT: { min: 10, max: 10 }, // Trinidad and Tobago
+      TN: { min: 8, max: 8 }, // Tunisia
+      TR: { min: 10, max: 10 }, // Turkey
+      TM: { min: 8, max: 8 }, // Turkmenistan
+      TV: { min: 6, max: 7 }, // Tuvalu
+      UG: { min: 9, max: 9 }, // Uganda
+      UA: { min: 9, max: 9 }, // Ukraine
+      AE: { min: 9, max: 9 }, // United Arab Emirates
+      GB: { min: 10, max: 11 }, // United Kingdom
+      US: { min: 10, max: 10 }, // United States
+      UY: { min: 8, max: 8 }, // Uruguay
+      UZ: { min: 9, max: 9 }, // Uzbekistan
+      VU: { min: 7, max: 7 }, // Vanuatu
+      VE: { min: 10, max: 10 }, // Venezuela
+      VN: { min: 9, max: 10 }, // Vietnam
+      YE: { min: 9, max: 9 }, // Yemen
+      ZM: { min: 9, max: 9 }, // Zambia
+      ZW: { min: 9, max: 9 }, // Zimbabwe
+      // Special cases for territories and shared codes
+      AS: { min: 10, max: 10 }, // American Samoa (US)
+      AI: { min: 10, max: 10 }, // Anguilla
+      AG: { min: 10, max: 10 }, // Antigua and Barbuda
+      BS: { min: 10, max: 10 }, // Bahamas
+      BB: { min: 10, max: 10 }, // Barbados
+      BM: { min: 10, max: 10 }, // Bermuda
+      VG: { min: 10, max: 10 }, // British Virgin Islands
+      KY: { min: 10, max: 10 }, // Cayman Islands
+      DM: { min: 10, max: 10 }, // Dominica
+      GD: { min: 10, max: 10 }, // Grenada
+      GU: { min: 10, max: 10 }, // Guam
+      MS: { min: 10, max: 10 }, // Montserrat
+      MP: { min: 10, max: 10 }, // Northern Mariana Islands
+      PR: { min: 10, max: 10 }, // Puerto Rico
+      TC: { min: 10, max: 10 }, // Turks and Caicos
+      VI: { min: 10, max: 10 }, // US Virgin Islands
+      default: { min: 7, max: 15 }
     };
 
-    const regex = phoneRegexes[countryCode] || phoneRegexes.default;
-    return regex.test(phoneNumber);
+    return phoneLengths[countryCode] || phoneLengths.default;
+  };
+
+  const validatePhoneNumber = (phoneNumber, countryCode) => {
+    const lengths = getPhoneNumberLength(countryCode);
+    const phoneLength = phoneNumber.length;
+    return phoneLength >= lengths.min && phoneLength <= lengths.max;
   };
 
   const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // More comprehensive email validation
+    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+    // Additional checks
+    if (!email || email.length === 0) return false;
+    if (email.length > 254) return false; // Max email length per RFC
+    if (email.startsWith('.') || email.endsWith('.')) return false;
+    if (email.includes('..')) return false;
+    if ((email.match(/@/g) || []).length !== 1) return false;
+
+    const parts = email.split('@');
+    if (parts.length !== 2) return false;
+
+    const [localPart, domain] = parts;
+    if (localPart.length > 64) return false; // Max local part length
+    if (domain.length > 253) return false; // Max domain length
+
     return emailRegex.test(email);
   };
 
@@ -136,7 +432,7 @@ export default function Login() {
   const handleSendOtp = async () => {
     // Validate all fields for signup
     if (!isLogin) {
-      if (!formData.firstName || !formData.lastName || !formData.email || !formData.phoneNumber) {
+      if (!formData.firstName || !formData.lastName || !formData.phoneNumber) {
         Swal.fire({
           title: 'Error!',
           text: 'Please fill all required fields',
@@ -149,10 +445,34 @@ export default function Login() {
         return;
       }
 
-      if (!validateEmail(formData.email)) {
+      if (formData.email && !validateEmail(formData.email)) {
+        let errorMessage = 'Please enter a valid email address';
+
+        if (!formData.email.includes('@')) {
+          errorMessage = 'Email address must contain @ symbol';
+        } else if (!formData.email.includes('.')) {
+          errorMessage = 'Email must include a domain extension (e.g., .com, .org)';
+        } else if (formData.email.startsWith('@')) {
+          errorMessage = 'Email cannot start with @ symbol';
+        } else if (formData.email.endsWith('@')) {
+          errorMessage = 'Please complete the email address after @';
+        } else if (formData.email.startsWith('.') || formData.email.endsWith('.')) {
+          errorMessage = 'Email cannot start or end with a dot';
+        } else if (formData.email.includes('..')) {
+          errorMessage = 'Email cannot contain consecutive dots';
+        } else if (formData.email.includes('@.')) {
+          errorMessage = 'Email cannot have a dot immediately after @';
+        } else if ((formData.email.match(/@/g) || []).length > 1) {
+          errorMessage = 'Email can only contain one @ symbol';
+        } else if (formData.email.split('@')[0].length > 64) {
+          errorMessage = 'Email username part is too long (max 64 characters)';
+        } else if (formData.email.length > 254) {
+          errorMessage = 'Email address is too long (max 254 characters)';
+        }
+
         Swal.fire({
-          title: 'Error!',
-          text: 'Please enter a valid email address',
+          title: 'Invalid Email!',
+          text: errorMessage,
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
@@ -163,9 +483,31 @@ export default function Login() {
       }
 
       if (!validatePhoneNumber(formData.phoneNumber, selectedCountry.code)) {
+        const lengths = getPhoneNumberLength(selectedCountry.code);
+        const phoneLength = formData.phoneNumber.length;
+        let errorMessage = '';
+        let errorTitle = 'Invalid Phone Number!';
+
+        if (phoneLength === 0) {
+          errorTitle = 'Phone Number Required!';
+          errorMessage = `Please enter your ${selectedCountry.name} phone number to get OTP.`;
+        } else if (phoneLength < lengths.min) {
+          errorTitle = 'Phone Number Too Short!';
+          if (lengths.min === lengths.max) {
+            // For countries with exact digit requirement
+            errorMessage = `You have entered ${phoneLength} digits. To get OTP, enter ${lengths.min} digits phone number for ${selectedCountry.name}.`;
+          } else {
+            // For countries with range
+            errorMessage = `You have entered ${phoneLength} digits. To get OTP, enter at least ${lengths.min} digits phone number for ${selectedCountry.name}.`;
+          }
+        } else if (phoneLength > lengths.max) {
+          errorTitle = 'Phone Number Too Long!';
+          errorMessage = `${selectedCountry.name} takes only ${lengths.max} digits maximum. You entered ${phoneLength} digits.`;
+        }
+
         Swal.fire({
-          title: 'Invalid Phone Number!',
-          text: `Please enter a valid ${selectedCountry.name} phone number`,
+          title: errorTitle,
+          text: errorMessage,
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
@@ -176,7 +518,7 @@ export default function Login() {
       }
     }
 
-    const fullPhoneNumber = `${selectedCountry.dial_code}${formData.phoneNumber}`;
+    const fullPhoneNumber = `${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}`;
 
     try {
       // Send OTP to both email and phone for signup
@@ -197,8 +539,8 @@ export default function Login() {
         })
       );
 
-      // Send OTP to email for signup
-      if (!isLogin) {
+      // Send OTP to email for signup only if email is provided
+      if (!isLogin && formData.email) {
         otpRequests.push(
           fetch('/api/auth/send-otp', {
             method: 'POST',
@@ -221,7 +563,9 @@ export default function Login() {
         Swal.fire({
           title: 'OTP Sent!',
           text: !isLogin ?
-            `OTP has been sent to both:\n\n📱 WhatsApp: ${fullPhoneNumber}\n✉️ Email: ${formData.email}\n\nYou can enter the OTP from either WhatsApp or Email` :
+            (formData.email ?
+              `OTP has been sent to both:\n\n📱 WhatsApp: ${fullPhoneNumber}\n✉️ Email: ${formData.email}\n\nYou can enter the OTP from either WhatsApp or Email` :
+              `OTP has been sent to your WhatsApp ${fullPhoneNumber}`) :
             `OTP has been sent to your WhatsApp ${fullPhoneNumber}`,
           icon: 'success',
           confirmButtonText: 'OK',
@@ -239,7 +583,9 @@ export default function Login() {
       Swal.fire({
         title: 'OTP Sent!',
         text: !isLogin ?
-          `OTP sent to both:\n\n WhatsApp: ${fullPhoneNumber}\nEmail: ${formData.email}` :
+          (formData.email ?
+            `OTP sent to both:\n\n WhatsApp: ${fullPhoneNumber}\nEmail: ${formData.email}` :
+            `OTP sent to ${fullPhoneNumber}`) :
           `OTP sent to ${fullPhoneNumber}`,
         icon: 'success',
         confirmButtonText: 'OK',
@@ -264,33 +610,107 @@ export default function Login() {
       return;
     }
 
-    const fullPhoneNumber = formData.phoneNumber ? `${selectedCountry.dial_code}${formData.phoneNumber}` : '';
+    const fullPhoneNumber = formData.phoneNumber ? `${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}` : '';
 
     try {
-      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-      const requestBody = {
-        ...formData,
-        otp: otp,
-        authMethod: otpSentTo || 'unified'
-      };
+      // For login, use the actual API endpoint
+      if (isLogin) {
+        const username = fullPhoneNumber || formData.email;
+        const response = await fetch('http://localhost:5000/api/auth/signin', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username: username,
+            password: otp
+          })
+        });
 
-      if (formData.phoneNumber) {
-        requestBody.phoneNumber = fullPhoneNumber;
-        requestBody.countryCode = selectedCountry.code;
-      }
+        if (response.ok) {
+          const data = await response.json();
 
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody)
-      });
+          // Store all user data in localStorage
+          if (data.success) {
+            localStorage.setItem('accessToken', data.accessToken);
+            localStorage.setItem('userId', data.id);
+            localStorage.setItem('username', data.username);
+            localStorage.setItem('email', data.email);
+            localStorage.setItem('roles', JSON.stringify(data.roles));
+            localStorage.setItem('dateStart', data.user.dateStart || '');
+            localStorage.setItem('dateEnd', data.user.dateEnd || '');
+            // Store user object data
+            if (data.user) {
+              localStorage.setItem('userName', data.user.name || '');
+              localStorage.setItem('userFirstName', data.user.fname || '');
+              localStorage.setItem('userLastName', data.user.lname || '');
+              localStorage.setItem('userStatus', data.user.status || '');
+              localStorage.setItem('userMobile', data.user.mobile || '');
+              localStorage.setItem('userEmail', data.user.email || '');
+              localStorage.setItem('userData', JSON.stringify(data.user));
+            }
+          }
 
-      if (response.ok) {
-        const data = await response.json();
+          // Normal success message for login
+          Swal.fire({
+            title: 'Success!',
+            text: 'Login successful!',
+            icon: 'success',
+            confirmButtonText: 'Continue',
+            confirmButtonColor: '#8b5cf6',
+            background: '#232042',
+            color: '#ffffff'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              router.push('/influencers');
+            }
+          });
+        } else {
+          throw new Error('Login failed');
+        }
+      } else {
+        // For signup, use the backend signup endpoint
+        const endpoint = 'http://localhost:5000/api/auth/signup';
 
-        if (!isLogin) {
+        // Prepare request body according to backend requirements
+        const requestBody = {
+          fname: formData.firstName,
+          lname: formData.lastName,
+          name: formData.phoneNumber ? fullPhoneNumber : formData.email,
+          email: formData.email || `${fullPhoneNumber}@user.com`,
+          phone_number: fullPhoneNumber,
+          otp: otp
+        };
+
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody)
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+
+          // Store user data in localStorage
+          if (data.success) {
+            localStorage.setItem('accessToken', data.accessToken);
+            localStorage.setItem('userId', data._id);
+            localStorage.setItem('userName', data.user.name || '');
+            localStorage.setItem('userFirstName', data.user.fname || '');
+            localStorage.setItem('userLastName', data.user.lname || '');
+            localStorage.setItem('userEmail', data.user.email || '');
+            localStorage.setItem('userMobile', data.user.mobile || data.user.name || '');
+            localStorage.setItem('dateStart', data.user.dateStart || '');
+            localStorage.setItem('dateEnd', data.user.dateEnd || '');
+            localStorage.setItem('roles', JSON.stringify(data.roles || []));
+            localStorage.setItem('message', data.message || '');
+
+            // Store full user data
+            localStorage.setItem('userData', JSON.stringify(data.user));
+          }
+
           // Special thank you message for new registrations
           const today = new Date();
           const dateString = today.toLocaleDateString('en-US', {
@@ -337,26 +757,26 @@ export default function Login() {
             }
           });
         } else {
-          // Normal success message for login
-          Swal.fire({
-            title: 'Success!',
-            text: 'Login successful!',
-            icon: 'success',
-            confirmButtonText: 'Continue',
-            confirmButtonColor: '#8b5cf6',
-            background: '#232042',
-            color: '#ffffff'
-          }).then((result) => {
-            if (result.isConfirmed) {
-              router.push('/influencers');
-            }
-          });
+          throw new Error('Failed to verify OTP');
         }
-      } else {
-        throw new Error('Failed to verify OTP');
       }
     } catch (error) {
       console.error('Error verifying OTP:', error);
+
+      // For login errors, show appropriate message
+      if (isLogin) {
+        Swal.fire({
+          title: 'Login Failed!',
+          text: 'Invalid OTP or credentials. Please try again.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#8b5cf6',
+          background: '#232042',
+          color: '#ffffff'
+        });
+        return;
+      }
+
       if (!isLogin) {
         const today = new Date();
         const dateString = today.toLocaleDateString('en-US', {
@@ -422,9 +842,33 @@ export default function Login() {
 
   const handleSendEmailOtp = async () => {
     if (!validateEmail(formData.email)) {
+      let errorMessage = 'Please enter a valid email address';
+
+      if (!formData.email.includes('@')) {
+        errorMessage = 'Email address must contain @ symbol';
+      } else if (!formData.email.includes('.')) {
+        errorMessage = 'Email must include a domain extension (e.g., .com, .org)';
+      } else if (formData.email.startsWith('@')) {
+        errorMessage = 'Email cannot start with @ symbol';
+      } else if (formData.email.endsWith('@')) {
+        errorMessage = 'Please complete the email address after @';
+      } else if (formData.email.startsWith('.') || formData.email.endsWith('.')) {
+        errorMessage = 'Email cannot start or end with a dot';
+      } else if (formData.email.includes('..')) {
+        errorMessage = 'Email cannot contain consecutive dots';
+      } else if (formData.email.includes('@.')) {
+        errorMessage = 'Email cannot have a dot immediately after @';
+      } else if ((formData.email.match(/@/g) || []).length > 1) {
+        errorMessage = 'Email can only contain one @ symbol';
+      } else if (formData.email.split('@')[0].length > 64) {
+        errorMessage = 'Email username part is too long (max 64 characters)';
+      } else if (formData.email.length > 254) {
+        errorMessage = 'Email address is too long (max 254 characters)';
+      }
+
       Swal.fire({
-        title: 'Error!',
-        text: 'Please enter a valid email address',
+        title: 'Invalid Email!',
+        text: errorMessage,
         icon: 'error',
         confirmButtonText: 'OK',
         confirmButtonColor: '#8b5cf6',
@@ -486,10 +930,41 @@ export default function Login() {
   const handleSendOtpForLogin = async () => {
     // For login, check which field is filled
     if (isLogin) {
-      const hasPhone = formData.phoneNumber && validatePhoneNumber(formData.phoneNumber, selectedCountry.code);
-      const hasEmail = formData.email && validateEmail(formData.email);
+      const hasValidPhone = formData.phoneNumber && validatePhoneNumber(formData.phoneNumber, selectedCountry.code);
+      const hasValidEmail = formData.email && validateEmail(formData.email);
 
-      if (!hasPhone && !hasEmail) {
+      // Check if user entered phone but it's invalid
+      if (formData.phoneNumber && !hasValidPhone) {
+        const lengths = getPhoneNumberLength(selectedCountry.code);
+        const phoneLength = formData.phoneNumber.length;
+        let errorMessage = '';
+        let errorTitle = 'Invalid Phone Number!';
+
+        if (phoneLength < lengths.min) {
+          errorTitle = 'Phone Number Too Short!';
+          if (lengths.min === lengths.max) {
+            errorMessage = `You have entered ${phoneLength} digits. To get OTP, enter ${lengths.min} digits phone number for ${selectedCountry.name}.`;
+          } else {
+            errorMessage = `You have entered ${phoneLength} digits. To get OTP, enter at least ${lengths.min} digits phone number for ${selectedCountry.name}.`;
+          }
+        } else if (phoneLength > lengths.max) {
+          errorTitle = 'Phone Number Too Long!';
+          errorMessage = `${selectedCountry.name} takes only ${lengths.max} digits maximum. You entered ${phoneLength} digits.`;
+        }
+
+        Swal.fire({
+          title: errorTitle,
+          text: errorMessage,
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#8b5cf6',
+          background: '#232042',
+          color: '#ffffff'
+        });
+        return;
+      }
+
+      if (!hasValidPhone && !hasValidEmail) {
         Swal.fire({
           title: 'Error!',
           text: 'Please enter a valid WhatsApp number or Email',
@@ -506,8 +981,8 @@ export default function Login() {
         const otpRequests = [];
         let sentTo = [];
 
-        if (hasPhone) {
-          const fullPhoneNumber = `${selectedCountry.dial_code}${formData.phoneNumber}`;
+        if (hasValidPhone) {
+          const fullPhoneNumber = `${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}`;
           otpRequests.push(
             fetch('/api/auth/send-otp', {
               method: 'POST',
@@ -522,7 +997,7 @@ export default function Login() {
           sentTo.push('whatsapp');
         }
 
-        if (hasEmail) {
+        if (hasValidEmail) {
           otpRequests.push(
             fetch('/api/auth/send-otp', {
               method: 'POST',
@@ -544,10 +1019,10 @@ export default function Login() {
           setOtpSentTo(sentTo.join('_'));
 
           let message = 'OTP has been sent to:';
-          if (hasPhone) {
-            message += `\n\n📱 WhatsApp: ${selectedCountry.dial_code}${formData.phoneNumber}`;
+          if (hasValidPhone) {
+            message += `\n\n📱 WhatsApp: ${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}`;
           }
-          if (hasEmail) {
+          if (hasValidEmail) {
             message += `\n✉️ Email: ${formData.email}`;
           }
 
@@ -572,7 +1047,7 @@ export default function Login() {
         let message = 'OTP sent to:';
         if (formData.phoneNumber) {
           sentTo.push('whatsapp');
-          message += `\n\n📱 WhatsApp: ${selectedCountry.dial_code}${formData.phoneNumber}`;
+          message += `\n\n📱 WhatsApp: ${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}`;
         }
         if (formData.email) {
           sentTo.push('email');
@@ -599,24 +1074,87 @@ export default function Login() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!isLogin && (!formData.firstName || !formData.lastName || !formData.email || !formData.phoneNumber)) {
-      Swal.fire({
-        title: 'Error!',
-        text: 'Please fill all required fields',
-        icon: 'error',
-        confirmButtonText: 'OK',
-        confirmButtonColor: '#8b5cf6',
-        background: '#232042',
-        color: '#ffffff'
-      });
-      return;
+    if (!isLogin) {
+      // Check for empty fields first
+      if (!formData.firstName || !formData.lastName || !formData.phoneNumber) {
+        Swal.fire({
+          title: 'Missing Information!',
+          text: 'Please fill all required fields',
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#8b5cf6',
+          background: '#232042',
+          color: '#ffffff'
+        });
+        return;
+      }
+
+      // Validate email for signup only if provided
+      if (formData.email && !validateEmail(formData.email)) {
+        let errorMessage = 'Please enter a valid email address';
+
+        if (!formData.email.includes('@')) {
+          errorMessage = 'Email address must contain @ symbol';
+        } else if (!formData.email.includes('.')) {
+          errorMessage = 'Email must include a domain extension (e.g., .com, .org)';
+        } else if (formData.email.endsWith('@')) {
+          errorMessage = 'Please complete the email address after @';
+        } else if (formData.email.endsWith('.')) {
+          errorMessage = 'Please complete the domain extension';
+        }
+
+        Swal.fire({
+          title: 'Invalid Email!',
+          text: errorMessage,
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#8b5cf6',
+          background: '#232042',
+          color: '#ffffff'
+        });
+        return;
+      }
+
+      // Validate phone number for signup
+      if (!validatePhoneNumber(formData.phoneNumber, selectedCountry.code)) {
+        const lengths = getPhoneNumberLength(selectedCountry.code);
+        const phoneLength = formData.phoneNumber.length;
+        let errorMessage = '';
+        let errorTitle = 'Invalid Phone Number!';
+
+        if (phoneLength === 0) {
+          errorTitle = 'Phone Number Required!';
+          errorMessage = `Please enter your ${selectedCountry.name} phone number.`;
+        } else if (phoneLength < lengths.min) {
+          errorTitle = 'Phone Number Too Short!';
+          if (lengths.min === lengths.max) {
+            errorMessage = `You have entered ${phoneLength} digits. To proceed, enter ${lengths.min} digits phone number for ${selectedCountry.name}.`;
+          } else {
+            errorMessage = `You have entered ${phoneLength} digits. To proceed, enter at least ${lengths.min} digits phone number for ${selectedCountry.name}.`;
+          }
+        } else if (phoneLength > lengths.max) {
+          errorTitle = 'Phone Number Too Long!';
+          errorMessage = `${selectedCountry.name} takes only ${lengths.max} digits maximum. You entered ${phoneLength} digits.`;
+        }
+
+        Swal.fire({
+          title: errorTitle,
+          text: errorMessage,
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#8b5cf6',
+          background: '#232042',
+          color: '#ffffff'
+        });
+        return;
+      }
     }
 
     if (isLogin && !formData.phoneNumber && !formData.email) {
       Swal.fire({
-        title: 'Error!',
+        title: 'Warning!',
         text: 'Please enter either WhatsApp number or Email',
-        icon: 'error',
+        icon: 'warning',
         confirmButtonText: 'OK',
         confirmButtonColor: '#8b5cf6',
         background: '#232042',
@@ -648,11 +1186,11 @@ export default function Login() {
           <div className="text-center text-gray-400 text-sm mb-6 flex items-center justify-center gap-2">
             <span>Login by</span>
             <svg className="w-4 h-4 fill-current text-purple-400" viewBox="0 0 24 24">
-              <path d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z"/>
+              <path d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z" />
             </svg>
             <span>Email or</span>
             <svg className="w-4 h-4 fill-current text-green-500" viewBox="0 0 24 24">
-              <path d="M17.472,14.382c-0.297-0.149-1.758-0.867-2.03-0.967c-0.273-0.099-0.471-0.148-0.67,0.15c-0.197,0.297-0.767,0.966-0.94,1.164c-0.173,0.199-0.347,0.223-0.644,0.075c-0.297-0.15-1.255-0.463-2.39-1.475c-0.883-0.788-1.48-1.761-1.653-2.059c-0.173-0.297-0.018-0.458,0.13-0.606c0.134-0.133,0.297-0.347,0.446-0.521C9.87,9.97,9.919,9.846,10.019,9.65c0.099-0.198,0.05-0.371-0.025-0.52C9.919,8.981,9.325,7.515,9.078,6.92c-0.241-0.58-0.487-0.5-0.669-0.51c-0.173-0.008-0.371-0.01-0.57-0.01c-0.198,0-0.52,0.074-0.792,0.372c-0.272,0.297-1.04,1.016-1.04,2.479c0,1.462,1.065,2.875,1.213,3.074c0.149,0.198,2.096,3.2,5.077,4.487c0.709,0.306,1.262,0.489,1.694,0.625c0.712,0.227,1.36,0.195,1.871,0.118c0.571-0.085,1.758-0.719,2.006-1.413c0.248-0.694,0.248-1.289,0.173-1.413C17.884,14.651,17.769,14.431,17.472,14.382z M12.057,21.785h-0.008c-1.784,0-3.525-0.481-5.052-1.389l-0.362-0.215l-3.754,0.984l1.005-3.671l-0.236-0.375c-0.99-1.575-1.511-3.393-1.511-5.26c0-5.445,4.43-9.875,9.88-9.875c2.64,0,5.124,1.03,6.988,2.898c1.865,1.867,2.893,4.352,2.892,6.993C21.899,17.354,17.469,21.785,12.057,21.785z M20.5,3.488C18.24,1.24,15.24,0.013,12.058,0C5.507,0,0.17,5.335,0.172,11.892c0,2.096,0.547,4.142,1.588,5.945L0,24l6.305-1.654c1.746,0.943,3.71,1.444,5.71,1.447h0.006c6.551,0,11.89-5.335,11.89-11.893C23.91,8.724,22.759,5.746,20.5,3.488z"/>
+              <path d="M17.472,14.382c-0.297-0.149-1.758-0.867-2.03-0.967c-0.273-0.099-0.471-0.148-0.67,0.15c-0.197,0.297-0.767,0.966-0.94,1.164c-0.173,0.199-0.347,0.223-0.644,0.075c-0.297-0.15-1.255-0.463-2.39-1.475c-0.883-0.788-1.48-1.761-1.653-2.059c-0.173-0.297-0.018-0.458,0.13-0.606c0.134-0.133,0.297-0.347,0.446-0.521C9.87,9.97,9.919,9.846,10.019,9.65c0.099-0.198,0.05-0.371-0.025-0.52C9.919,8.981,9.325,7.515,9.078,6.92c-0.241-0.58-0.487-0.5-0.669-0.51c-0.173-0.008-0.371-0.01-0.57-0.01c-0.198,0-0.52,0.074-0.792,0.372c-0.272,0.297-1.04,1.016-1.04,2.479c0,1.462,1.065,2.875,1.213,3.074c0.149,0.198,2.096,3.2,5.077,4.487c0.709,0.306,1.262,0.489,1.694,0.625c0.712,0.227,1.36,0.195,1.871,0.118c0.571-0.085,1.758-0.719,2.006-1.413c0.248-0.694,0.248-1.289,0.173-1.413C17.884,14.651,17.769,14.431,17.472,14.382z M12.057,21.785h-0.008c-1.784,0-3.525-0.481-5.052-1.389l-0.362-0.215l-3.754,0.984l1.005-3.671l-0.236-0.375c-0.99-1.575-1.511-3.393-1.511-5.26c0-5.445,4.43-9.875,9.88-9.875c2.64,0,5.124,1.03,6.988,2.898c1.865,1.867,2.893,4.352,2.892,6.993C21.899,17.354,17.469,21.785,12.057,21.785z M20.5,3.488C18.24,1.24,15.24,0.013,12.058,0C5.507,0,0.17,5.335,0.172,11.892c0,2.096,0.547,4.142,1.588,5.945L0,24l6.305-1.654c1.746,0.943,3.71,1.444,5.71,1.447h0.006c6.551,0,11.89-5.335,11.89-11.893C23.91,8.724,22.759,5.746,20.5,3.488z" />
             </svg>
             <span>WhatsApp Number</span>
           </div>
@@ -663,11 +1201,11 @@ export default function Login() {
             <div className="text-gray-400 text-sm mb-2 flex items-center justify-center gap-2">
               <span>Sign Up by</span>
               <svg className="w-4 h-4 fill-current text-purple-400" viewBox="0 0 24 24">
-                <path d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z"/>
+                <path d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z" />
               </svg>
               <span>Email or</span>
               <svg className="w-4 h-4 fill-current text-green-500" viewBox="0 0 24 24">
-                <path d="M17.472,14.382c-0.297-0.149-1.758-0.867-2.03-0.967c-0.273-0.099-0.471-0.148-0.67,0.15c-0.197,0.297-0.767,0.966-0.94,1.164c-0.173,0.199-0.347,0.223-0.644,0.075c-0.297-0.15-1.255-0.463-2.39-1.475c-0.883-0.788-1.48-1.761-1.653-2.059c-0.173-0.297-0.018-0.458,0.13-0.606c0.134-0.133,0.297-0.347,0.446-0.521C9.87,9.97,9.919,9.846,10.019,9.65c0.099-0.198,0.05-0.371-0.025-0.52C9.919,8.981,9.325,7.515,9.078,6.92c-0.241-0.58-0.487-0.5-0.669-0.51c-0.173-0.008-0.371-0.01-0.57-0.01c-0.198,0-0.52,0.074-0.792,0.372c-0.272,0.297-1.04,1.016-1.04,2.479c0,1.462,1.065,2.875,1.213,3.074c0.149,0.198,2.096,3.2,5.077,4.487c0.709,0.306,1.262,0.489,1.694,0.625c0.712,0.227,1.36,0.195,1.871,0.118c0.571-0.085,1.758-0.719,2.006-1.413c0.248-0.694,0.248-1.289,0.173-1.413C17.884,14.651,17.769,14.431,17.472,14.382z M12.057,21.785h-0.008c-1.784,0-3.525-0.481-5.052-1.389l-0.362-0.215l-3.754,0.984l1.005-3.671l-0.236-0.375c-0.99-1.575-1.511-3.393-1.511-5.26c0-5.445,4.43-9.875,9.88-9.875c2.64,0,5.124,1.03,6.988,2.898c1.865,1.867,2.893,4.352,2.892,6.993C21.899,17.354,17.469,21.785,12.057,21.785z M20.5,3.488C18.24,1.24,15.24,0.013,12.058,0C5.507,0,0.17,5.335,0.172,11.892c0,2.096,0.547,4.142,1.588,5.945L0,24l6.305-1.654c1.746,0.943,3.71,1.444,5.71,1.447h0.006c6.551,0,11.89-5.335,11.89-11.893C23.91,8.724,22.759,5.746,20.5,3.488z"/>
+                <path d="M17.472,14.382c-0.297-0.149-1.758-0.867-2.03-0.967c-0.273-0.099-0.471-0.148-0.67,0.15c-0.197,0.297-0.767,0.966-0.94,1.164c-0.173,0.199-0.347,0.223-0.644,0.075c-0.297-0.15-1.255-0.463-2.39-1.475c-0.883-0.788-1.48-1.761-1.653-2.059c-0.173-0.297-0.018-0.458,0.13-0.606c0.134-0.133,0.297-0.347,0.446-0.521C9.87,9.97,9.919,9.846,10.019,9.65c0.099-0.198,0.05-0.371-0.025-0.52C9.919,8.981,9.325,7.515,9.078,6.92c-0.241-0.58-0.487-0.5-0.669-0.51c-0.173-0.008-0.371-0.01-0.57-0.01c-0.198,0-0.52,0.074-0.792,0.372c-0.272,0.297-1.04,1.016-1.04,2.479c0,1.462,1.065,2.875,1.213,3.074c0.149,0.198,2.096,3.2,5.077,4.487c0.709,0.306,1.262,0.489,1.694,0.625c0.712,0.227,1.36,0.195,1.871,0.118c0.571-0.085,1.758-0.719,2.006-1.413c0.248-0.694,0.248-1.289,0.173-1.413C17.884,14.651,17.769,14.431,17.472,14.382z M12.057,21.785h-0.008c-1.784,0-3.525-0.481-5.052-1.389l-0.362-0.215l-3.754,0.984l1.005-3.671l-0.236-0.375c-0.99-1.575-1.511-3.393-1.511-5.26c0-5.445,4.43-9.875,9.88-9.875c2.64,0,5.124,1.03,6.988,2.898c1.865,1.867,2.893,4.352,2.892,6.993C21.899,17.354,17.469,21.785,12.057,21.785z M20.5,3.488C18.24,1.24,15.24,0.013,12.058,0C5.507,0,0.17,5.335,0.172,11.892c0,2.096,0.547,4.142,1.588,5.945L0,24l6.305-1.654c1.746,0.943,3.71,1.444,5.71,1.447h0.006c6.551,0,11.89-5.335,11.89-11.893C23.91,8.724,22.759,5.746,20.5,3.488z" />
               </svg>
               <span>WhatsApp</span>
             </div>
@@ -703,11 +1241,11 @@ export default function Login() {
                 <input
                   type="email"
                   name="email"
-                  placeholder="Email ID *"
+                  placeholder="Email ID (Optional if using WhatsApp)"
                   value={formData.email}
                   onChange={handleInputChange}
+                  onBlur={handleEmailBlur}
                   className="w-full px-4 py-3 pl-12 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400"
-                  required
                 />
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-400">
                   <FaEnvelope size={20} />
@@ -740,9 +1278,28 @@ export default function Login() {
                             key={country.code}
                             type="button"
                             onClick={() => {
+                              const previousCountry = selectedCountry;
                               setSelectedCountry(country);
                               setShowCountryDropdown(false);
                               setSearchCountry("");
+
+                              // Show info about phone number requirements when country changes
+                              if (previousCountry.code !== country.code && formData.phoneNumber) {
+                                const lengths = getPhoneNumberLength(country.code);
+                                const phoneLength = formData.phoneNumber.length;
+
+                                if (!validatePhoneNumber(formData.phoneNumber, country.code)) {
+                                  Swal.fire({
+                                    title: 'Phone Number Format Changed',
+                                    text: `${country.name} requires ${lengths.min === lengths.max ? 'exactly' : 'between'} ${lengths.min === lengths.max ? lengths.min : `${lengths.min}-${lengths.max}`} digits. Your current number has ${phoneLength} digits.`,
+                                    icon: 'info',
+                                    confirmButtonText: 'OK',
+                                    confirmButtonColor: '#8b5cf6',
+                                    background: '#232042',
+                                    color: '#ffffff'
+                                  });
+                                }
+                              }
                             }}
                             className="w-full px-3 py-2 text-left hover:bg-purple-500/20 transition flex items-center gap-2"
                           >
@@ -762,6 +1319,7 @@ export default function Login() {
                       placeholder="Phone Number *"
                       value={formData.phoneNumber}
                       onChange={handleInputChange}
+                      onBlur={handlePhoneBlur}
                       className="w-full px-4 py-3 pr-12 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400"
                       required
                     />
@@ -808,9 +1366,28 @@ export default function Login() {
                             key={country.code}
                             type="button"
                             onClick={() => {
+                              const previousCountry = selectedCountry;
                               setSelectedCountry(country);
                               setShowCountryDropdown(false);
                               setSearchCountry("");
+
+                              // Show info about phone number requirements when country changes
+                              if (previousCountry.code !== country.code && formData.phoneNumber) {
+                                const lengths = getPhoneNumberLength(country.code);
+                                const phoneLength = formData.phoneNumber.length;
+
+                                if (!validatePhoneNumber(formData.phoneNumber, country.code)) {
+                                  Swal.fire({
+                                    title: 'Phone Number Format Changed',
+                                    text: `${country.name} requires ${lengths.min === lengths.max ? 'exactly' : 'between'} ${lengths.min === lengths.max ? lengths.min : `${lengths.min}-${lengths.max}`} digits. Your current number has ${phoneLength} digits.`,
+                                    icon: 'info',
+                                    confirmButtonText: 'OK',
+                                    confirmButtonColor: '#8b5cf6',
+                                    background: '#232042',
+                                    color: '#ffffff'
+                                  });
+                                }
+                              }
                             }}
                             className="w-full px-3 py-2 text-left hover:bg-purple-500/20 transition flex items-center gap-2"
                           >
@@ -830,6 +1407,7 @@ export default function Login() {
                       placeholder={!isLogin ? "Phone Number *" : "Phone Number"}
                       value={formData.phoneNumber}
                       onChange={handleInputChange}
+                      onBlur={handlePhoneBlur}
                       readOnly={isLogin && formData.email && formData.email.length > 0}
                       className={`w-full px-4 py-3 pr-12 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400 ${isLogin && formData.email && formData.email.length > 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                       required={!isLogin}
@@ -842,7 +1420,7 @@ export default function Login() {
               </div>
 
               {isLogin && (
-                <div className="text-center text-sm text-gray-500 my-2">
+                <div className="text-center text-xl text-white my-2">
                   <span>OR</span>
                 </div>
               )}
@@ -855,6 +1433,7 @@ export default function Login() {
                     placeholder={!isLogin ? "Email *" : "Email"}
                     value={formData.email}
                     onChange={handleInputChange}
+                    onBlur={handleEmailBlur}
                     readOnly={isLogin && formData.phoneNumber && formData.phoneNumber.length > 0}
                     className={`w-full px-4 py-3 pl-12 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400 ${isLogin && formData.phoneNumber && formData.phoneNumber.length > 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                     required={!isLogin}
@@ -907,7 +1486,17 @@ export default function Login() {
 
           {!isLogin && !isOtpSent && (
             <div className="text-center text-gray-400 text-sm mb-2">
-              <p>OTP sent to Email and WhatsApp Number</p>
+              <div className="text-gray-400 text-sm mb-2 flex items-center justify-center gap-2">
+                <span>OTP will be sent to</span>
+                <svg className="w-4 h-4 fill-current text-purple-400" viewBox="0 0 24 24">
+                  <path d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z" />
+                </svg>
+                <span>Email or</span>
+                <svg className="w-4 h-4 fill-current text-green-500" viewBox="0 0 24 24">
+                  <path d="M17.472,14.382c-0.297-0.149-1.758-0.867-2.03-0.967c-0.273-0.099-0.471-0.148-0.67,0.15c-0.197,0.297-0.767,0.966-0.94,1.164c-0.173,0.199-0.347,0.223-0.644,0.075c-0.297-0.15-1.255-0.463-2.39-1.475c-0.883-0.788-1.48-1.761-1.653-2.059c-0.173-0.297-0.018-0.458,0.13-0.606c0.134-0.133,0.297-0.347,0.446-0.521C9.87,9.97,9.919,9.846,10.019,9.65c0.099-0.198,0.05-0.371-0.025-0.52C9.919,8.981,9.325,7.515,9.078,6.92c-0.241-0.58-0.487-0.5-0.669-0.51c-0.173-0.008-0.371-0.01-0.57-0.01c-0.198,0-0.52,0.074-0.792,0.372c-0.272,0.297-1.04,1.016-1.04,2.479c0,1.462,1.065,2.875,1.213,3.074c0.149,0.198,2.096,3.2,5.077,4.487c0.709,0.306,1.262,0.489,1.694,0.625c0.712,0.227,1.36,0.195,1.871,0.118c0.571-0.085,1.758-0.719,2.006-1.413c0.248-0.694,0.248-1.289,0.173-1.413C17.884,14.651,17.769,14.431,17.472,14.382z M12.057,21.785h-0.008c-1.784,0-3.525-0.481-5.052-1.389l-0.362-0.215l-3.754,0.984l1.005-3.671l-0.236-0.375c-0.99-1.575-1.511-3.393-1.511-5.26c0-5.445,4.43-9.875,9.88-9.875c2.64,0,5.124,1.03,6.988,2.898c1.865,1.867,2.893,4.352,2.892,6.993C21.899,17.354,17.469,21.785,12.057,21.785z M20.5,3.488C18.24,1.24,15.24,0.013,12.058,0C5.507,0,0.17,5.335,0.172,11.892c0,2.096,0.547,4.142,1.588,5.945L0,24l6.305-1.654c1.746,0.943,3.71,1.444,5.71,1.447h0.006c6.551,0,11.89-5.335,11.89-11.893C23.91,8.724,22.759,5.746,20.5,3.488z" />
+                </svg>
+                <span>WhatsApp</span>
+              </div>
             </div>
           )}
 
