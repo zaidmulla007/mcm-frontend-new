@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { FaUser, FaEnvelope, FaPhone, FaCalendarAlt, FaArrowLeft } from "react-icons/fa";
+import { FaUser, FaEnvelope, FaPhone, FaCalendarAlt, FaArrowLeft, FaTimes } from "react-icons/fa";
 import { motion } from "framer-motion";
+import Swal from "sweetalert2";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function ProfilePage() {
     dateStart: '',
     dateEnd: ''
   });
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     // Check if user is logged in
@@ -90,6 +92,27 @@ export default function ProfilePage() {
     } catch {
       return null;
     }
+  };
+
+  const handleManageSubscription = () => {
+    setShowModal(true);
+  };
+
+  const handleStartSubscription = () => {
+    setShowModal(false);
+    Swal.fire({
+      title: 'Subscription Started!',
+      text: 'Your subscription has been started successfully.',
+      icon: 'success',
+      confirmButtonText: 'OK',
+      background: '#232042',
+      color: '#ffffff',
+      confirmButtonColor: '#8b5cf6'
+    });
+  };
+
+  const handleCancel = () => {
+    setShowModal(false);
   };
 
   return (
@@ -195,12 +218,12 @@ export default function ProfilePage() {
                   )}
                 </div>
 
-                {/* <Link
-                  href="/manage-subscription"
+                <button
+                  onClick={handleManageSubscription}
                   className="block w-full text-center bg-gradient-to-r from-purple-500 to-blue-500 px-4 py-3 rounded-lg font-semibold shadow hover:scale-105 transition"
                 >
                   Manage Subscription
-                </Link> */}
+                </button>
               </div>
             </div>
           </div>
@@ -231,6 +254,45 @@ export default function ProfilePage() {
           </div>
         </motion.div>
       </div>
+
+      {/* Subscription Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="bg-[#232042] rounded-xl p-6 w-full max-w-md shadow-xl"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-white">Manage Subscription</h3>
+              <button
+                onClick={handleCancel}
+                className="text-gray-400 hover:text-white transition"
+              >
+                <FaTimes size={20} />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <button
+                onClick={handleStartSubscription}
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-lg font-semibold hover:scale-105 transition"
+              >
+                Start Subscription
+              </button>
+              
+              <button
+                onClick={handleCancel}
+                className="w-full bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

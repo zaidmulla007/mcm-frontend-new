@@ -8,9 +8,7 @@ import { FaUserCircle, FaUser, FaCreditCard, FaSignOutAlt } from "react-icons/fa
 const navLinks = [
   { name: "Home", href: "/" },
   { name: "Influencers", href: "/influencers" },
-  { name: "Cryptocurrencies", href: "/cryptocurrencies" },
   { name: "Leaderboard", href: "/leaderboard" },
-  { name: "Insights / Blog", href: "/blog" },
   { name: "About", href: "/about" },
   { name: "Contact", href: "/contact" },
 ];
