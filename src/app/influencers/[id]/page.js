@@ -1212,7 +1212,7 @@ export default function InfluencerProfilePage() {
           </div>
         )}
         {tab === "overview-light1" && (
-          <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-8 overflow-x-hidden">
             {/* Bio & Sentiment */}
             {/* About Section */}
             <div className="bg-white rounded-xl p-6 mb-2 border border-gray-200">
@@ -1437,251 +1437,306 @@ export default function InfluencerProfilePage() {
 
 
             <div className="bg-white rounded-xl p-6 mb-2 border border-gray-200">
-              <div className="bg-white rounded-xl p-6 border border-gray-200">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-[#0c0023]">
-                    Channel Performance Metrics (Year On Year)
-                  </h3>
-                  {/* <button
-                    onClick={() => setTab("correlationSummaryV2")}
-                    className="px-3 py-1.5 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-md"
-                  >
-                    More Details
-                  </button> */}
-                </div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-[#0c0023]">
+                  Channel Performance Metrics
+                </h3>
+                {/* <button
+                  onClick={() => setTab("correlationSummaryV2")}
+                  className="px-3 py-1.5 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-md"
+                >
+                  More Details
+                </button> */}
+              </div>
 
-                <div className="space-y-6">
-                  {channelData?.Ai_scoring?.Yearly
-                    ? (() => {
-                      // Prepare data for charts
-                      const years = Object.keys(channelData.Ai_scoring.Yearly).sort().reverse();
-                      const currentYear = new Date().getFullYear().toString();
+              <div className="space-y-6">
+                {channelData?.Ai_scoring?.Yearly
+                  ? (() => {
+                    // Prepare data for charts
+                    const years = Object.keys(channelData.Ai_scoring.Yearly).sort().reverse();
+                    const currentYear = new Date().getFullYear().toString();
 
-                      // Define metrics with their properties
-                      const metrics = [
-                        {
-                          key: 'overall_score',
-                          label: 'Overall Score',
-                          field: 'avg_overall_score',
-                          color: '#1e3a8a',
-                          definition: 'Combined score reflecting overall quality across all metrics.'
-                        },
-                        {
-                          key: 'credibility_score',
-                          label: 'Credibility Score',
-                          field: 'avg_credibility_score',
-                          color: '#1d4ed8',
-                          definition: 'Trustworthiness and accuracy of the content.'
-                        },
-                        {
-                          key: 'risk_management',
-                          label: 'Risk Management',
-                          field: 'avg_risk_management',
-                          color: '#3b82f6',
-                          definition: 'How well risk strategies are addressed (e.g. sizing, risk-reward ratios, portfolio allocation).'
-                        },
-                        {
-                          key: 'actionable_insights',
-                          label: 'Actionable Insights',
-                          field: 'avg_actionable_insights',
-                          color: '#93c5fd',
-                          definition: 'Presence and quality of actionable insights. Higher score when the reader can take specific actions.'
-                        },
-                        {
-                          key: 'educational_value',
-                          label: 'Educational Value',
-                          field: 'avg_educational_purpose',
-                          color: '#dbeafe',
-                          definition: 'Higher when explanations of why certain moves are expected are included.'
-                        }
-                      ];
+                    // Define metrics with their properties
+                    const metrics = [
+                      {
+                        key: 'overall_score',
+                        label: 'Overall Score',
+                        field: 'avg_overall_score',
+                        color: '#1e3a8a',
+                        definition: 'Combined score reflecting overall quality across all metrics.'
+                      },
+                      {
+                        key: 'credibility_score',
+                        label: 'Credibility Score',
+                        field: 'avg_credibility_score',
+                        color: '#1d4ed8',
+                        definition: 'Trustworthiness and accuracy of the content.'
+                      },
+                      {
+                        key: 'risk_management',
+                        label: 'Risk Management',
+                        field: 'avg_risk_management',
+                        color: '#3b82f6',
+                        definition: 'How well risk strategies are addressed (e.g. sizing, risk-reward ratios, portfolio allocation).'
+                      },
+                      {
+                        key: 'actionable_insights',
+                        label: 'Actionable Insights',
+                        field: 'avg_actionable_insights',
+                        color: '#93c5fd',
+                        definition: 'Presence and quality of actionable insights. Higher score when the reader can take specific actions.'
+                      },
+                      {
+                        key: 'educational_value',
+                        label: 'Educational Value',
+                        field: 'avg_educational_purpose',
+                        color: '#dbeafe',
+                        definition: 'Higher when explanations of why certain moves are expected are included.'
+                      }
+                    ];
 
-                      // Create separate chart data for each metric
-                      const chartsData = metrics.map(metric => {
-                        const data = years.map(year => ({
-                          year: year === currentYear ? year + '*' : year,
-                          value: channelData.Ai_scoring.Yearly[year][metric.field] || 0
-                        })).filter(d => d.value > 0);
+                    // Create separate chart data for each metric
+                    const chartsData = metrics.map(metric => {
+                      const data = years.map(year => ({
+                        year: year === currentYear ? year + '*' : year,
+                        value: channelData.Ai_scoring.Yearly[year][metric.field] || 0
+                      })).filter(d => d.value > 0);
 
-                        return {
-                          ...metric,
-                          data: data,
-                          hasData: data.length > 0
-                        };
-                      }).filter(chart => chart.hasData);
+                      return {
+                        ...metric,
+                        data: data,
+                        hasData: data.length > 0
+                      };
+                    }).filter(chart => chart.hasData);
 
-                      return (
-                        <div className="space-y-4">
-                          {chartsData.length === 0 ? (
-                            <div className="h-40 flex items-center justify-center text-gray-500 italic">
-                              No yearly performance data available
-                            </div>
-                          ) : (
-                            <>
-                              {/* All metrics in one row */}
-                              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                                {chartsData.map((metric) => (
-                                  <div key={metric.key} className="space-y-2">
-                                    <div className="flex items-center justify-center gap-2 mb-2">
-                                      <h4 className="text-sm font-semibold text-[#0c0023]">{metric.label}</h4>
-                                      <div className="relative group">
-                                        <svg
-                                          className="w-4 h-4 text-gray-500 cursor-pointer hover:text-gray-700 transition-colors"
-                                          fill="none"
-                                          viewBox="0 0 24 24"
-                                          stroke="currentColor"
-                                        >
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                        </svg>
-                                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                                          {metric.definition}
-                                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
-                                            <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-                                          </div>
+                    return (
+                      <div className="space-y-4">
+                        {chartsData.length === 0 ? (
+                          <div className="h-40 flex items-center justify-center text-gray-500 italic">
+                            No yearly performance data available
+                          </div>
+                        ) : (
+                          <>
+                            {/* Mobile single column layout */}
+                            <div className="block md:hidden grid grid-cols-1 gap-4">
+                              {chartsData.map((metric) => (
+                                <div key={metric.key} className="border border-gray-200 rounded-lg p-4">
+                                  <div className="flex items-center justify-center gap-2 mb-3">
+                                    <h4 className="text-center font-medium text-gray-700">{metric.label}</h4>
+                                    <div className="relative group">
+                                      <svg
+                                        className="w-4 h-4 text-gray-500 cursor-pointer hover:text-gray-700 transition-colors"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                      </svg>
+                                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                                        {metric.definition}
+                                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                                          <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                                         </div>
                                       </div>
                                     </div>
-                                    <ResponsiveContainer width="100%" height={180}>
-                                      <BarChart
-                                        data={metric.data}
-                                        margin={{ top: 10, right: 10, left: 0, bottom: 30 }}
-                                      >
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                        <XAxis
-                                          dataKey="year"
-                                          tick={{ fontSize: 10 }}
-                                          stroke="#666"
-                                        />
-                                        <YAxis
-                                          domain={[0, 10]}
-                                          ticks={[0, 5, 10]}
-                                          tick={{ fontSize: 10 }}
-                                          stroke="#666"
-                                        />
-                                        <Bar
-                                          dataKey="value"
-                                          fill={metric.color}
-                                          radius={[8, 8, 0, 0]}
-                                          barSize={30}
-                                        >
-                                          <LabelList
-                                            dataKey="value"
-                                            position="top"
-                                            formatter={(value) => value.toFixed(1)}
-                                            style={{ fontSize: '12px', fontWeight: 'bold', fill: '#333' }}
-                                          />
-                                        </Bar>
-                                      </BarChart>
-                                    </ResponsiveContainer>
                                   </div>
-                                ))}
-                              </div>
+                                  <ResponsiveContainer width="100%" height={180}>
+                                    <BarChart
+                                      data={metric.data}
+                                      margin={{ top: 10, right: 10, left: 0, bottom: 30 }}
+                                    >
+                                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                      <XAxis
+                                        dataKey="year"
+                                        tick={{ fontSize: 11 }}
+                                        stroke="#666"
+                                      />
+                                      <YAxis
+                                        domain={[0, 10]}
+                                        ticks={[0, 5, 10]}
+                                        tick={{ fontSize: 11 }}
+                                        stroke="#666"
+                                      />
+                                      <Bar
+                                        dataKey="value"
+                                        fill={metric.color}
+                                        radius={[8, 8, 0, 0]}
+                                        barSize={40}
+                                      >
+                                        <LabelList
+                                          dataKey="value"
+                                          position="top"
+                                          formatter={(value) => value.toFixed(1)}
+                                          style={{ fontSize: '12px', fontWeight: 'bold', fill: '#333' }}
+                                        />
+                                      </Bar>
+                                    </BarChart>
+                                  </ResponsiveContainer>
+                                </div>
+                              ))}
+                            </div>
 
-                              <p className="text-xs text-gray-500 text-right mt-2">
-                                Current year {currentYear}*
-                              </p>
-                            </>
-                          )}
-                        </div>
-                      );
-                    })()
-                    : (
-                      <div className="h-40 flex items-center justify-center text-gray-500 italic">
-                        No yearly performance data available
+                            {/* Desktop grid layout - restored to original 5 columns */}
+                            <div className="hidden md:grid md:grid-cols-3 lg:grid-cols-5 gap-3">
+                              {chartsData.map((metric) => (
+                                <div key={metric.key} className="space-y-2">
+                                  <div className="flex items-center justify-center gap-2 mb-2">
+                                    <h4 className="text-sm font-semibold text-[#0c0023]">{metric.label}</h4>
+                                    <div className="relative group">
+                                      <svg
+                                        className="w-4 h-4 text-gray-500 cursor-pointer hover:text-gray-700 transition-colors"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                      </svg>
+                                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                                        {metric.definition}
+                                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                                          <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <ResponsiveContainer width="100%" height={150}>
+                                    <BarChart
+                                      data={metric.data}
+                                      margin={{ top: 5, right: 5, left: 0, bottom: 25 }}
+                                    >
+                                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                      <XAxis
+                                        dataKey="year"
+                                        tick={{ fontSize: 10 }}
+                                        stroke="#666"
+                                      />
+                                      <YAxis
+                                        domain={[0, 10]}
+                                        ticks={[0, 5, 10]}
+                                        tick={{ fontSize: 10 }}
+                                        stroke="#666"
+                                      />
+                                      <Bar
+                                        dataKey="value"
+                                        fill={metric.color}
+                                        radius={[8, 8, 0, 0]}
+                                        barSize={25}
+                                      >
+                                        <LabelList
+                                          dataKey="value"
+                                          position="top"
+                                          formatter={(value) => value.toFixed(1)}
+                                          style={{ fontSize: '12px', fontWeight: 'bold', fill: '#333' }}
+                                        />
+                                      </Bar>
+                                    </BarChart>
+                                  </ResponsiveContainer>
+                                </div>
+                              ))}
+                            </div>
+
+                            <p className="text-xs text-gray-500 text-right mt-2">
+                              Current year {currentYear}*
+                            </p>
+                          </>
+                        )}
                       </div>
-                    )}
-                </div>
+                    );
+                  })()
+                  : (
+                    <div className="h-40 flex items-center justify-center text-gray-500 italic">
+                      No yearly performance data available
+                    </div>
+                  )}
               </div>
             </div>
             {/* Sentiment Analysis Charts */}
-            <div className="bg-white rounded-xl p-6 mb-2 border border-gray-200">
-              <h3 className="font-semibold mb-6 text-[#0c0023]">Sentiment Analysis (Year On Year)</h3>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="bg-white rounded-xl p-6 mb-2 border border-gray-200 overflow-hidden">
+              <h3 className="font-semibold mb-6 text-[#0c0023]">Total Recommendations</h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Overall Chart */}
                 <div className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="text-center font-medium mb-4 text-gray-700">Overall</h4>
+                  <h4 className="text-center font-medium mb-4 text-to-purple">Overall</h4>
                   <div className="space-y-3">
                     {/* 2025 */}
                     <div className="flex items-center">
-                      <span className="w-12 text-sm font-medium text-gray-700">2025</span>
+                      <span className="w-12 text-sm font-medium text-to-purple">2025</span>
                       <div className="flex-1 relative mr-10">
                         <div className="h-8 bg-gray-100 rounded overflow-hidden">
                           <div className="h-full flex">
-                            <div 
-                              className="bg-[#10b981] flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(76/250)*100}%` }}
+                            <div
+                              className="bg-purple-500 flex items-center justify-center text-to-purple text-sm font-bold"
+                              style={{ width: `${(76 / 250) * 100}%` }}
                             >
                               76
                             </div>
-                            <div 
-                              className="bg-[#ef4444] flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(54/250)*100}%` }}
+                            <div
+                              className="bg-purple-200 flex items-center justify-center text-to-purple text-sm font-bold"
+                              style={{ width: `${(54 / 250) * 100}%` }}
                             >
                               54
                             </div>
                           </div>
                         </div>
-                        <span className="absolute -right-8 top-1/2 -translate-y-1/2 text-sm text-gray-600">130</span>
+                        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-to-purple font-semibold pr-2">130</span>
                       </div>
                     </div>
                     {/* 2024 */}
                     <div className="flex items-center">
-                      <span className="w-12 text-sm font-medium text-gray-700">2024</span>
+                      <span className="w-12 text-sm font-medium text-to-purple">2024</span>
                       <div className="flex-1 relative mr-10">
                         <div className="h-8 bg-gray-100 rounded overflow-hidden">
                           <div className="h-full flex">
-                            <div 
-                              className="bg-[#10b981] flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(111/250)*100}%` }}
+                            <div
+                              className="bg-purple-500 flex items-center justify-center text-to-purple text-sm font-bold"
+                              style={{ width: `${(111 / 250) * 100}%` }}
                             >
                               111
                             </div>
-                            <div 
-                              className="bg-[#ef4444] flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(44/250)*100}%` }}
+                            <div
+                              className="bg-purple-200 flex items-center justify-center text-to-purple text-sm font-bold"
+                              style={{ width: `${(44 / 250) * 100}%` }}
                             >
                               44
                             </div>
                           </div>
                         </div>
-                        <span className="absolute -right-8 top-1/2 -translate-y-1/2 text-sm text-gray-600">155</span>
+                        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-to-purple font-semibold pr-2">155</span>
                       </div>
                     </div>
                     {/* 2023 */}
                     <div className="flex items-center">
-                      <span className="w-12 text-sm font-medium text-gray-700">2023</span>
+                      <span className="w-12 text-sm font-medium text-to-purple">2023</span>
                       <div className="flex-1 relative mr-10">
                         <div className="h-8 bg-gray-100 rounded overflow-hidden">
                           <div className="h-full flex">
-                            <div 
-                              className="bg-[#10b981] flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(63/250)*100}%` }}
+                            <div
+                              className="bg-purple-500 flex items-center justify-center text-to-purple text-sm font-bold"
+                              style={{ width: `${(63 / 250) * 100}%` }}
                             >
                               63
                             </div>
-                            <div 
-                              className="bg-[#ef4444] flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(32/250)*100}%` }}
+                            <div
+                              className="bg-purple-200 flex items-center justify-center text-to-purple text-sm font-bold"
+                              style={{ width: `${(32 / 250) * 100}%` }}
                             >
                               32
                             </div>
                           </div>
                         </div>
-                        <span className="absolute -right-8 top-1/2 -translate-y-1/2 text-sm text-gray-600">95</span>
+                        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-to-purple font-semibold pr-2">95</span>
                       </div>
                     </div>
                     {/* Scale */}
                     <div className="flex items-center">
                       <span className="w-12"></span>
-                      <div className="flex-1 flex justify-between text-xs text-gray-400 mr-10">
+                      <div className="flex-1 flex justify-between text-xs text-to-purple mr-10">
                         <span>0</span>
-                        <span>50</span>
                         <span>100</span>
-                        <span>150</span>
                         <span>200</span>
-                        <span>250</span>
                       </div>
                     </div>
                   </div>
@@ -1689,87 +1744,84 @@ export default function InfluencerProfilePage() {
 
                 {/* With Moonshots Chart */}
                 <div className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="text-center font-medium mb-4 text-gray-700">With Moonshots</h4>
+                  <h4 className="text-center font-medium mb-4 text-to-purple">With Moonshots</h4>
                   <div className="space-y-3">
                     {/* 2025 */}
                     <div className="flex items-center">
-                      <span className="w-12 text-sm font-medium text-gray-700">2025</span>
+                      <span className="w-12 text-sm font-medium text-to-purple">2025</span>
                       <div className="flex-1 relative mr-10">
                         <div className="h-8 bg-gray-100 rounded overflow-hidden">
                           <div className="h-full flex">
-                            <div 
-                              className="bg-[#10b981] flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(58/250)*100}%` }}
+                            <div
+                              className="flex items-center justify-center text-white text-sm font-bold"
+                              style={{ width: `${(58 / 250) * 100}%`, backgroundColor: "rgb(30, 58, 138)" }}
                             >
                               58
                             </div>
-                            <div 
-                              className="bg-[#ef4444] flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(42/250)*100}%` }}
+                            <div
+                              className="flex items-center justify-center text-gray-700 text-sm font-bold"
+                              style={{ width: `${(42 / 250) * 100}%`, backgroundColor: "rgb(219, 234, 254)" }}
                             >
                               42
                             </div>
                           </div>
                         </div>
-                        <span className="absolute -right-8 top-1/2 -translate-y-1/2 text-sm text-gray-600">100</span>
+                        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-to-purple font-semibold pr-2">100</span>
                       </div>
                     </div>
                     {/* 2024 */}
                     <div className="flex items-center">
-                      <span className="w-12 text-sm font-medium text-gray-700">2024</span>
+                      <span className="w-12 text-sm font-medium text-to-purple">2024</span>
                       <div className="flex-1 relative mr-10">
                         <div className="h-8 bg-gray-100 rounded overflow-hidden">
                           <div className="h-full flex">
-                            <div 
-                              className="bg-[#10b981] flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(89/250)*100}%` }}
+                            <div
+                              className="flex items-center justify-center text-white text-sm font-bold"
+                              style={{ width: `${(89 / 250) * 100}%`, backgroundColor: "rgb(30, 58, 138)" }}
                             >
                               89
                             </div>
-                            <div 
-                              className="bg-[#ef4444] flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(38/250)*100}%` }}
+                            <div
+                              className="flex items-center justify-center text-gray-700 text-sm font-bold"
+                              style={{ width: `${(38 / 250) * 100}%`, backgroundColor: "rgb(219, 234, 254)" }}
                             >
                               38
                             </div>
                           </div>
                         </div>
-                        <span className="absolute -right-8 top-1/2 -translate-y-1/2 text-sm text-gray-600">127</span>
+                        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-to-purple font-semibold pr-2">127</span>
                       </div>
                     </div>
                     {/* 2023 */}
                     <div className="flex items-center">
-                      <span className="w-12 text-sm font-medium text-gray-700">2023</span>
+                      <span className="w-12 text-sm font-medium text-to-purple">2023</span>
                       <div className="flex-1 relative mr-10">
                         <div className="h-8 bg-gray-100 rounded overflow-hidden">
                           <div className="h-full flex">
-                            <div 
-                              className="bg-[#10b981] flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(45/250)*100}%` }}
+                            <div
+                              className="flex items-center justify-center text-white text-sm font-bold"
+                              style={{ width: `${(45 / 250) * 100}%`, backgroundColor: "rgb(30, 58, 138)" }}
                             >
                               45
                             </div>
-                            <div 
-                              className="bg-[#ef4444] flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(28/250)*100}%` }}
+                            <div
+                              className="flex items-center justify-center text-gray-700 text-sm font-bold"
+                              style={{ width: `${(28 / 250) * 100}%`, backgroundColor: "rgb(219, 234, 254)" }}
                             >
                               28
                             </div>
                           </div>
                         </div>
-                        <span className="absolute -right-8 top-1/2 -translate-y-1/2 text-sm text-gray-600">73</span>
+                        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-to-purple font-semibold pr-2">73</span>
                       </div>
                     </div>
                     {/* Scale */}
                     <div className="flex items-center">
                       <span className="w-12"></span>
-                      <div className="flex-1 flex justify-between text-xs text-gray-400 mr-10">
+                      <div className="flex-1 flex justify-between text-xs text-to-purple mr-10">
                         <span>0</span>
-                        <span>50</span>
                         <span>100</span>
-                        <span>150</span>
                         <span>200</span>
-                        <span>250</span>
                       </div>
                     </div>
                   </div>
@@ -1777,87 +1829,84 @@ export default function InfluencerProfilePage() {
 
                 {/* Without Moonshots Chart */}
                 <div className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="text-center font-medium mb-4 text-gray-700">Without Moonshots</h4>
+                  <h4 className="text-center font-medium mb-4 text-to-purple">Without Moonshots</h4>
                   <div className="space-y-3">
                     {/* 2025 */}
                     <div className="flex items-center">
-                      <span className="w-12 text-sm font-medium text-gray-700">2025</span>
+                      <span className="w-12 text-sm font-medium text-to-purple">2025</span>
                       <div className="flex-1 relative mr-10">
                         <div className="h-8 bg-gray-100 rounded overflow-hidden">
                           <div className="h-full flex">
-                            <div 
-                              className="bg-[#10b981] flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(18/250)*100}%` }}
+                            <div
+                              className="bg-purple-500 flex items-center justify-center text-to-purple text-sm font-bold"
+                              style={{ width: `${(18 / 250) * 100}%` }}
                             >
                               18
                             </div>
-                            <div 
-                              className="bg-[#ef4444] flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(12/250)*100}%` }}
+                            <div
+                              className="bg-purple-200 flex items-center justify-center text-to-purple text-sm font-bold"
+                              style={{ width: `${(12 / 250) * 100}%` }}
                             >
                               12
                             </div>
                           </div>
                         </div>
-                        <span className="absolute -right-8 top-1/2 -translate-y-1/2 text-sm text-gray-600">30</span>
+                        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-to-purple font-semibold pr-2">30</span>
                       </div>
                     </div>
                     {/* 2024 */}
                     <div className="flex items-center">
-                      <span className="w-12 text-sm font-medium text-gray-700">2024</span>
+                      <span className="w-12 text-sm font-medium text-to-purple">2024</span>
                       <div className="flex-1 relative mr-10">
                         <div className="h-8 bg-gray-100 rounded overflow-hidden">
                           <div className="h-full flex">
-                            <div 
-                              className="bg-[#10b981] flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(22/250)*100}%` }}
+                            <div
+                              className="bg-purple-500 flex items-center justify-center text-to-purple text-sm font-bold"
+                              style={{ width: `${(22 / 250) * 100}%` }}
                             >
                               22
                             </div>
-                            <div 
-                              className="bg-[#ef4444] flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(6/250)*100}%` }}
+                            <div
+                              className="bg-purple-200 flex items-center justify-center text-to-purple text-sm font-bold"
+                              style={{ width: `${(6 / 250) * 100}%` }}
                             >
                               6
                             </div>
                           </div>
                         </div>
-                        <span className="absolute -right-8 top-1/2 -translate-y-1/2 text-sm text-gray-600">28</span>
+                        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-to-purple font-semibold pr-2">28</span>
                       </div>
                     </div>
                     {/* 2023 */}
                     <div className="flex items-center">
-                      <span className="w-12 text-sm font-medium text-gray-700">2023</span>
+                      <span className="w-12 text-sm font-medium text-to-purple">2023</span>
                       <div className="flex-1 relative mr-10">
                         <div className="h-8 bg-gray-100 rounded overflow-hidden">
                           <div className="h-full flex">
-                            <div 
-                              className="bg-[#10b981] flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(18/250)*100}%` }}
+                            <div
+                              className="bg-purple-500 flex items-center justify-center text-to-purple text-sm font-bold"
+                              style={{ width: `${(18 / 250) * 100}%` }}
                             >
                               18
                             </div>
-                            <div 
-                              className="bg-[#ef4444] flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(4/250)*100}%` }}
+                            <div
+                              className="bg-purple-200 flex items-center justify-center text-to-purple text-sm font-bold"
+                              style={{ width: `${(4 / 250) * 100}%` }}
                             >
                               4
                             </div>
                           </div>
                         </div>
-                        <span className="absolute -right-8 top-1/2 -translate-y-1/2 text-sm text-gray-600">22</span>
+                        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-to-purple font-semibold pr-2">22</span>
                       </div>
                     </div>
                     {/* Scale */}
                     <div className="flex items-center">
                       <span className="w-12"></span>
-                      <div className="flex-1 flex justify-between text-xs text-gray-400 mr-10">
+                      <div className="flex-1 flex justify-between text-xs text-to-purple mr-10">
                         <span>0</span>
-                        <span>50</span>
                         <span>100</span>
-                        <span>150</span>
                         <span>200</span>
-                        <span>250</span>
                       </div>
                     </div>
                   </div>
@@ -1867,20 +1916,20 @@ export default function InfluencerProfilePage() {
               {/* Legend */}
               <div className="flex items-center justify-center gap-6 mt-6">
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-[#10b981] rounded"></div>
-                  <span className="text-sm text-gray-600">Bullish</span>
+                  <div className="w-4 h-4 bg-purple-500 rounded"></div>
+                  <span className="text-sm text-to-purple">Bullish</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-[#ef4444] rounded"></div>
-                  <span className="text-sm text-gray-600">Bearish</span>
+                  <div className="w-4 h-4 bg-purple-200 rounded"></div>
+                  <span className="text-sm text-to-purple">Bearish</span>
                 </div>
-                <div className="text-sm text-gray-600">Total recommendations</div>
+                <div className="text-sm text-to-purple">Total recommendations</div>
               </div>
             </div>
 
             <div className="bg-white rounded-xl p-6 border border-gray-200">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-black">Performance Overview ROI (Year On Year)</h3>
+                <h3 className="font-semibold text-black">Performance Overview ROI</h3>
               </div>
               <p className="text-md mb-3 text-to-purple">Hover Mouse for info</p>
               {/* Table */}
@@ -1971,7 +2020,7 @@ export default function InfluencerProfilePage() {
                                     }}
                                   >
                                     {quarterData?.["1_hour"]?.probablity_weighted_returns_percentage != null
-                                      ? `${quarterData["1_hour"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                      ? `${quarterData["1_hour"].probablity_weighted_returns_percentage.toFixed(0)}%`
                                       : <span className={hoveredColumnROI === '1_hour' || hoveredRowROI === quarter ? "text-red-800 font-bold" : "text-red-200 hover:text-red-800 hover:font-bold"}>N/A</span>}
                                   </td>
 
@@ -1993,7 +2042,7 @@ export default function InfluencerProfilePage() {
                                       setHoveredRowROI(null);
                                     }}>
                                     {quarterData?.["24_hours"]?.probablity_weighted_returns_percentage != null
-                                      ? `${quarterData["24_hours"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                      ? `${quarterData["24_hours"].probablity_weighted_returns_percentage.toFixed(0)}%`
                                       : <span className={hoveredColumnROI === '24_hours' || hoveredRowROI === quarter ? "text-red-800 font-bold" : "text-red-200 hover:text-red-800 hover:font-bold"}>N/A</span>}
                                   </td>
 
@@ -2015,7 +2064,7 @@ export default function InfluencerProfilePage() {
                                       setHoveredRowROI(null);
                                     }}>
                                     {quarterData?.["7_days"]?.probablity_weighted_returns_percentage != null
-                                      ? `${quarterData["7_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                      ? `${quarterData["7_days"].probablity_weighted_returns_percentage.toFixed(0)}%`
                                       : <span className={hoveredColumnROI === '7_days' || hoveredRowROI === quarter ? "text-red-800 font-bold" : "text-red-200 hover:text-red-800 hover:font-bold"}>N/A</span>}
                                   </td>
 
@@ -2037,7 +2086,7 @@ export default function InfluencerProfilePage() {
                                       setHoveredRowROI(null);
                                     }}>
                                     {quarterData?.["30_days"]?.probablity_weighted_returns_percentage != null
-                                      ? `${quarterData["30_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                      ? `${quarterData["30_days"].probablity_weighted_returns_percentage.toFixed(0)}%`
                                       : <span className={hoveredColumnROI === '30_days' || hoveredRowROI === quarter ? "text-red-800 font-bold" : "text-red-200 hover:text-red-800 hover:font-bold"}>N/A</span>}
                                   </td>
 
@@ -2059,7 +2108,7 @@ export default function InfluencerProfilePage() {
                                       setHoveredRowROI(null);
                                     }}>
                                     {quarterData?.["60_days"]?.probablity_weighted_returns_percentage != null
-                                      ? `${quarterData["60_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                      ? `${quarterData["60_days"].probablity_weighted_returns_percentage.toFixed(0)}%`
                                       : <span className={hoveredColumnROI === '60_days' || hoveredRowROI === quarter ? "text-red-800 font-bold" : "text-red-200 hover:text-red-800 hover:font-bold"}>N/A</span>}
                                   </td>
 
@@ -2081,7 +2130,7 @@ export default function InfluencerProfilePage() {
                                       setHoveredRowROI(null);
                                     }}>
                                     {quarterData?.["90_days"]?.probablity_weighted_returns_percentage != null
-                                      ? `${quarterData["90_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                      ? `${quarterData["90_days"].probablity_weighted_returns_percentage.toFixed(0)}%`
                                       : <span className={hoveredColumnROI === '90_days' || hoveredRowROI === quarter ? "text-red-800 font-bold" : "text-red-200 hover:text-red-800 hover:font-bold"}>N/A</span>}
                                   </td>
 
@@ -2103,7 +2152,7 @@ export default function InfluencerProfilePage() {
                                       setHoveredRowROI(null);
                                     }}>
                                     {quarterData?.["180_days"]?.probablity_weighted_returns_percentage != null
-                                      ? `${quarterData["180_days"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                      ? `${quarterData["180_days"].probablity_weighted_returns_percentage.toFixed(0)}%`
                                       : <span className={hoveredColumnROI === '180_days' || hoveredRowROI === quarter ? "text-red-800 font-bold" : "text-red-200 hover:text-red-800 hover:font-bold"}>N/A</span>}
                                   </td>
 
@@ -2125,7 +2174,7 @@ export default function InfluencerProfilePage() {
                                       setHoveredRowROI(null);
                                     }}>
                                     {quarterData?.["1_year"]?.probablity_weighted_returns_percentage != null
-                                      ? `${quarterData["1_year"].probablity_weighted_returns_percentage.toFixed(2)}%`
+                                      ? `${quarterData["1_year"].probablity_weighted_returns_percentage.toFixed(0)}%`
                                       : <span className={hoveredColumnROI === '1_year' || hoveredRowROI === quarter ? "text-red-800 font-bold" : "text-red-200 hover:text-red-800 hover:font-bold"}>N/A</span>}
                                   </td>
                                 </tr>
@@ -2140,7 +2189,7 @@ export default function InfluencerProfilePage() {
 
 
             <div className="bg-white rounded-xl p-6 border border-gray-200">
-              <h3 className="font-semibold mb-4 text-[#0c0023]">Win Rate Analysis (Year On Year)</h3>
+              <h3 className="font-semibold mb-4 text-[#0c0023]">Win Rate Analysis</h3>
               <p className="text-md mb-3 text-to-purple">Hover Mouse for info</p>
               {/* Table with independent hover states */}
               <div className="overflow-x-auto">

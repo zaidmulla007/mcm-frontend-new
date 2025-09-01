@@ -70,14 +70,14 @@ export default function ClientHeader() {
     }
     return userInfo.email || 'User';
   };
-  
+
   return (
     <header className="sticky top-0 z-30 w-full bg-[#19162b]/95 backdrop-blur border-b border-[#232042] shadow-sm">
       <div className=" mx-auto flex items-center justify-between px-4 py-3">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           {/* <Image src="/images/MCMLOGO.png" alt="Logo" width={70} height={70} /> */}
-          <Image src="/images/mycrypto.png" alt="Logo" width={100} height={70}  className="logo-img"/>
+          <Image src="/images/logo2.png" alt="Logo" width={90} height={60} className="logo-img" />
           {/* <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent hidden sm:inline">
             MCM
           </span> */}
@@ -85,21 +85,19 @@ export default function ClientHeader() {
         {/* Navigation */}
         <nav className="hidden md:flex gap-6 ml-8">
           {navLinks.map((link) => {
-            const isActive = pathname === link.href || 
+            const isActive = pathname === link.href ||
               (link.href !== "/" && pathname.startsWith(link.href));
             return (
               <Link
                 key={link.name}
                 href={link.href}
-                className={`text-sm font-medium transition relative ${
-                  isActive
+                className={`text-sm font-medium transition relative ${isActive
                     ? 'text-purple-400'
                     : 'text-gray-200 hover:text-purple-400'
-                } ${
-                  isActive
+                  } ${isActive
                     ? 'after:absolute after:bottom-[-8px] after:left-0 after:w-full after:h-0.5 after:bg-purple-400'
                     : ''
-                }`}
+                  }`}
               >
                 {link.name}
               </Link>
@@ -137,18 +135,18 @@ export default function ClientHeader() {
                 <FaUserCircle size={24} className="text-purple-400" />
                 <span className="text-sm font-medium text-white">{getDisplayName()}</span>
               </button>
-              
+
               {showDropdown && (
                 <div className="absolute right-0 mt-2 w-64 bg-[#232042] rounded-lg shadow-lg border border-purple-500/30 overflow-hidden">
                   <div className="p-4 border-b border-purple-500/30">
                     <p className="text-sm font-semibold text-white">
-                      {userInfo.firstName && userInfo.lastName 
+                      {userInfo.firstName && userInfo.lastName
                         ? `${userInfo.firstName} ${userInfo.lastName}`
                         : 'User Profile'}
                     </p>
                     <p className="text-xs text-gray-400 mt-1">{userInfo.email}</p>
                   </div>
-                  
+
                   <div className="py-2">
                     <Link
                       href="/profile"
@@ -158,7 +156,7 @@ export default function ClientHeader() {
                       <FaUser className="text-purple-400" />
                       <span className="text-white">My Profile</span>
                     </Link>
-                    
+
                     <Link
                       href="/manage-subscription"
                       className="flex items-center gap-3 px-4 py-2 hover:bg-purple-500/20 transition text-sm"
@@ -167,7 +165,7 @@ export default function ClientHeader() {
                       <FaCreditCard className="text-purple-400" />
                       <span className="text-white">Manage Subscriptions</span>
                     </Link>
-                    
+
                     <button
                       onClick={handleLogout}
                       className="flex items-center gap-3 px-4 py-2 hover:bg-purple-500/20 transition text-sm w-full text-left border-t border-purple-500/30 mt-2"

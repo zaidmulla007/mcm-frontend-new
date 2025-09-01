@@ -1,10 +1,13 @@
+"use client"; // Add this at the top if using Next.js 13+ with app router
 import Image from "next/image";
-import { FaTrophy } from "react-icons/fa";
+import { FaTrophy, FaHeart, FaRegHeart } from "react-icons/fa";
+import { useState } from "react";
 
 export default function InfluencerProfileHeader({ channelData }) {
+  const [isFavorite, setIsFavorite] = useState(false);
   return (
     <section className="w-full bg-gradient-to-br from-purple-400/10 to-blue-400/10 border-b border-[#232042] mb-8 py-5">
-      <div className=" flex flex-col gap-6 px-4">
+      <div className="flex flex-col gap-6 px-4">
         <div className="flex flex-col md:flex-row items-center gap-8">
           {/* Avatar */}
           <div className="w-28 h-28 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center text-4xl font-bold overflow-hidden">
@@ -22,23 +25,40 @@ export default function InfluencerProfileHeader({ channelData }) {
                 ?.join("") || "U"
             )}
           </div>
-
           {/* Details and MCM Ranking */}
           <div className="flex-1 flex flex-col md:flex-row gap-8">
             {/* Channel Details */}
             <div className="flex-1 flex flex-col gap-2 items-center md:items-start">
-              <h1 className="text-3xl md:text-4xl font-bold mb-1 flex items-center gap-3">
-                {channelData.influencer_name ||
-                  channelData.channel_title ||
-                  "Unknown Channel"}
-                <svg
-                  className="w-8 h-8 text-red-500"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                </svg>
-              </h1>
+              {/* Title Section with Heart Icon */}
+              <div className="flex flex-col items-center md:items-start w-full">
+                <div className="flex items-center justify-center md:justify-start gap-2 w-full">
+                  <h1 className="text-2xl md:text-4xl font-bold flex items-center gap-2">
+                    {channelData.influencer_name ||
+                      channelData.channel_title ||
+                      "Unknown Channel"}
+                    <svg
+                      className="w-6 h-6 md:w-8 md:h-8 text-red-500 flex-shrink-0"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                    </svg>
+                  </h1>
+                  {/* Heart Icon Button */}
+                  <button 
+                    onClick={() => setIsFavorite(!isFavorite)}
+                    className="focus:outline-none transition-all duration-300 hover:scale-110 flex-shrink-0"
+                    aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                  >
+                    {isFavorite ? (
+                      <FaHeart className="text-red-500" size={24} />
+                    ) : (
+                      <FaRegHeart className="text-gray-400" size={24} />
+                    )}
+                  </button>
+                </div>
+              </div>
+              
               <a
                 href={`https://www.youtube.com/channel/${channelData.channel_id}`}
                 className="text-blue-400 hover:underline text-base mb-2"
@@ -50,7 +70,6 @@ export default function InfluencerProfileHeader({ channelData }) {
                   ? `${channelData.subscriber_count.toLocaleString()} Subscribers`
                   : "Unknown Subscribers"}
               </a>
-
               {/* Analysis Dates */}
               <div className="flex flex-col sm:flex-row gap-4 text-sm text-gray-400">
                 <div className="flex flex-col gap-1">
@@ -59,12 +78,12 @@ export default function InfluencerProfileHeader({ channelData }) {
                     <span className="text-white">
                       {channelData.Overall?.start_date
                         ? new Date(
-                          channelData.Overall.start_date
-                        ).toLocaleDateString("en-GB", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric",
-                        })
+                            channelData.Overall.start_date
+                          ).toLocaleDateString("en-GB", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          })
                         : "Not available"}
                     </span>
                   </div>
@@ -78,12 +97,12 @@ export default function InfluencerProfileHeader({ channelData }) {
                     <span className="text-white">
                       {channelData.Overall?.end_date
                         ? new Date(
-                          channelData.Overall.end_date
-                        ).toLocaleDateString("en-GB", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric",
-                        })
+                            channelData.Overall.end_date
+                          ).toLocaleDateString("en-GB", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          })
                         : "Not available"}
                     </span>
                   </div>
@@ -109,7 +128,6 @@ export default function InfluencerProfileHeader({ channelData }) {
                   </span>
                 </div>
               </div>
-
               {/* Video Counts */}
               <div className="flex flex-col sm:flex-row gap-4 text-sm text-gray-400 mt-3">
                 <div className="flex items-center gap-2">
@@ -125,20 +143,7 @@ export default function InfluencerProfileHeader({ channelData }) {
                   </span>
                 </div>
               </div>
-
-              {/* <div className="flex gap-2 mt-2">
-              <button className="btn bg-gradient-to-r from-purple-500 to-blue-500 text-white px-5 py-2 rounded-lg font-semibold shadow hover:scale-105 transition">
-                Follow
-              </button>
-              <button className="btn border border-purple-400 text-purple-300 px-5 py-2 rounded-lg font-semibold hover:bg-purple-700/20 transition">
-                Share Profile
-              </button>
-              <button className="btn border border-red-400 text-red-300 px-5 py-2 rounded-lg font-semibold hover:bg-red-700/20 transition">
-                Report Error
-              </button>
-            </div> */}
             </div>
-
             {/* MCM Ranking Table */}
             <div className="flex flex-col items-center md:items-end">
               <div className="bg-white/5 border border-gray-600 rounded-lg p-4 min-w-[200px] max-w-[200px] flex flex-col gap-1">

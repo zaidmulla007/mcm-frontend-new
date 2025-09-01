@@ -265,7 +265,257 @@ export default function Home() {
           </Link>
         </motion.div>
       </section>
-    </div>
 
+      {/* YouTube Channels Section */}
+    {/* YouTube Channels Section */}
+<section className="max-w-6xl mx-auto px-4 mt-16">
+  <div className="bg-white rounded-2xl shadow-lg p-8">
+    <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">
+      YouTube Channels
+    </h2>
+    
+    {/* Mobile View */}
+    <div className="md:hidden space-y-12">
+      {[
+        { id: '1hour', title: '1 Hour', color: 'bg-purple-500' },
+        { id: '24hours', title: '24 Hours', color: 'bg-blue-500' },
+        { id: '7days', title: '7 Days', color: 'bg-green-500' },
+        { id: '30days', title: '30 Days', color: 'bg-yellow-500' },
+        { id: '60days', title: '60 Days', color: 'bg-orange-500' },
+        { id: '90days', title: '90 Days', color: 'bg-red-500' },
+        { id: '180days', title: '180 Days', color: 'bg-pink-500' },
+        { id: '1year', title: '1 Year', color: 'bg-indigo-500' },
+      ].map((period, idx) => (
+        <div key={idx} className="flex flex-col items-center">
+          {/* Time Period Header */}
+          <div className={`${period.color} text-white px-6 py-3 rounded-lg font-semibold text-sm shadow-md mb-4`}>
+            {period.title}
+          </div>
+          
+          {/* Vertical Line */}
+          <div className="w-0.5 h-8 bg-gray-300 mb-4"></div>
+          
+          {/* Channels */}
+          <div className="flex flex-wrap justify-center gap-6 w-full">
+            {[
+              { name: 'Intellipaat', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/user/intellipaat' },
+              { name: 'Programming with Mosh', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/c/programmingwithmosh' },
+              { name: 'Harvard Medical School', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/c/HarvardMedicalSchool' }
+            ].map((channel, channelIdx) => (
+              <a
+                key={channelIdx}
+                href={channel.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center hover:transform hover:scale-110 transition-transform"
+              >
+                <img src={channel.image} alt={channel.name} className="w-12 h-12 rounded-full shadow-md" />
+                <span className="text-xs mt-1 text-center text-gray-700 w-16 break-words">{channel.name}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+    
+    {/* Desktop View */}
+    <div className="hidden md:block space-y-24">
+      {/* First Row - 3 time periods */}
+      <div className="relative">
+        <div className="flex justify-around mb-16">
+          {[
+            { id: '1hour', title: '1 Hour', color: 'bg-purple-500' },
+            { id: '24hours', title: '24 Hours', color: 'bg-blue-500' },
+            { id: '7days', title: '7 Days', color: 'bg-green-500' },
+          ].map((period, idx) => (
+            <div key={idx} className="flex flex-col items-center">
+              <div className={`${period.color} text-white px-6 py-3 rounded-lg font-semibold text-sm shadow-md`}>
+                {period.title}
+              </div>
+              {/* Vertical Line */}
+              <div className="w-0.5 h-16 bg-gray-300 mt-2"></div>
+              {/* Horizontal branches */}
+              <div className="relative w-40">
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-300"></div>
+                <div className="absolute top-4 left-8 right-8 h-0.5 bg-gray-300"></div>
+                <div className="absolute top-4 left-8 w-0.5 h-12 bg-gray-300"></div>
+                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-0.5 h-12 bg-gray-300"></div>
+                <div className="absolute top-4 right-8 w-0.5 h-12 bg-gray-300"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Channels for first row */}
+        <div className="flex justify-around">
+          {[
+            {
+              channels: [
+                { name: 'Intellipaat', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/user/intellipaat' },
+                { name: 'Programming with Mosh', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/c/programmingwithmosh' },
+                { name: 'Harvard Medical School', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/c/HarvardMedicalSchool' }
+              ]
+            },
+            {
+              channels: [
+                { name: 'Intellipaat', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/user/intellipaat' },
+                { name: 'Programming with Mosh', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/c/programmingwithmosh' },
+                { name: 'Harvard Medical School', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/c/HarvardMedicalSchool' }
+              ]
+            },
+            {
+              channels: [
+                { name: 'Intellipaat', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/user/intellipaat' },
+                { name: 'Programming with Mosh', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/c/programmingwithmosh' },
+                { name: 'Harvard Medical School', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/c/HarvardMedicalSchool' }
+              ]
+            }
+          ].map((period, periodIdx) => (
+            <div key={periodIdx} className="relative w-40 flex justify-between">
+              {period.channels.map((channel, idx) => (
+                <a
+                  key={idx}
+                  href={channel.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center hover:transform hover:scale-110 transition-transform"
+                >
+                  <img src={channel.image} alt={channel.name} className="w-12 h-12 rounded-full shadow-md" />
+                  <span className="text-[10px] mt-1 text-center text-gray-700 w-16 break-words">{channel.name}</span>
+                </a>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Second Row - 3 time periods */}
+      <div className="relative">
+        <div className="flex justify-around mb-16">
+          {[
+            { id: '30days', title: '30 Days', color: 'bg-yellow-500' },
+            { id: '60days', title: '60 Days', color: 'bg-orange-500' },
+            { id: '90days', title: '90 Days', color: 'bg-red-500' },
+          ].map((period, idx) => (
+            <div key={idx} className="flex flex-col items-center">
+              <div className={`${period.color} text-white px-6 py-3 rounded-lg font-semibold text-sm shadow-md`}>
+                {period.title}
+              </div>
+              {/* Vertical Line */}
+              <div className="w-0.5 h-16 bg-gray-300 mt-2"></div>
+              {/* Horizontal branches */}
+              <div className="relative w-40">
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-300"></div>
+                <div className="absolute top-4 left-8 right-8 h-0.5 bg-gray-300"></div>
+                <div className="absolute top-4 left-8 w-0.5 h-12 bg-gray-300"></div>
+                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-0.5 h-12 bg-gray-300"></div>
+                <div className="absolute top-4 right-8 w-0.5 h-12 bg-gray-300"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Channels for second row */}
+        <div className="flex justify-around">
+          {[
+            {
+              channels: [
+                { name: 'Intellipaat', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/user/intellipaat' },
+                { name: 'Programming with Mosh', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/c/programmingwithmosh' },
+                { name: 'Harvard Medical School', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/c/HarvardMedicalSchool' }
+              ]
+            },
+            {
+              channels: [
+                { name: 'Intellipaat', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/user/intellipaat' },
+                { name: 'Programming with Mosh', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/c/programmingwithmosh' },
+                { name: 'Harvard Medical School', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/c/HarvardMedicalSchool' }
+              ]
+            },
+            {
+              channels: [
+                { name: 'Intellipaat', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/user/intellipaat' },
+                { name: 'Programming with Mosh', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/c/programmingwithmosh' },
+                { name: 'Harvard Medical School', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/c/HarvardMedicalSchool' }
+              ]
+            }
+          ].map((period, periodIdx) => (
+            <div key={periodIdx} className="relative w-40 flex justify-between">
+              {period.channels.map((channel, idx) => (
+                <a
+                  key={idx}
+                  href={channel.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center hover:transform hover:scale-110 transition-transform"
+                >
+                  <img src={channel.image} alt={channel.name} className="w-12 h-12 rounded-full shadow-md" />
+                  <span className="text-[10px] mt-1 text-center text-gray-700 w-16 break-words">{channel.name}</span>
+                </a>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Third Row - 2 time periods */}
+      <div className="relative">
+        <div className="flex justify-center space-x-32 mb-16">
+          {[
+            { id: '180days', title: '180 Days', color: 'bg-pink-500' },
+            { id: '1year', title: '1 Year', color: 'bg-indigo-500' },
+          ].map((period, idx) => (
+            <div key={idx} className="flex flex-col items-center">
+              <div className={`${period.color} text-white px-6 py-3 rounded-lg font-semibold text-sm shadow-md`}>
+                {period.title}
+              </div>
+              {/* Vertical Line */}
+              <div className="w-0.5 h-16 bg-gray-300 mt-2"></div>
+              {/* Horizontal branches */}
+              <div className="relative w-40">
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-300"></div>
+                <div className="absolute top-4 left-8 right-8 h-0.5 bg-gray-300"></div>
+                <div className="absolute top-4 left-8 w-0.5 h-12 bg-gray-300"></div>
+                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-0.5 h-12 bg-gray-300"></div>
+                <div className="absolute top-4 right-8 w-0.5 h-12 bg-gray-300"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Channels for third row */}
+        <div className="flex justify-center space-x-32">
+          {[
+            {
+              channels: [
+                { name: 'Intellipaat', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/user/intellipaat' },
+                { name: 'Programming with Mosh', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/c/programmingwithmosh' },
+                { name: 'Harvard Medical School', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/c/HarvardMedicalSchool' }
+              ]
+            },
+            {
+              channels: [
+                { name: 'Intellipaat', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/user/intellipaat' },
+                { name: 'Programming with Mosh', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/c/programmingwithmosh' },
+                { name: 'Harvard Medical School', image: 'https://via.placeholder.com/50', url: 'https://www.youtube.com/c/HarvardMedicalSchool' }
+              ]
+            }
+          ].map((period, periodIdx) => (
+            <div key={periodIdx} className="relative w-40 flex justify-between">
+              {period.channels.map((channel, idx) => (
+                <a
+                  key={idx}
+                  href={channel.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center hover:transform hover:scale-110 transition-transform"
+                >
+                  <img src={channel.image} alt={channel.name} className="w-12 h-12 rounded-full shadow-md" />
+                  <span className="text-[10px] mt-1 text-center text-gray-700 w-16 break-words">{channel.name}</span>
+                </a>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+    </div>
   );
 }

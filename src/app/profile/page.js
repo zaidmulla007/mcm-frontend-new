@@ -36,22 +36,22 @@ export default function ProfilePage() {
       dateStart: localStorage.getItem('dateStart') || '',
       dateEnd: localStorage.getItem('dateEnd') || ''
     };
-    
+
     setUserInfo(userData);
   }, [router]);
 
   const formatDate = (dateString) => {
     if (!dateString || dateString === 'null') return 'Not set';
-    
+
     // Check if it's already formatted (DD-MM-YYYY)
     if (dateString.includes('-') && dateString.split('-')[2]?.length === 4) {
       return dateString;
     }
-    
+
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return 'Not set';
-      
+
       return date.toLocaleDateString('en-GB', {
         day: '2-digit',
         month: '2-digit',
@@ -64,10 +64,10 @@ export default function ProfilePage() {
 
   const calculateDaysRemaining = () => {
     if (!userInfo.dateEnd || userInfo.dateEnd === 'null') return null;
-    
+
     try {
       let endDate;
-      
+
       // Handle DD-MM-YYYY format
       if (userInfo.dateEnd.includes('-') && userInfo.dateEnd.split('-')[2]?.length === 4) {
         const [day, month, year] = userInfo.dateEnd.split('-');
@@ -75,16 +75,16 @@ export default function ProfilePage() {
       } else {
         endDate = new Date(userInfo.dateEnd);
       }
-      
+
       if (isNaN(endDate.getTime())) return null;
-      
+
       const today = new Date();
       today.setHours(0, 0, 0, 0); // Reset time to start of day
       endDate.setHours(0, 0, 0, 0); // Reset time to start of day
-      
+
       const diffTime = endDate - today;
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
+
       if (diffDays < 0) return 'Expired';
       if (diffDays === 0) return 'Expires today';
       if (diffDays === 1) return '1 day remaining';
@@ -140,7 +140,7 @@ export default function ProfilePage() {
             {/* Personal Information */}
             <div className="space-y-6">
               <h2 className="text-xl font-semibold text-white mb-4">Personal Information</h2>
-              
+
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
@@ -149,7 +149,7 @@ export default function ProfilePage() {
                   <div>
                     <p className="text-sm text-gray-400">Full Name</p>
                     <p className="font-medium">
-                      {userInfo.firstName && userInfo.lastName 
+                      {userInfo.firstName && userInfo.lastName
                         ? `${userInfo.firstName} ${userInfo.lastName}`
                         : 'Not provided'}
                     </p>
@@ -181,7 +181,7 @@ export default function ProfilePage() {
             {/* Subscription Information */}
             <div className="space-y-6">
               <h2 className="text-xl font-semibold text-white mb-4">Subscription Details</h2>
-              
+
               <div className="space-y-4">
                 <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
@@ -190,7 +190,7 @@ export default function ProfilePage() {
                       Active
                     </span>
                   </div>
-                  
+
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
                       <FaCalendarAlt className="text-purple-400" size={16} />
@@ -199,7 +199,7 @@ export default function ProfilePage() {
                         <p className="font-medium">{formatDate(userInfo.dateStart)}</p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-3">
                       <FaCalendarAlt className="text-purple-400" size={16} />
                       <div>
@@ -208,7 +208,7 @@ export default function ProfilePage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   {calculateDaysRemaining() && (
                     <div className="mt-4 pt-4 border-t border-purple-500/30">
                       <p className="text-center text-sm font-medium text-white">
@@ -237,6 +237,12 @@ export default function ProfilePage() {
                 className="px-6 py-2 bg-purple-500/20 rounded-lg hover:bg-purple-500/30 transition"
               >
                 Home
+              </Link>
+              <Link
+                href="/favorites"
+                className="px-6 py-2 bg-purple-500/20 rounded-lg hover:bg-purple-500/30 transition"
+              >
+                My favorites
               </Link>
               {/* <Link
                 href="/leaderboard"
@@ -274,7 +280,7 @@ export default function ProfilePage() {
                 <FaTimes size={20} />
               </button>
             </div>
-            
+
             <div className="space-y-4">
               <button
                 onClick={handleStartSubscription}
@@ -282,7 +288,7 @@ export default function ProfilePage() {
               >
                 Start Subscription
               </button>
-              
+
               <button
                 onClick={handleCancel}
                 className="w-full bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 transition"
