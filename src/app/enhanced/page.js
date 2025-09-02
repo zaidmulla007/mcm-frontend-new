@@ -715,7 +715,7 @@ export default function EnhancedPage() {
                   </div>
 
                   <blockquote className="text-xl md:text-2xl text-gray-200 mb-6 italic max-w-4xl mx-auto leading-relaxed">
-                    &quot;{testimonials[currentTestimonial].text}&quot;
+                    {testimonials[currentTestimonial].text}
                   </blockquote>
 
                   <div className="text-white font-semibold text-lg">{testimonials[currentTestimonial].name}</div>
