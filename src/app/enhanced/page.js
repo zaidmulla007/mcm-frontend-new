@@ -63,7 +63,7 @@ const testimonials = [
   {
     name: "Sarah Chen",
     role: "Investment Manager",
-    image: "/window.svg", 
+    image: "/window.svg",
     rating: 5,
     text: "The real-time analytics and portfolio management tools are game-changing. Best crypto intelligence platform I've used."
   },
@@ -88,7 +88,7 @@ const pricingPlans = [
   {
     name: "Professional",
     price: "99",
-    period: "month", 
+    period: "month",
     color: "from-blue-500 to-purple-600",
     features: ["Advanced AI Analytics", "Unlimited Watchlists", "Real-time Alerts", "Portfolio Management", "API Access"],
     popular: true
@@ -105,7 +105,7 @@ const pricingPlans = [
 
 const ParticleField = ({ count = 50 }) => {
   const [particles, setParticles] = useState([]);
-  
+
   useEffect(() => {
     const newParticles = Array.from({ length: count }, (_, i) => ({
       id: i,
@@ -153,8 +153,8 @@ const TradingChart = ({ data, className }) => {
       <svg width="100%" height="100" viewBox="0 0 200 100" className="overflow-visible">
         <defs>
           <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.8"/>
-            <stop offset="100%" stopColor="#1E40AF" stopOpacity="0.1"/>
+            <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="#1E40AF" stopOpacity="0.1" />
           </linearGradient>
         </defs>
         <motion.path
@@ -285,12 +285,12 @@ export default function EnhancedPage() {
           animate={{ opacity: 1, scale: 1 }}
           className="text-center">
           <LoadingSpinner />
-          <motion.p 
+          <motion.p
             className="text-white mt-4 text-xl"
             animate={{ opacity: [1, 0.5, 1] }}
             transition={{ duration: 1.5, repeat: Infinity }}
           >
-            Loading 
+            Loading
           </motion.p>
         </motion.div>
       </div>
@@ -302,16 +302,16 @@ export default function EnhancedPage() {
       {/* Enhanced Animated Background */}
       <div className="fixed inset-0 overflow-hidden">
         <ParticleField count={100} />
-        <motion.div 
+        <motion.div
           className="absolute inset-0 opacity-30"
           style={{ y }}
         >
           <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(68,68,68,.2)_50%,transparent_75%,transparent_100%)] bg-[length:250px_250px] animate-pulse opacity-20"></div>
         </motion.div>
-        
+
         {/* Multiple glowing orbs */}
         <GlowingOrb size={600} color="blue" />
-        <motion.div 
+        <motion.div
           className="absolute top-1/4 right-1/4"
           animate={{
             x: [0, 100, 0],
@@ -321,7 +321,7 @@ export default function EnhancedPage() {
         >
           <GlowingOrb size={400} color="purple" />
         </motion.div>
-        <motion.div 
+        <motion.div
           className="absolute bottom-1/3 left-1/3"
           animate={{
             x: [0, -80, 0],
@@ -331,7 +331,7 @@ export default function EnhancedPage() {
         >
           <GlowingOrb size={300} color="orange" />
         </motion.div>
-        
+
         {/* Mouse-following effect enhanced */}
         <motion.div
           className="absolute w-96 h-96 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-full blur-3xl"
@@ -341,7 +341,7 @@ export default function EnhancedPage() {
           }}
           transition={{ type: "spring", damping: 30 }}
         />
-        
+
         {/* Matrix-like effect */}
         <motion.div
           className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,123,255,0.1),transparent_50%)] animate-pulse"
@@ -354,14 +354,14 @@ export default function EnhancedPage() {
       </div>
 
       {/* Navigation */}
-      <motion.nav 
+      <motion.nav
         className="relative z-50 px-6 py-4 backdrop-blur-lg bg-white/5 border-b border-white/10"
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8 }}
       >
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <motion.div 
+          <motion.div
             className="flex items-center space-x-3"
             whileHover={{ scale: 1.05 }}
           >
@@ -372,7 +372,7 @@ export default function EnhancedPage() {
               MyCryptoMonitor
             </span>
           </motion.div>
-          
+
           <div className="hidden md:flex space-x-8">
             {["Features", "Pricing", "Analytics", "Contact"].map((item, idx) => (
               <motion.a
@@ -412,7 +412,7 @@ export default function EnhancedPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.2 }}
           >
-            <motion.h1 
+            <motion.h1
               className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-blue-200 to-purple-400 bg-clip-text text-transparent"
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -424,14 +424,14 @@ export default function EnhancedPage() {
                 Intelligence Platform
               </span>
             </motion.h1>
-            
-            <motion.p 
+
+            <motion.p
               className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.7 }}
             >
-              Harness the power of artificial intelligence to make smarter crypto investments. 
+              Harness the power of artificial intelligence to make smarter crypto investments.
               Get real-time analytics, predictions, and insights from the most advanced platform in the market.
             </motion.p>
 
@@ -575,7 +575,7 @@ export default function EnhancedPage() {
                 whileInView={{ opacity: 1, x: 0, rotateY: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.8, delay: idx * 0.2 }}
-                whileHover={{ 
+                whileHover={{
                   scale: 1.02,
                   rotateX: 5,
                   rotateY: idx % 2 === 0 ? -5 : 5,
@@ -584,7 +584,7 @@ export default function EnhancedPage() {
                 onHoverStart={() => handleCardHover(`feature-${idx}`)}
                 onHoverEnd={handleCardLeave}
               >
-                <motion.div 
+                <motion.div
                   className="bg-white/5 backdrop-blur-lg rounded-3xl p-8 border border-white/10 h-full relative overflow-hidden"
                   animate={hoveredCard === `feature-${idx}` ? {
                     borderColor: "rgba(255, 255, 255, 0.3)",
@@ -601,8 +601,8 @@ export default function EnhancedPage() {
                     } : {}}
                     transition={{ duration: 2, repeat: hoveredCard === `feature-${idx}` ? Infinity : 0 }}
                   />
-                  
-                  <motion.div 
+
+                  <motion.div
                     className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center text-2xl mb-6 relative z-10`}
                     animate={hoveredCard === `feature-${idx}` ? {
                       scale: 1.15,
@@ -626,8 +626,8 @@ export default function EnhancedPage() {
                       transition={{ duration: 1, repeat: hoveredCard === `feature-${idx}` ? Infinity : 0, repeatDelay: 1 }}
                     />
                   </motion.div>
-                  
-                  <motion.h3 
+
+                  <motion.h3
                     className="text-2xl font-bold text-white mb-4 relative z-10"
                     animate={hoveredCard === `feature-${idx}` ? {
                       scale: 1.05,
@@ -638,7 +638,7 @@ export default function EnhancedPage() {
                     {feature.title}
                   </motion.h3>
                   <p className="text-gray-400 mb-6 leading-relaxed relative z-10">{feature.description}</p>
-                  
+
                   <div className="grid grid-cols-2 gap-3">
                     {feature.features.map((item, itemIdx) => (
                       <motion.div
@@ -650,7 +650,7 @@ export default function EnhancedPage() {
                         transition={{ delay: idx * 0.2 + itemIdx * 0.1 + 0.5 }}
                         whileHover={{ x: 5, scale: 1.02 }}
                       >
-                        <motion.div 
+                        <motion.div
                           className="w-2 h-2 bg-green-400 rounded-full"
                           animate={hoveredCard === `feature-${idx}` ? {
                             scale: [1, 1.5, 1],
@@ -662,7 +662,7 @@ export default function EnhancedPage() {
                       </motion.div>
                     ))}
                   </div>
-                  
+
                   {/* Glowing border effect */}
                   {hoveredCard === `feature-${idx}` && (
                     <motion.div
@@ -707,17 +707,17 @@ export default function EnhancedPage() {
                   <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full flex items-center justify-center">
                     <Image src={testimonials[currentTestimonial].image} alt="" width={40} height={40} />
                   </div>
-                  
+
                   <div className="flex justify-center mb-4">
                     {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
                       <span key={i} className="text-yellow-400 text-xl">★</span>
                     ))}
                   </div>
-                  
+
                   <blockquote className="text-xl md:text-2xl text-gray-200 mb-6 italic max-w-4xl mx-auto leading-relaxed">
-                    "{testimonials[currentTestimonial].text}"
+                    &quot;{testimonials[currentTestimonial].text}&quot;
                   </blockquote>
-                  
+
                   <div className="text-white font-semibold text-lg">{testimonials[currentTestimonial].name}</div>
                   <div className="text-gray-400">{testimonials[currentTestimonial].role}</div>
                 </div>
@@ -729,9 +729,8 @@ export default function EnhancedPage() {
             {testimonials.map((_, idx) => (
               <button
                 key={idx}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  idx === currentTestimonial ? 'bg-purple-500 w-8' : 'bg-gray-600 hover:bg-gray-500'
-                }`}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${idx === currentTestimonial ? 'bg-purple-500 w-8' : 'bg-gray-600 hover:bg-gray-500'
+                  }`}
                 onClick={() => setCurrentTestimonial(idx)}
               />
             ))}
@@ -774,12 +773,12 @@ export default function EnhancedPage() {
                     </div>
                   </div>
                 )}
-                
+
                 <div className={`bg-white/5 backdrop-blur-lg rounded-3xl p-8 border ${plan.popular ? 'border-purple-500/50' : 'border-white/10'} hover:border-white/20 transition-all duration-300 h-full`}>
                   <div className={`w-16 h-16 bg-gradient-to-br ${plan.color} rounded-2xl flex items-center justify-center text-2xl mb-6 mx-auto`}>
                     💎
                   </div>
-                  
+
                   <div className="text-center mb-8">
                     <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
                     <div className="flex items-center justify-center mb-4">
@@ -787,7 +786,7 @@ export default function EnhancedPage() {
                       <span className="text-gray-400 ml-2">/{plan.period}</span>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-4 mb-8">
                     {plan.features.map((feature, featureIdx) => (
                       <div key={featureIdx} className="flex items-center space-x-3">
@@ -796,13 +795,12 @@ export default function EnhancedPage() {
                       </div>
                     ))}
                   </div>
-                  
+
                   <motion.button
-                    className={`w-full py-4 rounded-lg font-semibold transition-all duration-300 ${
-                      plan.popular 
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg hover:shadow-purple-500/25' 
+                    className={`w-full py-4 rounded-lg font-semibold transition-all duration-300 ${plan.popular
+                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg hover:shadow-purple-500/25'
                         : 'border border-gray-600 text-white hover:bg-white/5'
-                    }`}
+                      }`}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -830,7 +828,7 @@ export default function EnhancedPage() {
             <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
               Join thousands of successful traders who trust our AI-powered platform
             </p>
-            
+
             <motion.div
               className="flex flex-col sm:flex-row gap-4 justify-center"
               initial={{ opacity: 0, y: 30 }}
@@ -886,7 +884,7 @@ export default function EnhancedPage() {
                 ))}
               </div>
             </div>
-            
+
             <div>
               <h4 className="text-white font-semibold mb-4">Product</h4>
               <div className="space-y-2">
@@ -897,7 +895,7 @@ export default function EnhancedPage() {
                 ))}
               </div>
             </div>
-            
+
             <div>
               <h4 className="text-white font-semibold mb-4">Company</h4>
               <div className="space-y-2">
@@ -909,7 +907,7 @@ export default function EnhancedPage() {
               </div>
             </div>
           </div>
-          
+
           <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
             <div className="text-gray-400 text-sm">
               © 2024 MyCryptoMonitor. All rights reserved.
