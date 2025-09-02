@@ -1668,14 +1668,14 @@ export default function InfluencerProfilePage() {
                         <div className="h-8 bg-gray-100 rounded overflow-hidden">
                           <div className="h-full flex">
                             <div
-                              className="bg-purple-500 flex items-center justify-center text-to-purple text-sm font-bold"
-                              style={{ width: `${(76 / 250) * 100}%` }}
+                              className="flex items-center justify-center text-white text-sm font-bold"
+                              style={{ width: `${(76 / 250) * 100}%`, backgroundColor: "rgb(30, 58, 138)" }}
                             >
                               76
                             </div>
                             <div
-                              className="bg-purple-200 flex items-center justify-center text-to-purple text-sm font-bold"
-                              style={{ width: `${(54 / 250) * 100}%` }}
+                              className="flex items-center justify-center text-gray-700 text-sm font-bold"
+                              style={{ width: `${(54 / 250) * 100}%`, backgroundColor: "rgb(219, 234, 254)" }}
                             >
                               54
                             </div>
@@ -1691,14 +1691,14 @@ export default function InfluencerProfilePage() {
                         <div className="h-8 bg-gray-100 rounded overflow-hidden">
                           <div className="h-full flex">
                             <div
-                              className="bg-purple-500 flex items-center justify-center text-to-purple text-sm font-bold"
-                              style={{ width: `${(111 / 250) * 100}%` }}
+                              className="flex items-center justify-center text-white text-sm font-bold"
+                              style={{ width: `${(111 / 250) * 100}%`, backgroundColor: "rgb(30, 58, 138)" }}
                             >
                               111
                             </div>
                             <div
-                              className="bg-purple-200 flex items-center justify-center text-to-purple text-sm font-bold"
-                              style={{ width: `${(44 / 250) * 100}%` }}
+                              className="flex items-center justify-center text-gray-700 text-sm font-bold"
+                              style={{ width: `${(44 / 250) * 100}%`, backgroundColor: "rgb(219, 234, 254)" }}
                             >
                               44
                             </div>
@@ -1714,14 +1714,14 @@ export default function InfluencerProfilePage() {
                         <div className="h-8 bg-gray-100 rounded overflow-hidden">
                           <div className="h-full flex">
                             <div
-                              className="bg-purple-500 flex items-center justify-center text-to-purple text-sm font-bold"
-                              style={{ width: `${(63 / 250) * 100}%` }}
+                              className="flex items-center justify-center text-white text-sm font-bold"
+                              style={{ width: `${(63 / 250) * 100}%`, backgroundColor: "rgb(30, 58, 138)" }}
                             >
                               63
                             </div>
                             <div
-                              className="bg-purple-200 flex items-center justify-center text-to-purple text-sm font-bold"
-                              style={{ width: `${(32 / 250) * 100}%` }}
+                              className="flex items-center justify-center text-gray-700 text-sm font-bold"
+                              style={{ width: `${(32 / 250) * 100}%`, backgroundColor: "rgb(219, 234, 254)" }}
                             >
                               32
                             </div>
@@ -1741,6 +1741,7 @@ export default function InfluencerProfilePage() {
                     </div>
                   </div>
                 </div>
+
 
                 {/* With Moonshots Chart */}
                 <div className="border border-gray-200 rounded-lg p-4">
@@ -1838,14 +1839,14 @@ export default function InfluencerProfilePage() {
                         <div className="h-8 bg-gray-100 rounded overflow-hidden">
                           <div className="h-full flex">
                             <div
-                              className="bg-purple-500 flex items-center justify-center text-to-purple text-sm font-bold"
-                              style={{ width: `${(18 / 250) * 100}%` }}
+                              className="flex items-center justify-center text-white text-sm font-bold"
+                              style={{ width: `${(18 / 250) * 100}%`, backgroundColor: "rgb(30, 58, 138)" }}
                             >
                               18
                             </div>
                             <div
-                              className="bg-purple-200 flex items-center justify-center text-to-purple text-sm font-bold"
-                              style={{ width: `${(12 / 250) * 100}%` }}
+                              className="flex items-center justify-center text-gray-700 text-sm font-bold"
+                              style={{ width: `${(12 / 250) * 100}%`, backgroundColor: "rgb(219, 234, 254)" }}
                             >
                               12
                             </div>
@@ -1861,14 +1862,14 @@ export default function InfluencerProfilePage() {
                         <div className="h-8 bg-gray-100 rounded overflow-hidden">
                           <div className="h-full flex">
                             <div
-                              className="bg-purple-500 flex items-center justify-center text-to-purple text-sm font-bold"
-                              style={{ width: `${(22 / 250) * 100}%` }}
+                              className="flex items-center justify-center text-white text-sm font-bold"
+                              style={{ width: `${(22 / 250) * 100}%`, backgroundColor: "rgb(30, 58, 138)" }}
                             >
                               22
                             </div>
                             <div
-                              className="bg-purple-200 flex items-center justify-center text-to-purple text-sm font-bold"
-                              style={{ width: `${(6 / 250) * 100}%` }}
+                              className="flex items-center justify-center text-gray-700 text-sm font-bold"
+                              style={{ width: `${(6 / 250) * 100}%`, backgroundColor: "rgb(219, 234, 254)" }}
                             >
                               6
                             </div>
@@ -1884,14 +1885,14 @@ export default function InfluencerProfilePage() {
                         <div className="h-8 bg-gray-100 rounded overflow-hidden">
                           <div className="h-full flex">
                             <div
-                              className="bg-purple-500 flex items-center justify-center text-to-purple text-sm font-bold"
-                              style={{ width: `${(18 / 250) * 100}%` }}
+                              className="flex items-center justify-center text-white text-sm font-bold"
+                              style={{ width: `${(18 / 250) * 100}%`, backgroundColor: "rgb(30, 58, 138)" }}
                             >
                               18
                             </div>
                             <div
-                              className="bg-purple-200 flex items-center justify-center text-to-purple text-sm font-bold"
-                              style={{ width: `${(4 / 250) * 100}%` }}
+                              className="flex items-center justify-center text-gray-700 text-sm font-bold"
+                              style={{ width: `${(4 / 250) * 100}%`, backgroundColor: "rgb(219, 234, 254)" }}
                             >
                               4
                             </div>
@@ -1916,11 +1917,11 @@ export default function InfluencerProfilePage() {
               {/* Legend */}
               <div className="flex items-center justify-center gap-6 mt-6">
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-purple-500 rounded"></div>
+                  <div className="w-4 h-4 rounded" style={{ backgroundColor: "rgb(30, 58, 138)" }}></div>
                   <span className="text-sm text-to-purple">Bullish</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-purple-200 rounded"></div>
+                  <div className="w-4 h-4 rounded" style={{ backgroundColor: "rgb(219, 234, 254)" }}></div>
                   <span className="text-sm text-to-purple">Bearish</span>
                 </div>
                 <div className="text-sm text-to-purple">Total recommendations</div>
