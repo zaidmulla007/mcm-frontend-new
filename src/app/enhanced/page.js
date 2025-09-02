@@ -798,8 +798,8 @@ export default function EnhancedPage() {
 
                   <motion.button
                     className={`w-full py-4 rounded-lg font-semibold transition-all duration-300 ${plan.popular
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg hover:shadow-purple-500/25'
-                        : 'border border-gray-600 text-white hover:bg-white/5'
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg hover:shadow-purple-500/25'
+                      : 'border border-gray-600 text-white hover:bg-white/5'
                       }`}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
