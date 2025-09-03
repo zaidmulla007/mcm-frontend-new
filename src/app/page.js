@@ -718,7 +718,7 @@ export default function Home() {
       
       {/* Footer */}
       <footer className="max-w-7xl mx-auto px-4 pt-8 border-t border-purple-500/20 text-center text-gray-500 text-sm">
-        <p>© 2024 Crypto Influence Tracker. All rights reserved.</p>
+        <p>&copy; 2024 Crypto Influence Tracker. All rights reserved.</p>
         <div className="flex justify-center gap-6 mt-4">
           <a href="#" className="hover:text-purple-400 transition-colors">Privacy Policy</a>
           <a href="#" className="hover:text-purple-400 transition-colors">Terms of Service</a>
