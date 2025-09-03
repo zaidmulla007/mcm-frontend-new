@@ -4978,8 +4978,9 @@ export default function InfluencerProfilePage() {
         {tab === "simulator" && (
           <div className="bg-[#232042]/70 rounded-xl p-8 border border-[#35315a] flex flex-col gap-6">
             <h3 className="font-semibold mb-2">Portfolio Simulator</h3>
+           // For the paragraph:
             <p className="text-gray-300 mb-2">
-              &quot;What if I followed all their recommendations?&quot;
+              {'"What if I followed all their recommendations?"'}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 items-center mb-4">
               <label className="text-gray-400">Start Date:</label>
