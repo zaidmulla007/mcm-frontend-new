@@ -118,42 +118,42 @@ const channelsByPeriod = {
     { name: 'Rachel ', image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=50&h=50&fit=crop&crop=face', url: '#' },
     { name: 'Tom Anderson', image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=50&h=50&fit=crop&crop=face', url: '#' }
   ],
-  '30days': [
-    { name: 'Anna Brown', image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=50&h=50&fit=crop&crop=face', url: '#' },
-    { name: 'Ryan Clark', image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=50&h=50&fit=crop&crop=face', url: '#' },
-    { name: 'Maya Patel', image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=50&h=50&fit=crop&crop=face', url: '#' }
-  ],
-  '60days': [
-    { name: 'Chris ', image: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=50&h=50&fit=crop&crop=face', url: '#' },
-    { name: 'Sofia ', image: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=50&h=50&fit=crop&crop=face', url: '#' },
-    { name: 'Daniel Lee', image: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=50&h=50&fit=crop&crop=face', url: '#' }
-  ],
-  '90days': [
-    { name: 'Jessica Moore', image: 'https://images.unsplash.com/photo-1485893086445-ed75865251e0?w=50&h=50&fit=crop&crop=face', url: '#' },
-    { name: 'Kevin Wu', image: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=50&h=50&fit=crop&crop=face', url: '#' },
-    { name: 'Olivia Martin', image: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=50&h=50&fit=crop&crop=face', url: '#' }
-  ],
-  '180days': [
-    { name: 'Brandon ', image: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=50&h=50&fit=crop&crop=face', url: '#' },
-    { name: 'Chloe ', image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=50&h=50&fit=crop&crop=face', url: '#' },
-    { name: 'Nathan ', image: 'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=50&h=50&fit=crop&crop=face', url: '#' }
-  ],
-  '1year': [
-    { name: 'Grace Liu', image: 'https://images.unsplash.com/photo-1548142813-c348350df52b?w=50&h=50&fit=crop&crop=face', url: '#' },
-    { name: 'Marcus ', image: 'https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=50&h=50&fit=crop&crop=face', url: '#' },
-    { name: 'Zoe Parker', image: 'https://images.unsplash.com/photo-1546961329-78bef0414d7c?w=50&h=50&fit=crop&crop=face', url: '#' }
-  ]
+  // '30days': [
+  //   { name: 'Anna Brown', image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=50&h=50&fit=crop&crop=face', url: '#' },
+  //   { name: 'Ryan Clark', image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=50&h=50&fit=crop&crop=face', url: '#' },
+  //   { name: 'Maya Patel', image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=50&h=50&fit=crop&crop=face', url: '#' }
+  // ],
+  // '60days': [
+  //   { name: 'Chris ', image: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=50&h=50&fit=crop&crop=face', url: '#' },
+  //   { name: 'Sofia ', image: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=50&h=50&fit=crop&crop=face', url: '#' },
+  //   { name: 'Daniel Lee', image: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=50&h=50&fit=crop&crop=face', url: '#' }
+  // ],
+  // '90days': [
+  //   { name: 'Jessica Moore', image: 'https://images.unsplash.com/photo-1485893086445-ed75865251e0?w=50&h=50&fit=crop&crop=face', url: '#' },
+  //   { name: 'Kevin Wu', image: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=50&h=50&fit=crop&crop=face', url: '#' },
+  //   { name: 'Olivia Martin', image: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=50&h=50&fit=crop&crop=face', url: '#' }
+  // ],
+  // '180days': [
+  //   { name: 'Brandon ', image: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=50&h=50&fit=crop&crop=face', url: '#' },
+  //   { name: 'Chloe ', image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=50&h=50&fit=crop&crop=face', url: '#' },
+  //   { name: 'Nathan ', image: 'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=50&h=50&fit=crop&crop=face', url: '#' }
+  // ],
+  // '1year': [
+  //   { name: 'Grace Liu', image: 'https://images.unsplash.com/photo-1548142813-c348350df52b?w=50&h=50&fit=crop&crop=face', url: '#' },
+  //   { name: 'Marcus ', image: 'https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=50&h=50&fit=crop&crop=face', url: '#' },
+  //   { name: 'Zoe Parker', image: 'https://images.unsplash.com/photo-1546961329-78bef0414d7c?w=50&h=50&fit=crop&crop=face', url: '#' }
+  // ]
 };
 
 const timePeriods = [
   { id: '1hour', title: '1 Hour', color: 'from-purple-500 to-purple-700' },
   { id: '24hours', title: '24 Hours', color: 'from-blue-500 to-blue-700' },
   { id: '7days', title: '7 Days', color: 'from-green-500 to-green-700' },
-  { id: '30days', title: '30 Days', color: 'from-yellow-500 to-yellow-700' },
-  { id: '60days', title: '60 Days', color: 'from-orange-500 to-orange-700' },
-  { id: '90days', title: '90 Days', color: 'from-red-500 to-red-700' },
-  { id: '180days', title: '180 Days', color: 'from-pink-500 to-pink-700' },
-  { id: '1year', title: '1 Year', color: 'from-indigo-500 to-indigo-700' },
+  // { id: '30days', title: '30 Days', color: 'from-yellow-500 to-yellow-700' },
+  // { id: '60days', title: '60 Days', color: 'from-orange-500 to-orange-700' },
+  // { id: '90days', title: '90 Days', color: 'from-red-500 to-red-700' },
+  // { id: '180days', title: '180 Days', color: 'from-pink-500 to-pink-700' },
+  // { id: '1year', title: '1 Year', color: 'from-indigo-500 to-indigo-700' },
 ];
 
 const cardVariants = {
@@ -296,11 +296,11 @@ export default function Home() {
 
   if (!isMounted) return null;
 
-  // Group time periods into three groups
+  // Group time periods into one group (only showing 1 Hour, 24 Hours, 7 Days)
   const timePeriodGroups = [
     timePeriods.slice(0, 3), // 1 Hour, 24 Hours, 7 Days
-    timePeriods.slice(3, 6), // 30 Days, 60 Days, 90 Days
-    timePeriods.slice(6, 8)  // 180 Days, 1 Year
+    // timePeriods.slice(3, 6), // 30 Days, 60 Days, 90 Days
+    // timePeriods.slice(6, 8)  // 180 Days, 1 Year
   ];
 
   return (
@@ -414,7 +414,12 @@ export default function Home() {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="text-5xl font-bold mb-2 text-white">YouTube Channels</h2>
+          <h2 className="text-5xl font-bold mb-2 text-white flex items-center justify-center gap-4">
+            YouTube Channels
+            <svg className="w-12 h-12" viewBox="0 0 24 24" fill="#FF0000">
+              <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+            </svg>
+          </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-blue-500 mx-auto rounded-full"></div>
         </motion.div>
 
@@ -459,7 +464,12 @@ export default function Home() {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="text-5xl font-bold mb-2 text-white">Telegram Channels</h2>
+          <h2 className="text-5xl font-bold mb-2 text-white flex items-center justify-center gap-4">
+            Telegram Channels
+            <svg className="w-12 h-12" viewBox="0 0 24 24" fill="#0088cc">
+              <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+            </svg>
+          </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-blue-500 mx-auto rounded-full"></div>
         </motion.div>
 
