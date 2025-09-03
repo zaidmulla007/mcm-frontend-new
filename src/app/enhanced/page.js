@@ -715,7 +715,7 @@ export default function EnhancedPage() {
                   </div>
 
                   <blockquote className="text-xl md:text-2xl text-gray-200 mb-6 italic max-w-4xl mx-auto leading-relaxed">
-                    {`"${testimonials[currentTestimonial].text}"`}
+                    {`&ldquo;${testimonials[currentTestimonial].text}&rdquo;`}
                   </blockquote>
 
 

@@ -4978,7 +4978,7 @@ export default function InfluencerProfilePage() {
         {tab === "simulator" && (
           <div className="bg-[#232042]/70 rounded-xl p-8 border border-[#35315a] flex flex-col gap-6">
             <h3 className="font-semibold mb-2">Portfolio Simulator</h3>
-           // For the paragraph:
+            {/* For the paragraph: */}
             <p className="text-gray-300 mb-2">
               {'"What if I followed all their recommendations?"'}
             </p>
