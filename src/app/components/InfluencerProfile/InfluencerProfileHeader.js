@@ -6,11 +6,11 @@ import { useState } from "react";
 export default function InfluencerProfileHeader({ channelData }) {
   const [isFavorite, setIsFavorite] = useState(false);
   return (
-    <section className="w-full bg-gradient-to-br from-purple-400/10 to-blue-400/10 border-b border-[#232042] mb-8 py-5">
+    <section className="w-full bg-gradient-to-br from-purple-400/10 to-blue-400/10 border-b border-[#232042] mb-3 py-5">
       <div className="flex flex-col gap-6 px-4">
         <div className="flex flex-col md:flex-row items-center gap-8">
           {/* Avatar */}
-          <div className="w-28 h-28 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center text-4xl font-bold overflow-hidden">
+          {/* <div className="w-28 h-28 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center text-4xl font-bold overflow-hidden">
             {channelData.channel_thumbnails?.high?.url ? (
               <Image
                 src={channelData.channel_thumbnails.high.url}
@@ -24,7 +24,7 @@ export default function InfluencerProfileHeader({ channelData }) {
                 .match(/\b\w/g)
                 ?.join("") || "U"
             )}
-          </div>
+          </div> */}
           {/* Details and MCM Ranking */}
           <div className="flex-1 flex flex-col md:flex-row gap-8">
             {/* Channel Details */}

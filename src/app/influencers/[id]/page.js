@@ -12,17 +12,17 @@ import YearlyStatsRow from "../../components/InfluencerProfile/YearlyStatsRow";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 
 const TABS = [
-  { label: "Overviewoption1", value: "overview-light" },
-  { label: "Overviewlight2", value: "overview-light1" },
-  { label: "Overviewoption2", value: "overview-dark" },
-  { label: "Overviewoption3", value: "overview1" },
-  { label: "Overviewoption4", value: "overview2" },
-  { label: "Overviewoption5", value: "overview3" },
-  { label: "Overviewoption6", value: "overview4" },
+  // { label: "Overviewoption1", value: "overview-light" },
+  { label: "Overview", value: "overview-light1" },
+  // { label: "Overviewoption2", value: "overview-dark" },
+  // { label: "Overviewoption3", value: "overview1" },
+  // { label: "Overviewoption4", value: "overview2" },
+  // { label: "Overviewoption5", value: "overview3" },
+  // { label: "Overviewoption6", value: "overview4" },
   // { label: "Correlation Summary", value: "correlationSummary" },
   { label: "Performance Summary", value: "correlationSummaryV2" },
   // { label: "Correlation Summary V2 Dark", value: "correlationSummaryV2Dark" },
-  { label: "Correlation Summary V2 Light", value: "correlationSummaryV2Light" },
+  // { label: "Correlation Summary V2 Light", value: "correlationSummaryV2Light" },
   { label: "Recommendations", value: "recommendations" },
   // { label: "Recommendations-Light", value: "recommendations-light" },
   // { label: "Performance Charts", value: "charts" },
@@ -30,7 +30,7 @@ const TABS = [
 ];
 
 export default function InfluencerProfilePage() {
-  const [tab, setTab] = useState("overview-light");
+  const [tab, setTab] = useState("overview-light1");
   const [channelData, setChannelData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -1650,6 +1650,229 @@ export default function InfluencerProfilePage() {
                       No yearly performance data available
                     </div>
                   )}
+              </div>
+            </div>
+
+            {/* Sentiment Analysis Charts */}
+            <div className="bg-white rounded-xl p-6 mb-2 border border-gray-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-[#0c0023]">
+                  Total Recommendations
+                </h3>
+              </div>
+              <div className="space-y-6">
+                {(() => {
+                  // Prepare data for charts
+                  const currentYear = new Date().getFullYear().toString();
+                  // Define categories with their properties
+                  const categories = [
+                    {
+                      key: 'overall',
+                      label: 'Overall',
+                      data: [
+                        { year: '2025', bullish: 76, bearish: 54 },
+                        { year: '2024', bullish: 111, bearish: 44 },
+                        { year: '2023', bullish: 63, bearish: 32 }
+                      ]
+                    },
+                    {
+                      key: 'with_moonshots',
+                      label: 'With Moonshots',
+                      data: [
+                        { year: '2025', bullish: 58, bearish: 42 },
+                        { year: '2024', bullish: 89, bearish: 38 },
+                        { year: '2023', bullish: 45, bearish: 28 }
+                      ]
+                    },
+                    {
+                      key: 'without_moonshots',
+                      label: 'Without Moonshots',
+                      data: [
+                        { year: '2025', bullish: 18, bearish: 12 },
+                        { year: '2024', bullish: 22, bearish: 6 },
+                        { year: '2023', bullish: 18, bearish: 4 }
+                      ]
+                    }
+                  ];
+                  // Format data for charts
+                  const chartsData = categories.map(category => {
+                    const formattedData = category.data.map(item => ({
+                      year: item.year === currentYear ? item.year + '*' : item.year,
+                      bullish: item.bullish,
+                      bearish: item.bearish
+                    }));
+                    return {
+                      ...category,
+                      data: formattedData,
+                      hasData: formattedData.length > 0
+                    };
+                  }).filter(chart => chart.hasData);
+
+                  // Explanatory text content
+                  const explanations = [
+                    {
+                      title: "Understanding the Categories",
+                      content: "Overall represents the total recommendations across all types. With Moonshots includes recommendations that are considered high-risk, high-reward opportunities. Without Moonshots excludes these high-risk recommendations."
+                    },
+                    {
+                      title: "Analyzing the Data",
+                      content: "By comparing these categories, we can understand the channel's risk appetite and the balance between conservative and aggressive recommendations. The data helps identify trends in recommendation patterns over time."
+                    }
+                  ];
+
+                  return (
+                    <div className="space-y-4">
+                      {chartsData.length === 0 ? (
+                        <div className="h-40 flex items-center justify-center text-gray-500 italic">
+                          No recommendation data available
+                        </div>
+                      ) : (
+                        <>
+                          {/* Mobile single column layout */}
+                          <div className="block md:hidden grid grid-cols-1 gap-4">
+                            {chartsData.map((category) => (
+                              <div key={category.key} className="border border-gray-200 rounded-lg p-4">
+                                <h4 className="text-center font-medium text-gray-700 mb-3">{category.label}</h4>
+                                <ResponsiveContainer width="100%" height={180}>
+                                  <BarChart
+                                    data={category.data}
+                                    margin={{ top: 10, right: 10, left: 0, bottom: 30 }}
+                                  >
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                    <XAxis
+                                      dataKey="year"
+                                      tick={{ fontSize: 11 }}
+                                      stroke="#666"
+                                    />
+                                    <YAxis
+                                      domain={[0, 250]}
+                                      ticks={[0, 100, 200]}
+                                      tick={{ fontSize: 11 }}
+                                      stroke="#666"
+                                    />
+                                    <Bar
+                                      dataKey="bullish"
+                                      fill="#1e3a8a"
+                                      name="Bullish"
+                                      radius={[4, 4, 0, 0]}
+                                      barSize={20}
+                                    >
+                                      <LabelList
+                                        dataKey="bullish"
+                                        position="top"
+                                        style={{ fontSize: '10px', fill: '#333' }}
+                                      />
+                                    </Bar>
+                                    <Bar
+                                      dataKey="bearish"
+                                      fill="#dbeafe"
+                                      name="Bearish"
+                                      radius={[4, 4, 0, 0]}
+                                      barSize={20}
+                                    >
+                                      <LabelList
+                                        dataKey="bearish"
+                                        position="top"
+                                        style={{ fontSize: '10px', fill: '#333' }}
+                                      />
+                                    </Bar>
+                                  </BarChart>
+                                </ResponsiveContainer>
+                              </div>
+                            ))}
+                            {/* Explanatory boxes for mobile */}
+                            {explanations.map((explanation, index) => (
+                              <div key={index} className="bg-gray-50 rounded-lg p-4">
+                                <h4 className="text-sm font-semibold text-[#0c0023] mb-2">{explanation.title}</h4>
+                                <p className="text-xs text-gray-600">{explanation.content}</p>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Desktop grid layout - 3 charts + 2 explanatory boxes */}
+                          <div className="hidden md:grid md:grid-cols-5 gap-3">
+                            {/* First 3 columns for charts */}
+                            {chartsData.map((category) => (
+                              <div key={category.key} className="space-y-2">
+                                <h4 className="text-sm font-semibold text-[#0c0023] text-center mb-2">{category.label}</h4>
+                                <ResponsiveContainer width="100%" height={150}>
+                                  <BarChart
+                                    data={category.data}
+                                    margin={{ top: 5, right: 5, left: 0, bottom: 25 }}
+                                  >
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                    <XAxis
+                                      dataKey="year"
+                                      tick={{ fontSize: 10 }}
+                                      stroke="#666"
+                                    />
+                                    <YAxis
+                                      domain={[0, 250]}
+                                      ticks={[0, 100, 200]}
+                                      tick={{ fontSize: 10 }}
+                                      stroke="#666"
+                                    />
+                                    <Bar
+                                      dataKey="bullish"
+                                      fill="#1e3a8a"
+                                      name="Bullish"
+                                      radius={[4, 4, 0, 0]}
+                                      barSize={15}
+                                    >
+                                      <LabelList
+                                        dataKey="bullish"
+                                        position="top"
+                                        style={{ fontSize: '10px', fill: '#333' }}
+                                      />
+                                    </Bar>
+                                    <Bar
+                                      dataKey="bearish"
+                                      fill="#dbeafe"
+                                      name="Bearish"
+                                      radius={[4, 4, 0, 0]}
+                                      barSize={15}
+                                    >
+                                      <LabelList
+                                        dataKey="bearish"
+                                        position="top"
+                                        style={{ fontSize: '10px', fill: '#333' }}
+                                      />
+                                    </Bar>
+                                  </BarChart>
+                                </ResponsiveContainer>
+                              </div>
+                            ))}
+
+                            {/* 4th and 5th columns for explanatory boxes */}
+                            <div className="col-span-2 grid grid-rows-2 gap-3">
+                              {explanations.map((explanation, index) => (
+                                <div key={index} className="bg-gray-50 rounded-lg p-4">
+                                  <h4 className="text-sm font-semibold text-[#0c0023] mb-2">{explanation.title}</h4>
+                                  <p className="text-xs text-gray-600">{explanation.content}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Legend */}
+                          <div className="flex items-center justify-center gap-6 mt-4">
+                            <div className="flex items-center gap-2">
+                              <div className="w-4 h-4 rounded" style={{ backgroundColor: "#1e3a8a" }}></div>
+                              <span className="text-sm text-[#0c0023]">Bullish</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-4 h-4 rounded" style={{ backgroundColor: "#dbeafe" }}></div>
+                              <span className="text-sm text-[#0c0023]">Bearish</span>
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-500 text-right mt-2">
+                            Current year {currentYear}*
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
             {/* Sentiment Analysis Charts */}
@@ -4978,9 +5201,8 @@ export default function InfluencerProfilePage() {
         {tab === "simulator" && (
           <div className="bg-[#232042]/70 rounded-xl p-8 border border-[#35315a] flex flex-col gap-6">
             <h3 className="font-semibold mb-2">Portfolio Simulator</h3>
-            {/* For the paragraph: */}
             <p className="text-gray-300 mb-2">
-              {'"What if I followed all their recommendations?"'}
+              &quot;What if I followed all their recommendations?&quot;
             </p>
             <div className="flex flex-col sm:flex-row gap-4 items-center mb-4">
               <label className="text-gray-400">Start Date:</label>
