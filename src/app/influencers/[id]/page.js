@@ -1675,16 +1675,7 @@ export default function InfluencerProfilePage() {
                         { year: '2023', bullish: 63, bearish: 32 }
                       ]
                     },
-                    {
-                      key: 'with_moonshots',
-                      label: 'With Moonshots',
-                      data: [
-                        { year: '2025', bullish: 58, bearish: 42 },
-                        { year: '2024', bullish: 89, bearish: 38 },
-                        { year: '2023', bullish: 45, bearish: 28 }
-                      ]
-                    },
-                    {
+                      {
                       key: 'without_moonshots',
                       label: 'Without Moonshots',
                       data: [
@@ -1692,7 +1683,16 @@ export default function InfluencerProfilePage() {
                         { year: '2024', bullish: 22, bearish: 6 },
                         { year: '2023', bullish: 18, bearish: 4 }
                       ]
-                    }
+                    },
+                    {
+                      key: 'with_moonshots',
+                      label: 'Moonshots',
+                      data: [
+                        { year: '2025', bullish: 58, bearish: 42 },
+                        { year: '2024', bullish: 89, bearish: 38 },
+                        { year: '2023', bullish: 45, bearish: 28 }
+                      ]
+                    },
                   ];
                   // Format data for charts
                   const chartsData = categories.map(category => {
@@ -1707,19 +1707,13 @@ export default function InfluencerProfilePage() {
                       hasData: formattedData.length > 0
                     };
                   }).filter(chart => chart.hasData);
-
                   // Explanatory text content
                   const explanations = [
                     {
                       title: "Understanding the Categories",
                       content: "Overall represents the total recommendations across all types. With Moonshots includes recommendations that are considered high-risk, high-reward opportunities. Without Moonshots excludes these high-risk recommendations."
-                    },
-                    {
-                      title: "Analyzing the Data",
-                      content: "By comparing these categories, we can understand the channel's risk appetite and the balance between conservative and aggressive recommendations. The data helps identify trends in recommendation patterns over time."
                     }
                   ];
-
                   return (
                     <div className="space-y-4">
                       {chartsData.length === 0 ? (
@@ -1738,18 +1732,12 @@ export default function InfluencerProfilePage() {
                                     data={category.data}
                                     margin={{ top: 10, right: 10, left: 0, bottom: 30 }}
                                   >
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                                     <XAxis
                                       dataKey="year"
                                       tick={{ fontSize: 11 }}
                                       stroke="#666"
                                     />
-                                    <YAxis
-                                      domain={[0, 250]}
-                                      ticks={[0, 100, 200]}
-                                      tick={{ fontSize: 11 }}
-                                      stroke="#666"
-                                    />
+                                    <YAxis hide={true} />
                                     <Bar
                                       dataKey="bullish"
                                       fill="#1e3a8a"
@@ -1780,7 +1768,7 @@ export default function InfluencerProfilePage() {
                                 </ResponsiveContainer>
                               </div>
                             ))}
-                            {/* Explanatory boxes for mobile */}
+                            {/* Explanatory box for mobile */}
                             {explanations.map((explanation, index) => (
                               <div key={index} className="bg-gray-50 rounded-lg p-4">
                                 <h4 className="text-sm font-semibold text-[#0c0023] mb-2">{explanation.title}</h4>
@@ -1788,9 +1776,8 @@ export default function InfluencerProfilePage() {
                               </div>
                             ))}
                           </div>
-
-                          {/* Desktop grid layout - 3 charts + 2 explanatory boxes */}
-                          <div className="hidden md:grid md:grid-cols-5 gap-3">
+                          {/* Desktop grid layout - 3 charts + 1 explanatory box */}
+                          <div className="hidden md:grid md:grid-cols-4 gap-3">
                             {/* First 3 columns for charts */}
                             {chartsData.map((category) => (
                               <div key={category.key} className="space-y-2">
@@ -1800,18 +1787,12 @@ export default function InfluencerProfilePage() {
                                     data={category.data}
                                     margin={{ top: 5, right: 5, left: 0, bottom: 25 }}
                                   >
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                                     <XAxis
                                       dataKey="year"
                                       tick={{ fontSize: 10 }}
                                       stroke="#666"
                                     />
-                                    <YAxis
-                                      domain={[0, 250]}
-                                      ticks={[0, 100, 200]}
-                                      tick={{ fontSize: 10 }}
-                                      stroke="#666"
-                                    />
+                                    <YAxis hide={true} />
                                     <Bar
                                       dataKey="bullish"
                                       fill="#1e3a8a"
@@ -1842,18 +1823,16 @@ export default function InfluencerProfilePage() {
                                 </ResponsiveContainer>
                               </div>
                             ))}
-
-                            {/* 4th and 5th columns for explanatory boxes */}
-                            <div className="col-span-2 grid grid-rows-2 gap-3">
+                            {/* 4th column for explanatory box */}
+                            <div className="bg-gray-50 rounded-lg p-4">
                               {explanations.map((explanation, index) => (
-                                <div key={index} className="bg-gray-50 rounded-lg p-4">
+                                <div key={index}>
                                   <h4 className="text-sm font-semibold text-[#0c0023] mb-2">{explanation.title}</h4>
                                   <p className="text-xs text-gray-600">{explanation.content}</p>
                                 </div>
                               ))}
                             </div>
                           </div>
-
                           {/* Legend */}
                           <div className="flex items-center justify-center gap-6 mt-4">
                             <div className="flex items-center gap-2">
@@ -1875,282 +1854,7 @@ export default function InfluencerProfilePage() {
                 })()}
               </div>
             </div>
-            {/* Sentiment Analysis Charts */}
-            <div className="bg-white rounded-xl p-6 mb-2 border border-gray-200 overflow-hidden">
-              <h3 className="font-semibold mb-6 text-[#0c0023]">Total Recommendations</h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Overall Chart */}
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="text-center font-medium mb-4 text-to-purple">Overall</h4>
-                  <div className="space-y-3">
-                    {/* 2025 */}
-                    <div className="flex items-center">
-                      <span className="w-12 text-sm font-medium text-to-purple">2025</span>
-                      <div className="flex-1 relative mr-10">
-                        <div className="h-8 bg-gray-100 rounded overflow-hidden">
-                          <div className="h-full flex">
-                            <div
-                              className="flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(76 / 250) * 100}%`, backgroundColor: "rgb(30, 58, 138)" }}
-                            >
-                              76
-                            </div>
-                            <div
-                              className="flex items-center justify-center text-gray-700 text-sm font-bold"
-                              style={{ width: `${(54 / 250) * 100}%`, backgroundColor: "rgb(219, 234, 254)" }}
-                            >
-                              54
-                            </div>
-                          </div>
-                        </div>
-                        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-to-purple font-semibold pr-2">130</span>
-                      </div>
-                    </div>
-                    {/* 2024 */}
-                    <div className="flex items-center">
-                      <span className="w-12 text-sm font-medium text-to-purple">2024</span>
-                      <div className="flex-1 relative mr-10">
-                        <div className="h-8 bg-gray-100 rounded overflow-hidden">
-                          <div className="h-full flex">
-                            <div
-                              className="flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(111 / 250) * 100}%`, backgroundColor: "rgb(30, 58, 138)" }}
-                            >
-                              111
-                            </div>
-                            <div
-                              className="flex items-center justify-center text-gray-700 text-sm font-bold"
-                              style={{ width: `${(44 / 250) * 100}%`, backgroundColor: "rgb(219, 234, 254)" }}
-                            >
-                              44
-                            </div>
-                          </div>
-                        </div>
-                        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-to-purple font-semibold pr-2">155</span>
-                      </div>
-                    </div>
-                    {/* 2023 */}
-                    <div className="flex items-center">
-                      <span className="w-12 text-sm font-medium text-to-purple">2023</span>
-                      <div className="flex-1 relative mr-10">
-                        <div className="h-8 bg-gray-100 rounded overflow-hidden">
-                          <div className="h-full flex">
-                            <div
-                              className="flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(63 / 250) * 100}%`, backgroundColor: "rgb(30, 58, 138)" }}
-                            >
-                              63
-                            </div>
-                            <div
-                              className="flex items-center justify-center text-gray-700 text-sm font-bold"
-                              style={{ width: `${(32 / 250) * 100}%`, backgroundColor: "rgb(219, 234, 254)" }}
-                            >
-                              32
-                            </div>
-                          </div>
-                        </div>
-                        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-to-purple font-semibold pr-2">95</span>
-                      </div>
-                    </div>
-                    {/* Scale */}
-                    <div className="flex items-center">
-                      <span className="w-12"></span>
-                      <div className="flex-1 flex justify-between text-xs text-to-purple mr-10">
-                        <span>0</span>
-                        <span>100</span>
-                        <span>200</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-
-                {/* With Moonshots Chart */}
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="text-center font-medium mb-4 text-to-purple">With Moonshots</h4>
-                  <div className="space-y-3">
-                    {/* 2025 */}
-                    <div className="flex items-center">
-                      <span className="w-12 text-sm font-medium text-to-purple">2025</span>
-                      <div className="flex-1 relative mr-10">
-                        <div className="h-8 bg-gray-100 rounded overflow-hidden">
-                          <div className="h-full flex">
-                            <div
-                              className="flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(58 / 250) * 100}%`, backgroundColor: "rgb(30, 58, 138)" }}
-                            >
-                              58
-                            </div>
-                            <div
-                              className="flex items-center justify-center text-gray-700 text-sm font-bold"
-                              style={{ width: `${(42 / 250) * 100}%`, backgroundColor: "rgb(219, 234, 254)" }}
-                            >
-                              42
-                            </div>
-                          </div>
-                        </div>
-                        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-to-purple font-semibold pr-2">100</span>
-                      </div>
-                    </div>
-                    {/* 2024 */}
-                    <div className="flex items-center">
-                      <span className="w-12 text-sm font-medium text-to-purple">2024</span>
-                      <div className="flex-1 relative mr-10">
-                        <div className="h-8 bg-gray-100 rounded overflow-hidden">
-                          <div className="h-full flex">
-                            <div
-                              className="flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(89 / 250) * 100}%`, backgroundColor: "rgb(30, 58, 138)" }}
-                            >
-                              89
-                            </div>
-                            <div
-                              className="flex items-center justify-center text-gray-700 text-sm font-bold"
-                              style={{ width: `${(38 / 250) * 100}%`, backgroundColor: "rgb(219, 234, 254)" }}
-                            >
-                              38
-                            </div>
-                          </div>
-                        </div>
-                        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-to-purple font-semibold pr-2">127</span>
-                      </div>
-                    </div>
-                    {/* 2023 */}
-                    <div className="flex items-center">
-                      <span className="w-12 text-sm font-medium text-to-purple">2023</span>
-                      <div className="flex-1 relative mr-10">
-                        <div className="h-8 bg-gray-100 rounded overflow-hidden">
-                          <div className="h-full flex">
-                            <div
-                              className="flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(45 / 250) * 100}%`, backgroundColor: "rgb(30, 58, 138)" }}
-                            >
-                              45
-                            </div>
-                            <div
-                              className="flex items-center justify-center text-gray-700 text-sm font-bold"
-                              style={{ width: `${(28 / 250) * 100}%`, backgroundColor: "rgb(219, 234, 254)" }}
-                            >
-                              28
-                            </div>
-                          </div>
-                        </div>
-                        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-to-purple font-semibold pr-2">73</span>
-                      </div>
-                    </div>
-                    {/* Scale */}
-                    <div className="flex items-center">
-                      <span className="w-12"></span>
-                      <div className="flex-1 flex justify-between text-xs text-to-purple mr-10">
-                        <span>0</span>
-                        <span>100</span>
-                        <span>200</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Without Moonshots Chart */}
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="text-center font-medium mb-4 text-to-purple">Without Moonshots</h4>
-                  <div className="space-y-3">
-                    {/* 2025 */}
-                    <div className="flex items-center">
-                      <span className="w-12 text-sm font-medium text-to-purple">2025</span>
-                      <div className="flex-1 relative mr-10">
-                        <div className="h-8 bg-gray-100 rounded overflow-hidden">
-                          <div className="h-full flex">
-                            <div
-                              className="flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(18 / 250) * 100}%`, backgroundColor: "rgb(30, 58, 138)" }}
-                            >
-                              18
-                            </div>
-                            <div
-                              className="flex items-center justify-center text-gray-700 text-sm font-bold"
-                              style={{ width: `${(12 / 250) * 100}%`, backgroundColor: "rgb(219, 234, 254)" }}
-                            >
-                              12
-                            </div>
-                          </div>
-                        </div>
-                        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-to-purple font-semibold pr-2">30</span>
-                      </div>
-                    </div>
-                    {/* 2024 */}
-                    <div className="flex items-center">
-                      <span className="w-12 text-sm font-medium text-to-purple">2024</span>
-                      <div className="flex-1 relative mr-10">
-                        <div className="h-8 bg-gray-100 rounded overflow-hidden">
-                          <div className="h-full flex">
-                            <div
-                              className="flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(22 / 250) * 100}%`, backgroundColor: "rgb(30, 58, 138)" }}
-                            >
-                              22
-                            </div>
-                            <div
-                              className="flex items-center justify-center text-gray-700 text-sm font-bold"
-                              style={{ width: `${(6 / 250) * 100}%`, backgroundColor: "rgb(219, 234, 254)" }}
-                            >
-                              6
-                            </div>
-                          </div>
-                        </div>
-                        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-to-purple font-semibold pr-2">28</span>
-                      </div>
-                    </div>
-                    {/* 2023 */}
-                    <div className="flex items-center">
-                      <span className="w-12 text-sm font-medium text-to-purple">2023</span>
-                      <div className="flex-1 relative mr-10">
-                        <div className="h-8 bg-gray-100 rounded overflow-hidden">
-                          <div className="h-full flex">
-                            <div
-                              className="flex items-center justify-center text-white text-sm font-bold"
-                              style={{ width: `${(18 / 250) * 100}%`, backgroundColor: "rgb(30, 58, 138)" }}
-                            >
-                              18
-                            </div>
-                            <div
-                              className="flex items-center justify-center text-gray-700 text-sm font-bold"
-                              style={{ width: `${(4 / 250) * 100}%`, backgroundColor: "rgb(219, 234, 254)" }}
-                            >
-                              4
-                            </div>
-                          </div>
-                        </div>
-                        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-to-purple font-semibold pr-2">22</span>
-                      </div>
-                    </div>
-                    {/* Scale */}
-                    <div className="flex items-center">
-                      <span className="w-12"></span>
-                      <div className="flex-1 flex justify-between text-xs text-to-purple mr-10">
-                        <span>0</span>
-                        <span>100</span>
-                        <span>200</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Legend */}
-              <div className="flex items-center justify-center gap-6 mt-6">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded" style={{ backgroundColor: "rgb(30, 58, 138)" }}></div>
-                  <span className="text-sm text-to-purple">Bullish</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded" style={{ backgroundColor: "rgb(219, 234, 254)" }}></div>
-                  <span className="text-sm text-to-purple">Bearish</span>
-                </div>
-                <div className="text-sm text-to-purple">Total recommendations</div>
-              </div>
-            </div>
-
+          
             <div className="bg-white rounded-xl p-6 border border-gray-200">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-black">Performance Overview ROI</h3>

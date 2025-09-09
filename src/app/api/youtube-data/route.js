@@ -2,11 +2,16 @@ import { NextResponse } from 'next/server';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
-  const metric = searchParams.get('metric') || 'ai_scoring';
-  
+
+  // Extract all parameters with defaults matching API spec
+  const sentiment = searchParams.get('sentiment') || 'all';
+  const timeframe = searchParams.get('timeframe') || '1_hour';
+  const type = searchParams.get('type') || 'overall';
+  const year = searchParams.get('year') || 'all';
+  const quarter = searchParams.get('quarter') || 'all';
+
   try {
-    const response = await fetch(
-      `https://mcmapi.showmyui.com:3034/api/admin/youtubedata/ranking?metric=${metric}`,
+    const response = await fetch(`https://mcmapi.showmyui.com:3034/api/admin/youtubedata/ranking?sentiment=${sentiment}&timeframe=${timeframe}&type=${type}&year=${year}&quarter=${quarter}`,
       {
         headers: {
           'Content-Type': 'application/json',
@@ -19,7 +24,7 @@ export async function GET(request) {
     }
 
     const data = await response.json();
-    
+
     return NextResponse.json(data, {
       headers: {
         'Access-Control-Allow-Origin': '*',

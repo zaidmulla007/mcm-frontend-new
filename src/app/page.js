@@ -1,160 +1,192 @@
 "use client";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import CountUp from "react-countup";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import DragDropCards from "../components/DragDropCards";
 
-const stats = [
-  { label: "Influencers Tracked", value: 1245, icon: "👥" },
-  { label: "Crypto Picks Analyzed", value: 8320, icon: "📊" },
-  { label: "Avg ROI", value: 14.2, suffix: "%", icon: "📈" },
-  { label: "Videos Processed", value: 19500, icon: "🎬" },
-  { label: "Time Span", value: "2019–2025", isString: true, icon: "📅" },
+// Default fallback data for top 5 YouTube influencers  
+const defaultTopInfluencers = [
+  // YouTube Influencers
+  {
+    name: "CryptoKingdom",
+    platform: "YouTube",
+    score: 94,
+    roi2025: {
+      "24h": "+12.8%",
+      "7d": "+24.1%",
+      "30d": "+48.4%",
+      "60d": "+72.7%",
+      "90d": "+95.3%",
+      "180d": "+128.9%"
+    },
+    avatar: "/window.svg"
+  },
+  {
+    name: "BlockchainBeast",
+    platform: "YouTube",
+    score: 91,
+    roi2025: {
+      "24h": "+10.3%",
+      "7d": "+19.7%",
+      "30d": "+41.2%",
+      "60d": "+65.5%",
+      "90d": "+87.8%",
+      "180d": "+114.3%"
+    },
+    avatar: "/next.svg"
+  },
+  {
+    name: "CoinSensei",
+    platform: "YouTube",
+    score: 89,
+    roi2025: {
+      "24h": "+8.9%",
+      "7d": "+17.4%",
+      "30d": "+36.8%",
+      "60d": "+58.2%",
+      "90d": "+79.6%",
+      "180d": "+102.4%"
+    },
+    avatar: "/file.svg"
+  },
+  {
+    name: "DeFiDominator",
+    platform: "YouTube",
+    score: 87,
+    roi2025: {
+      "24h": "+7.6%",
+      "7d": "+15.2%",
+      "30d": "+32.1%",
+      "60d": "+51.8%",
+      "90d": "+71.4%",
+      "180d": "+96.7%"
+    },
+    avatar: "/globe.svg"
+  },
+  {
+    name: "AltcoinAlchemist",
+    platform: "YouTube",
+    score: 85,
+    roi2025: {
+      "24h": "+6.4%",
+      "7d": "+13.8%",
+      "30d": "+28.9%",
+      "60d": "+46.3%",
+      "90d": "+64.7%",
+      "180d": "+87.2%"
+    },
+    avatar: "/window.svg"
+  }
+  // Only top 5 YouTube influencers needed for homepage
 ];
 
-const features = [
-  { title: "Influencer Profiles", icon: "/file.svg", description: "Detailed analytics and performance metrics" },
-  { title: "ROI Tracking", icon: "/window.svg", description: "Real-time return on investment calculations" },
-  { title: "Leaderboard", icon: "/globe.svg", description: "Top performers ranked by accuracy" },
-  { title: "Crypto Pages", icon: "/next.svg", description: "Comprehensive coin analysis" },
+
+// Testimonials data
+const testimonials = [
+  {
+    quote: "Finally-someone's holding influencers accountable. The Credibility Score is the first thing I check before I trade.",
+    author: "Ravi S.",
+    title: "Retail Investor"
+  },
+  {
+    quote: "The leaderboard gave us visibility into who actually adds alpha versus just making noise.",
+    author: "Claire M.",
+    title: "Portfolio Manager, Crypto Fund"
+  },
+  {
+    quote: "For compliance, this tool is gold. We can document every claim and link it to actual outcomes.",
+    author: "Ahmed K.",
+    title: "Head of Risk, Exchange"
+  },
+  {
+    quote: "This feels like Moody's for the influencer age.",
+    author: "Early Beta User",
+    title: ""
+  },
+  {
+    quote: "Before MyCryptoMonitor, I was guessing who to trust. Now I know which influencers actually deliver results.",
+    author: "Maya L.",
+    title: "Retail Trader"
+  },
+  {
+    quote: "The alerts saved me from following hype calls that would have lost money. Worth every dollar.",
+    author: "Daniel P.",
+    title: "Part-time Investor"
+  },
+  {
+    quote: "Finally a quant-style approach to influencer credibility. It's like Bloomberg meets social media.",
+    author: "Tom K.",
+    title: "Market Analyst"
+  },
+  {
+    quote: "We track 50+ influencers, and this dashboard cuts through the noise in seconds.",
+    author: "Elena V.",
+    title: "Proprietary Trader"
+  },
+  {
+    quote: "This feels like the Moody's of influence-finally bringing accountability to digital finance.",
+    author: "Partner Risk Advisory",
+    title: "A7pire Consulting"
+  }
 ];
 
-const trendingInfluencers = [
-  {
-    name: "CryptoKing",
-    avatar: "/window.svg",
-    recentPick: { coin: "ETH", date: "2024-06-01" },
-    roi: { "7D": "8.2%", "30D": "15.1%", "90D": "32.4%" },
-    winRate: "67%",
-    accuracy: 87,
-  },
-  {
-    name: "BlockQueen",
-    avatar: "/globe.svg",
-    recentPick: { coin: "BTC", date: "2024-06-02" },
-    roi: { "7D": "5.7%", "30D": "12.3%", "90D": "28.9%" },
-    winRate: "72%",
-    accuracy: 92,
-  },
-  {
-    name: "CoinMaster",
-    avatar: "/file.svg",
-    recentPick: { coin: "SOL", date: "2024-06-03" },
-    roi: { "7D": "12.8%", "30D": "18.5%", "90D": "35.2%" },
-    winRate: "78%",
-    accuracy: 89,
-  },
-  {
-    name: "CryptoPro",
-    avatar: "/next.svg",
-    recentPick: { coin: "ADA", date: "2024-06-04" },
-    roi: { "7D": "6.3%", "30D": "14.7%", "90D": "28.1%" },
-    winRate: "65%",
-    accuracy: 84,
-  },
-  {
-    name: "TokenExpert",
-    avatar: "/window.svg",
-    recentPick: { coin: "DOT", date: "2024-06-05" },
-    roi: { "7D": "9.1%", "30D": "16.8%", "90D": "31.5%" },
-    winRate: "69%",
-    accuracy: 91,
-  },
-];
-
-const featuredCryptos = [
-  {
-    coin: "ETH",
-    mentions: 120,
-    roi: "18.4%",
-    price: "$3,421.75",
-    change: "+2.4%",
-  },
-  {
-    coin: "BTC",
-    mentions: 98,
-    roi: "15.2%",
-    price: "$68,432.10",
-    change: "+1.2%",
-  },
-  {
-    coin: "SOL",
-    mentions: 75,
-    roi: "22.1%",
-    price: "$142.56",
-    change: "+5.7%",
-  },
-  {
-    coin: "ADA",
-    mentions: 63,
-    roi: "19.8%",
-    price: "$0.45",
-    change: "+3.1%",
-  },
-  {
-    coin: "DOT",
-    mentions: 54,
-    roi: "16.7%",
-    price: "$6.24",
-    change: "+1.8%",
-  },
-];
-
-// Different channels for each time period
-const channelsByPeriod = {
-  '1hour': [
-    { name: 'Alex ', image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face', url: '#' },
-    { name: 'Sarah ', image: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=50&h=50&fit=crop&crop=face', url: '#' },
-    { name: 'Michael Ross', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face', url: '#' }
-  ],
-  '24hours': [
-    { name: 'Emma Wilson', image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50&h=50&fit=crop&crop=face', url: '#' },
-    { name: 'David Kim', image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=50&h=50&fit=crop&crop=face', url: '#' },
-    { name: 'Lisa Garcia', image: 'https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?w=50&h=50&fit=crop&crop=face', url: '#' }
-  ],
-  '7days': [
-    { name: 'James ', image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=50&h=50&fit=crop&crop=face', url: '#' },
-    { name: 'Rachel ', image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=50&h=50&fit=crop&crop=face', url: '#' },
-    { name: 'Tom Anderson', image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=50&h=50&fit=crop&crop=face', url: '#' }
-  ],
-  // '30days': [
-  //   { name: 'Anna Brown', image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=50&h=50&fit=crop&crop=face', url: '#' },
-  //   { name: 'Ryan Clark', image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=50&h=50&fit=crop&crop=face', url: '#' },
-  //   { name: 'Maya Patel', image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=50&h=50&fit=crop&crop=face', url: '#' }
-  // ],
-  // '60days': [
-  //   { name: 'Chris ', image: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=50&h=50&fit=crop&crop=face', url: '#' },
-  //   { name: 'Sofia ', image: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=50&h=50&fit=crop&crop=face', url: '#' },
-  //   { name: 'Daniel Lee', image: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=50&h=50&fit=crop&crop=face', url: '#' }
-  // ],
-  // '90days': [
-  //   { name: 'Jessica Moore', image: 'https://images.unsplash.com/photo-1485893086445-ed75865251e0?w=50&h=50&fit=crop&crop=face', url: '#' },
-  //   { name: 'Kevin Wu', image: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=50&h=50&fit=crop&crop=face', url: '#' },
-  //   { name: 'Olivia Martin', image: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=50&h=50&fit=crop&crop=face', url: '#' }
-  // ],
-  // '180days': [
-  //   { name: 'Brandon ', image: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=50&h=50&fit=crop&crop=face', url: '#' },
-  //   { name: 'Chloe ', image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=50&h=50&fit=crop&crop=face', url: '#' },
-  //   { name: 'Nathan ', image: 'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=50&h=50&fit=crop&crop=face', url: '#' }
-  // ],
-  // '1year': [
-  //   { name: 'Grace Liu', image: 'https://images.unsplash.com/photo-1548142813-c348350df52b?w=50&h=50&fit=crop&crop=face', url: '#' },
-  //   { name: 'Marcus ', image: 'https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=50&h=50&fit=crop&crop=face', url: '#' },
-  //   { name: 'Zoe Parker', image: 'https://images.unsplash.com/photo-1546961329-78bef0414d7c?w=50&h=50&fit=crop&crop=face', url: '#' }
-  // ]
+// Function to generate trending data using dynamic YouTube influencers
+const getTrendingData = (influencers) => {
+  const youtubeInfluencers = influencers.length > 0 ? influencers : defaultTopInfluencers.slice(0, 5);
+  
+  // Static telegram data for now (could be replaced with Telegram API later)
+  const telegramInfluencers = [
+    {
+      name: "CryptoWhispers", platform: "Telegram", score: 96,
+      roi2025: { "24h": "+15.2%", "7d": "+28.6%", "30d": "+56.3%", "180d": "+148.7%" },
+      avatar: "/file.svg"
+    },
+    {
+      name: "TokenTornado", platform: "Telegram", score: 93,
+      roi2025: { "24h": "+13.1%", "7d": "+25.4%", "30d": "+51.8%", "180d": "+137.9%" },
+      avatar: "/next.svg"
+    }
+  ];
+  
+  return {
+    youtube: {
+      "24hours": [
+        { coin: "BTC", influencer: youtubeInfluencers[0], roi: youtubeInfluencers[0]?.roi2025?.["24h"] || "+12.8%", recommendation: "BUY" },
+        { coin: "ETH", influencer: youtubeInfluencers[3] || youtubeInfluencers[0], roi: youtubeInfluencers[3]?.roi2025?.["24h"] || "+7.6%", recommendation: "HOLD" },
+        { coin: "SOL", influencer: youtubeInfluencers[0], roi: "+12.4%", recommendation: "BUY" },
+        { coin: "ADA", influencer: youtubeInfluencers[3] || youtubeInfluencers[0], roi: "+9.8%", recommendation: "BUY" },
+        { coin: "DOT", influencer: youtubeInfluencers[0], roi: "+7.2%", recommendation: "HOLD" }
+      ],
+      "7days": [
+        { coin: "AVAX", influencer: youtubeInfluencers[0], roi: youtubeInfluencers[0]?.roi2025?.["7d"] || "+24.1%", recommendation: "STRONG BUY" },
+        { coin: "MATIC", influencer: youtubeInfluencers[3] || youtubeInfluencers[0], roi: youtubeInfluencers[3]?.roi2025?.["7d"] || "+15.2%", recommendation: "BUY" },
+        { coin: "LINK", influencer: youtubeInfluencers[0], roi: "+18.3%", recommendation: "BUY" },
+        { coin: "UNI", influencer: youtubeInfluencers[3] || youtubeInfluencers[0], roi: "+16.7%", recommendation: "HOLD" },
+        { coin: "ATOM", influencer: youtubeInfluencers[0], roi: "+14.2%", recommendation: "BUY" }
+      ]
+    },
+    telegram: {
+      "24hours": [
+        { coin: "BTC", influencer: telegramInfluencers[0], roi: telegramInfluencers[0].roi2025["24h"], recommendation: "STRONG BUY" },
+        { coin: "ETH", influencer: telegramInfluencers[1], roi: telegramInfluencers[1].roi2025["24h"], recommendation: "BUY" },
+        { coin: "SOL", influencer: telegramInfluencers[0], roi: "+15.6%", recommendation: "BUY" },
+        { coin: "ADA", influencer: telegramInfluencers[1], roi: "+11.4%", recommendation: "HOLD" },
+        { coin: "DOT", influencer: telegramInfluencers[0], roi: "+8.9%", recommendation: "BUY" }
+      ],
+      "7days": [
+        { coin: "AVAX", influencer: telegramInfluencers[0], roi: telegramInfluencers[0].roi2025["7d"], recommendation: "STRONG BUY" },
+        { coin: "MATIC", influencer: telegramInfluencers[1], roi: telegramInfluencers[1].roi2025["7d"], recommendation: "BUY" },
+        { coin: "LINK", influencer: telegramInfluencers[0], roi: "+21.7%", recommendation: "STRONG BUY" },
+        { coin: "UNI", influencer: telegramInfluencers[1], roi: "+19.3%", recommendation: "BUY" },
+        { coin: "ATOM", influencer: telegramInfluencers[0], roi: "+17.8%", recommendation: "BUY" }
+      ]
+    }
+  };
 };
 
-const timePeriods = [
-  { id: '1hour', title: '1 Hour', color: 'from-purple-500 to-purple-700' },
-  { id: '24hours', title: '24 Hours', color: 'from-blue-500 to-blue-700' },
-  { id: '7days', title: '7 Days', color: 'from-green-500 to-green-700' },
-  // { id: '30days', title: '30 Days', color: 'from-yellow-500 to-yellow-700' },
-  // { id: '60days', title: '60 Days', color: 'from-orange-500 to-orange-700' },
-  // { id: '90days', title: '90 Days', color: 'from-red-500 to-red-700' },
-  // { id: '180days', title: '180 Days', color: 'from-pink-500 to-pink-700' },
-  // { id: '1year', title: '1 Year', color: 'from-indigo-500 to-indigo-700' },
-];
+
+
 
 const cardVariants = {
   hidden: { opacity: 0, y: 30 },
@@ -199,118 +231,379 @@ const glowVariants = {
   }
 };
 
-// Enhanced Tree component for each time period
-const TimePeriodTree = ({ period, channels, index }) => {
+// One-by-One Scrolling Three-Card Testimonial Carousel Component
+const TestimonialsCarousel = ({ testimonials }) => {
+  const [currentIndex, setCurrentIndex] = useState(1); // Start from 1 to show center focus
+  const [isHovered, setIsHovered] = useState(false);
+
+  const nextTestimonial = () => {
+    setCurrentIndex(prev => (prev + 1) % testimonials.length);
+  };
+
+  const prevTestimonial = () => {
+    setCurrentIndex(prev => (prev - 1 + testimonials.length) % testimonials.length);
+  };
+
+  // Auto-scroll functionality - 5 seconds per card
+  useEffect(() => {
+    if (isHovered) return; // Pause on hover
+    
+    const interval = setInterval(() => {
+      nextTestimonial();
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [isHovered, testimonials.length]);
+
+  // Generate placeholder profile images with different colors
+  const getProfileColor = (index) => {
+    const colors = [
+      'from-purple-400 to-purple-600',
+      'from-blue-400 to-blue-600',
+      'from-green-400 to-green-600',
+      'from-pink-400 to-pink-600',
+      'from-indigo-400 to-indigo-600',
+      'from-orange-400 to-orange-600'
+    ];
+    return colors[index % colors.length];
+  };
+
+  // Get three visible cards (previous, current, next)
+  const getVisibleCards = () => {
+    const cards = [];
+    const totalCards = testimonials.length;
+    
+    for (let i = -1; i <= 1; i++) {
+      const index = (currentIndex + i + totalCards) % totalCards;
+      cards.push({
+        testimonial: testimonials[index],
+        position: i,
+        index: index,
+        isFocused: i === 0 // Center card is focused
+      });
+    }
+    
+    return cards;
+  };
+
+  const visibleCards = getVisibleCards();
+
   return (
-    <motion.div
-      className="flex flex-col items-center relative w-full max-w-md mx-auto"
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.1 }}
+    <div 
+      className="relative max-w-6xl mx-auto"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Time Period Header */}
-      <motion.div
-        className={`bg-gradient-to-r ${period.color} text-white px-10 py-5 rounded-xl font-bold text-xl shadow-xl mb-12 z-10`}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        {period.title}
-      </motion.div>
 
-      {/* Vertical line from header to horizontal line */}
-      <motion.div
-        className="absolute top-24 left-1/2 transform -translate-x-1/2 w-1.5 h-20 bg-gradient-to-b from-purple-500 to-transparent"
-        initial={{ height: 0 }}
-        whileInView={{ height: "5rem" }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.4, delay: index * 0.1 + 0.1 }}
-      ></motion.div>
-
-      {/* Horizontal line */}
-      <motion.div
-        className="absolute top-44 left-0 right-0 h-1.5 bg-gradient-to-r from-transparent via-purple-500 to-transparent"
-        initial={{ width: 0 }}
-        whileInView={{ width: "100%" }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.4, delay: index * 0.1 + 0.2 }}
-      ></motion.div>
-
-      {/* Channels container */}
-      <div className="relative w-full mt-28 flex justify-between px-4 md:bottom-11">
-        {channels.map((channel, idx) => {
-          // Calculate position for each channel (left, center, right)
-          const position = idx === 0 ? 'left-0' : idx === 1 ? 'left-1/2 transform -translate-x-1/2' : 'right-0';
-
-          return (
-            <div key={idx} className={`flex flex-col items-center absolute ${position} w-32`}>
-              {/* Vertical line to channel */}
+      {/* Three Cards with Focus Effect - Continuous One-by-One Scroll */}
+      <div className="mx-4 md:mx-16 relative h-80 flex items-center justify-center px-4 md:px-0">
+        <div className="flex items-center justify-center space-x-2 md:space-x-6 w-full">
+          {visibleCards.map((card, index) => {
+            const { testimonial, position, isFocused } = card;
+            
+            return (
               <motion.div
-                className="absolute top-0 left-1/2 transform -translate-x-1/2 w-1.5 h-16 bg-gradient-to-b from-purple-500 to-transparent"
-                initial={{ height: 0 }}
-                whileInView={{ height: "4rem" }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: index * 0.1 + 0.3 + idx * 0.1 }}
-              ></motion.div>
-
-              {/* Channel */}
-              <motion.a
-                href={channel.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex flex-col items-center mt-16"
-                whileHover={{ scale: 1.1, y: -5 }}
-                whileTap={{ scale: 0.95 }}
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 + 0.4 + idx * 0.1 }}
+                key={card.index}
+                animate={{
+                  scale: isFocused ? 1.1 : 0.9,
+                  opacity: isFocused ? 1 : 0.6,
+                  filter: `brightness(${isFocused ? 1 : 0.7})`,
+                  zIndex: isFocused ? 10 : 5
+                }}
+                transition={{ 
+                  duration: 0.8,
+                  ease: "easeInOut"
+                }}
+                className={`${isFocused ? 'w-full max-w-sm sm:w-72' : 'w-64 sm:w-72 hover:scale-95 hidden md:block'}`}
               >
-                <motion.div
-                  className="w-20 h-20 rounded-full shadow-xl overflow-hidden border-2 border-purple-500/30 bg-gradient-to-br from-purple-900/50 to-blue-900/50"
-                  whileHover={{ boxShadow: "0 0 25px rgba(139, 92, 246, 0.7)" }}
-                >
-                  <img src={channel.image} alt={channel.name} className="w-full h-full object-cover" />
-                </motion.div>
-                <motion.span
-                  className="text-base mt-4 text-center text-gray-300 w-full break-words font-medium"
-                  whileHover={{ color: "#c4b5fd" }}
-                >
-                  {channel.name}
-                </motion.span>
-              </motion.a>
-            </div>
-          );
-        })}
+                {/* Dark Themed Card matching homepage colors */}
+                <div className={`rounded-3xl p-4 sm:p-6 shadow-xl border transition-all duration-500 h-full flex flex-col ${
+                  isFocused 
+                    ? 'bg-gradient-to-br from-[#2d2555] to-[#1f1b35] shadow-[0_12px_40px_rgb(139,92,246,0.3)] border-purple-400/30' 
+                    : 'bg-gradient-to-br from-[#1a1731] to-[#0f0c1d] shadow-[0_8px_30px_rgb(0,0,0,0.3)] border-purple-500/10'
+                }`}>
+                  {/* Profile Image - Circular with Gradient */}
+                  <motion.div 
+                    className={`mx-auto mb-4`}
+                    animate={{ 
+                      width: isFocused ? 80 : 64,
+                      height: isFocused ? 80 : 64
+                    }}
+                    transition={{ 
+                      duration: 0.8,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    <div className={`w-full h-full rounded-full bg-gradient-to-br ${getProfileColor(card.index)} flex items-center justify-center shadow-lg`}>
+                      <span className={`font-bold text-white ${isFocused ? 'text-xl sm:text-2xl' : 'text-base sm:text-lg'}`}>
+                        {testimonial.author.charAt(0)}
+                      </span>
+                    </div>
+                  </motion.div>
+                  
+                  {/* Testimonial Quote */}
+                  <div className="text-center mb-4 flex-grow">
+                    <p className={`leading-relaxed font-medium italic ${
+                      isFocused 
+                        ? 'text-gray-100 text-base sm:text-lg' 
+                        : 'text-gray-300 text-sm sm:text-base'
+                    }`}>
+                      &ldquo;{testimonial.quote}&rdquo;
+                    </p>
+                  </div>
+                  
+                  {/* Author Info */}
+                  <div className="text-center mt-auto">
+                    <div className={`font-bold mb-1 ${
+                      isFocused 
+                        ? 'text-purple-300 text-base sm:text-lg' 
+                        : 'text-purple-400/70 text-sm sm:text-base'
+                    }`}>
+                      {testimonial.author}
+                    </div>
+                    {testimonial.title && (
+                      <div className={`text-xs sm:text-sm font-medium ${
+                        isFocused 
+                          ? 'text-gray-400' 
+                          : 'text-gray-500'
+                      }`}>
+                        {testimonial.title}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
       </div>
-    </motion.div>
+
+
+    </div>
+  );
+};
+
+
+// Professional Trending Table Component
+const ProfessionalTrendingTable = ({ title, data, isLocked = false }) => {
+  const [isRegistered, setIsRegistered] = useState(false);
+  
+  return (
+    <div className="relative bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden">
+      <div className="px-6 py-4 border-b border-white/10">
+        <h3 className="text-xl font-semibold text-white">{title}</h3>
+      </div>
+      
+      {isLocked && !isRegistered && (
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-lg rounded-2xl flex flex-col items-center justify-center z-20 p-6">
+          <div className="text-center">
+            <div className="w-20 h-20 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-full flex items-center justify-center mb-4 mx-auto">
+              <svg className="w-10 h-10 text-purple-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6z"/>
+              </svg>
+            </div>
+            <h3 className="text-white font-bold text-xl mb-2">Premium Analytics</h3>
+            <p className="text-gray-300 text-base mb-6 max-w-sm mx-auto">
+              Get access to detailed influencer performance data, ROI tracking across multiple time periods, and actionable investment recommendations.
+            </p>
+            <div className="bg-white/5 rounded-lg p-4 mb-6 border border-purple-500/20">
+              <div className="text-purple-300 text-sm font-semibold mb-2">What you&apos;ll unlock:</div>
+              <ul className="text-gray-300 text-sm space-y-1 text-left">
+                <li className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  Real-time ROI tracking (24h, 7d, 30d, 60d+)
+                </li>
+                <li className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  Credibility scores & win rates
+                </li>
+                <li className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  Buy/sell/hold recommendations
+                </li>
+              </ul>
+            </div>
+            <Link href="/login">
+              <motion.button
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-8 py-3 rounded-xl font-bold text-white shadow-lg transition-all duration-200 w-full"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Start Free Trial
+              </motion.button>
+            </Link>
+          </div>
+        </div>
+      )}
+      
+      <div className="overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-white/5">
+            <tr>
+              <th className="px-6 py-4 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">Asset</th>
+              <th className="px-6 py-4 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">Analyst</th>
+              <th className="px-6 py-4 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">Score</th>
+              <th className="px-6 py-4 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">ROI</th>
+              <th className="px-6 py-4 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">Signal</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/5">
+            {data.map((item, index) => (
+              <tr key={index} className="hover:bg-white/5 transition-colors duration-200">
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-lg font-bold text-white">{item.coin}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-full flex items-center justify-center">
+                      <Image
+                        src={item.influencer.channelData?.channel_thumbnails?.high?.url || item.influencer.avatar}
+                        alt={item.influencer.channelData?.influencer_name || item.influencer.channelData?.channel_title || item.influencer.name}
+                        width={112}
+                        height={112}
+                        className="rounded-full w-full h-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-white">{item.influencer.name}</div>
+                      <div className="text-xs text-gray-400">{item.influencer.platform}</div>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-purple-300 border border-purple-500/30">
+                    {item.influencer.score}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="grid grid-cols-2 gap-1 text-xs">
+                    <div className="text-center">
+                      <div className="text-gray-500 text-xs">24h</div>
+                      <div className="text-gray-500 font-bold">{item.influencer.roi2025["24h"]}</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-gray-500 text-xs">7d</div>
+                      <div className="text-gray-500 font-bold">{item.influencer.roi2025["7d"]}</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-gray-500 text-xs">30d</div>
+                      <div className="text-gray-500 font-bold">{item.influencer.roi2025["30d"]}</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-gray-500 text-xs">180d</div>
+                      <div className="text-gray-500 font-bold">{item.influencer.roi2025["180d"]}</div>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                    item.recommendation === 'STRONG BUY' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
+                    item.recommendation === 'BUY' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
+                    'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                  }`}>
+                    {item.recommendation}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 };
 
 export default function Home() {
   const [isMounted, setIsMounted] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false); // This would come from auth context
+  const [shouldScroll, setShouldScroll] = useState(false);
+  const [topInfluencers, setTopInfluencers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
+  // Fetch top 5 YouTube influencers from API
+  useEffect(() => {
+    async function fetchTopInfluencers() {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams({
+          sentiment: "all",
+          timeframe: "1_hour", 
+          type: "overall",
+          year: "all",
+          quarter: "all"
+        });
+
+        const res = await fetch(`/api/youtube-data?${params.toString()}`);
+        const data = await res.json();
+        
+        if (data.success && Array.isArray(data.results)) {
+          // Get top 5 influencers based on rank, ensure only 5 results
+          const top5 = data.results
+            .filter(inf => inf.rank && inf.rank <= 5)
+            .sort((a, b) => a.rank - b.rank)
+            .slice(0, 5) // Ensure exactly 5 results
+            .map((inf) => ({
+              name: inf.influencer_name,
+              platform: "YouTube",
+              score: Math.round(inf.ai_overall_score || 0), // MCM Score
+              rank: inf.rank,
+              roi2025: {
+                "24h": `+${(inf.prob_weighted_returns || 0).toFixed(1)}%`,
+                "7d": `+${((inf.prob_weighted_returns || 0) * 1.8).toFixed(1)}%`,
+                "30d": `+${((inf.prob_weighted_returns || 0) * 3.2).toFixed(1)}%`,
+                "60d": `+${((inf.prob_weighted_returns || 0) * 5.1).toFixed(1)}%`,
+                "90d": `+${((inf.prob_weighted_returns || 0) * 7.3).toFixed(1)}%`,
+                "180d": `+${((inf.prob_weighted_returns || 0) * 12.1).toFixed(1)}%`
+              },
+              avatar: inf.channel_thumbnails?.high?.url || "/window.svg",
+              subs: inf.subs,
+              win_percentage: inf.win_percentage
+            }));
+
+          console.log(`Fetched ${top5.length} top influencers:`, top5.map(inf => `${inf.name} (Rank: ${inf.rank}, MCM: ${inf.score})`));
+          setTopInfluencers(top5);
+        } else {
+          console.log("API failed or no results, using default data");
+          // Fallback to default data if API fails
+          setTopInfluencers(defaultTopInfluencers.slice(0, 5));
+        }
+      } catch (error) {
+        console.error("Failed to fetch top influencers:", error);
+        // Fallback to default data if API fails
+        setTopInfluencers(defaultTopInfluencers.slice(0, 5));
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchTopInfluencers();
+  }, []);
+
+  // Removed auto-scroll functionality that was interfering with user interaction
+
+  // Get dynamic trending data
+  const trendingData = getTrendingData(topInfluencers);
+
   if (!isMounted) return null;
 
-  // Group time periods into one group (only showing 1 Hour, 24 Hours, 7 Days)
-  const timePeriodGroups = [
-    timePeriods.slice(0, 3), // 1 Hour, 24 Hours, 7 Days
-    // timePeriods.slice(3, 6), // 30 Days, 60 Days, 90 Days
-    // timePeriods.slice(6, 8)  // 180 Days, 1 Year
-  ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f0c1d] via-[#19162b] to-[#1a1731] text-white font-sans pb-16 overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0611] via-[#1a0b2e] to-[#2d1b69] text-white font-sans pb-16 overflow-x-hidden">
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {[...Array(10)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute rounded-full bg-purple-500/10"
+            className="absolute rounded-full bg-gradient-to-r from-purple-500/20 via-blue-400/15 to-cyan-400/20"
             style={{
               width: `${Math.random() * 100 + 50}px`,
               height: `${Math.random() * 100 + 50}px`,
@@ -332,81 +625,279 @@ export default function Home() {
       </div>
 
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto pt-20 pb-12 px-4 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="space-y-8">
+      <section className="max-w-7xl mx-auto pt-8 pb-12 px-4 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-start min-h-[80vh] lg:min-h-[70vh]">
+          <div className="space-y-8 lg:pt-0">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
               <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-                <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-                  Are Crypto Influencers
+                <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent animate-pulse">
+                  🚀 CRYPTO&apos;S ULTIMATE INFLUENCE TRACKER 🚀
                 </span>
-                <br />
-                <span className="text-white">Making You Money?</span>
               </h1>
             </motion.div>
 
             <motion.p
-              className="text-lg text-gray-300 max-w-lg"
+              className="text-lg text-blue-200 max-w-lg font-semibold"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              Discover the real impact of crypto influencers. Track their picks, analyze ROI, and simulate your own portfolio based on their recommendations.
+              💎 DIAMOND HANDS DATA! Track every crypto guru&apos;s wins & fails. Real ROI tracking. Real accountability. No more FOMO - just FACTS! 📊✨
             </motion.p>
 
             <motion.div
-              className="flex flex-wrap gap-4 mt-6"
+              className="text-base text-cyan-300 mb-6 font-bold"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-purple-400">🔥</span>
+                LIVE TRACKING: YouTube • Twitter • Telegram
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-purple-400">⚡</span>
+                BULLETPROOF METHODOLOGY - Every call verified!
+              </div>
+            </motion.div>
+
+            <motion.div
+              className="flex flex-wrap gap-4 mt-8"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
-              <Link href="/influencers">
+              {/* Primary CTA */}
+              <Link href="/leaderboard">
                 <motion.button
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-4 rounded-xl font-bold text-lg shadow-lg flex items-center gap-2"
+                  className="bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 px-8 py-4 rounded-xl font-bold text-lg shadow-lg flex items-center gap-2 border-2 border-purple-400"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   variants={glowVariants}
                   animate="glow"
                 >
-                  Explore Influencers
-                  <span>→</span>
+                  🏆 LIVE CRYPTO LEADERBOARD 🏆
+                  <span>🚀</span>
+                </motion.button>
+              </Link>
+            </motion.div>
+
+            <motion.div
+              className="flex flex-wrap gap-3 mt-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              {/* Secondary CTA */}
+              <Link href="#trending">
+                <motion.button
+                  className="bg-transparent border-2 border-cyan-400 px-6 py-3 rounded-xl font-bold text-sm hover:bg-cyan-400/20 transition-colors text-cyan-300"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  📈 WHAT&apos;S TRENDING
                 </motion.button>
               </Link>
 
+              {/* Third CTA */}
+              <Link href="/login">
+                <motion.button
+                  className="bg-gradient-to-r from-purple-500 to-blue-500 px-6 py-3 rounded-xl font-bold text-sm shadow-lg border border-purple-400"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  💎 START FREE TRIAL
+                </motion.button>
+              </Link>
+
+              {/* Fourth CTA */}
               <div className="relative inline-block">
                 <button
                   disabled
-                  className="bg-[#232042] px-8 py-4 rounded-xl font-bold text-lg border border-purple-500/30 opacity-70 cursor-not-allowed flex items-center gap-2"
+                  className="bg-[#232042] px-6 py-3 rounded-xl font-bold text-sm border border-purple-400/50 opacity-80 cursor-not-allowed text-purple-200"
                 >
-                  Try Portfolio Simulator
+                  🎯 PORTFOLIO SIMULATOR
                 </button>
-                <span className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-600 to-pink-600 text-xs px-3 py-1 rounded-full font-bold">
-                  Coming Soon
+                <span className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-600 to-blue-600 text-xs px-2 py-1 rounded-full font-bold animate-bounce">
+                  🔜 SOON
                 </span>
               </div>
             </motion.div>
           </div>
 
-
-
-          <div className="flex justify-center">
+          {/* Hero Visual - TOP CRYPTO INFLUENCERS BY PLATFORM */}
+          <div className="flex flex-col justify-start mt-8 lg:mt-0 hero-visual">
+            {/* YouTube Influencers Section */}
             <motion.div
-              variants={floatVariants}
-              animate="float"
-              className="relative"
+              className="text-center mb-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
             >
-              <div className="absolute inset-0 bg-purple-500/20 rounded-full blur-3xl"></div>
-              <Image src="/globe.svg" alt="Crypto" width={300} height={300} className="drop-shadow-2xl relative z-10" />
+              <h2 className="text-3xl md:text-4xl font-bold mb-1">
+                <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent animate-pulse">
+                  🔥 TOP CRYPTO LEGENDS 🔥
+                </span>
+              </h2> 
+              <p className="text-cyan-300 text-lg font-bold flex items-center justify-center gap-3 animate-bounce">
+                ⚡
+                <span className="flex items-center gap-1">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#FF0000">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  </svg>
+                  YOUTUBE
+                </span>
+                •
+                <span className="flex items-center gap-1">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#0088cc">
+                    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                  </svg>
+                  TELEGRAM
+                </span>
+                •
+                <span className="flex items-center gap-1">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#1DA1F2">
+                    <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                  </svg>
+                  TWITTER
+                </span>
+                ⚡
+              </p>
+              <p className="text-blue-300 text-sm mt-1 font-bold">
+                  💰 HOTTEST CRYPTO MENTIONS — LIVE 24H DATA! 💰
+              </p>
             </motion.div>
+
+            {loading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500"></div>
+              </div>
+            ) : (
+              <motion.div
+                className="relative w-full max-w-sm mx-auto mb-12"
+                animate={{
+                  y: [0, -15, 0],
+                }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  type: "tween"
+                }}
+                style={{
+                  transform: 'translateZ(0)',
+                  backfaceVisibility: 'hidden',
+                  contain: 'layout style paint',
+                  willChange: 'transform',
+                }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/30 via-blue-500/25 to-cyan-500/30 rounded-full blur-3xl animate-pulse"></div>
+                <div 
+                  className="relative z-10"
+                  style={{
+                    transform: 'translateZ(0)',
+                    contain: 'layout style paint',
+                  }}
+                >
+                  <DragDropCards cards={[
+                    // First 5: YouTube (API-driven)
+                    ...topInfluencers,
+                    // Next 5: Telegram (hardcoded)
+                    {
+                      name: "CryptoWhispers",
+                      platform: "Telegram",
+                      score: 96,
+                      rank: 1,
+                      roi2025: { "24h": "+15.2%", "7d": "+28.6%", "30d": "+56.3%", "180d": "+148.7%" },
+                      avatar: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=80&h=80&fit=crop&crop=face"
+                    },
+                    {
+                      name: "TokenTornado",
+                      platform: "Telegram", 
+                      score: 93,
+                      rank: 2,
+                      roi2025: { "24h": "+13.1%", "7d": "+25.4%", "30d": "+51.8%", "180d": "+137.9%" },
+                      avatar: "https://images.unsplash.com/photo-1605792657660-596af9009e82?w=80&h=80&fit=crop&crop=face"
+                    },
+                    {
+                      name: "DiamondSignals",
+                      platform: "Telegram",
+                      score: 90,
+                      rank: 3,
+                      roi2025: { "24h": "+11.7%", "7d": "+22.8%", "30d": "+46.5%", "180d": "+124.6%" },
+                      avatar: "https://images.unsplash.com/photo-1518806118471-f28b20a1d79d?w=80&h=80&fit=crop&crop=face"
+                    },
+                    {
+                      name: "MoonMasterPro",
+                      platform: "Telegram",
+                      score: 88,
+                      rank: 4,
+                      roi2025: { "24h": "+10.4%", "7d": "+20.1%", "30d": "+42.8%", "180d": "+115.8%" },
+                      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face"
+                    },
+                    {
+                      name: "GemHunterElite",
+                      platform: "Telegram",
+                      score: 86,
+                      rank: 5,
+                      roi2025: { "24h": "+9.2%", "7d": "+18.4%", "30d": "+37.9%", "180d": "+104.2%" },
+                      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face"
+                    },
+                    // Last 5: Twitter (hardcoded)
+                    {
+                      name: "CryptoVortex",
+                      platform: "Twitter",
+                      score: 92,
+                      rank: 1,
+                      roi2025: { "24h": "+12.5%", "7d": "+23.9%", "30d": "+48.7%", "180d": "+129.4%" },
+                      avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=80&h=80&fit=crop&crop=face"
+                    },
+                    {
+                      name: "BlockBullionaire",
+                      platform: "Twitter",
+                      score: 89,
+                      rank: 2,
+                      roi2025: { "24h": "+10.8%", "7d": "+21.3%", "30d": "+43.6%", "180d": "+117.5%" },
+                      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=face"
+                    },
+                    {
+                      name: "DeFiDynamo",
+                      platform: "Twitter",
+                      score: 87,
+                      rank: 3,
+                      roi2025: { "24h": "+9.6%", "7d": "+18.7%", "30d": "+38.4%", "180d": "+105.2%" },
+                      avatar: "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?w=80&h=80&fit=crop&crop=face"
+                    },
+                    {
+                      name: "SatoshiSage",
+                      platform: "Twitter",
+                      score: 85,
+                      rank: 4,
+                      roi2025: { "24h": "+8.1%", "7d": "+16.4%", "30d": "+33.8%", "180d": "+92.4%" },
+                      avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=80&h=80&fit=crop&crop=face"
+                    },
+                    {
+                      name: "AltcoinAce",
+                      platform: "Twitter",
+                      score: 83,
+                      rank: 5,
+                      roi2025: { "24h": "+7.3%", "7d": "+14.9%", "30d": "+30.2%", "180d": "+83.7%" },
+                      avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=80&h=80&fit=crop&crop=face"
+                    }
+                  ]} />
+                </div>
+              </motion.div>
+            )}
           </div>
         </div>
       </section>
-      {/* YouTube Channels Section */}
-      <section className="max-w-7xl mx-auto px-4 py-12 relative z-10">
+
+      {/* What's Trending - YouTube and Telegram Tables */}
+      <section id="trending" className="max-w-7xl mx-auto px-4 py-16 relative z-10">
         <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0 }}
@@ -414,49 +905,112 @@ export default function Home() {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="text-5xl font-bold mb-2 text-white flex items-center justify-center gap-4">
-            YouTube Channels
-            <svg className="w-12 h-12" viewBox="0 0 24 24" fill="#FF0000">
-              <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-            </svg>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+              🚀 WHAT&apos;S TRENDING 🚀
+            </span>
           </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-blue-500 mx-auto rounded-full"></div>
+          <p className="text-blue-200 text-lg mb-8 font-bold">💎 DIAMOND-TIER INFLUENCERS & THEIR HOT PICKS! 💎</p>
+          <div className="w-24 h-1 bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 mx-auto rounded-full animate-pulse"></div>
         </motion.div>
 
-        {/* Mobile View */}
-        <div className="md:hidden space-y-20">
-          {timePeriods.map((period, idx) => (
-            <div key={period.id} className="mb-40 pb-20">
-              <TimePeriodTree
-                period={period}
-                channels={channelsByPeriod[period.id]}
-                index={idx}
-              />
-            </div>
-          ))}
-        </div>
+        <div className="space-y-16">
+          {/* YouTube Tables */}
+          <div>
+            <motion.div
+              className="text-center mb-12"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
+              <h3 className="text-3xl font-bold mb-4 flex items-center justify-center gap-4">
+                <svg className="w-10 h-10" viewBox="0 0 24 24" fill="#FF0000">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+                YouTube Recommendations
+              </h3>
+            </motion.div>
 
-        {/* Desktop View */}
-        <div className="hidden md:block">
-          {timePeriodGroups.map((group, groupIndex) => (
-            <div key={groupIndex} className={`mb-32 ${groupIndex < timePeriodGroups.length - 1 ? 'pb-24' : ''}`}>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-32">
-                {group.map((period, idx) => (
-                  <TimePeriodTree
-                    key={period.id}
-                    period={period}
-                    channels={channelsByPeriod[period.id]}
-                    index={groupIndex * 3 + idx}
-                  />
-                ))}
-              </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+              >
+                <ProfessionalTrendingTable 
+                  title="Last 24 Hours" 
+                  data={trendingData.youtube["24hours"]} 
+                  isLocked={!isRegistered}
+                />
+              </motion.div>
+              
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                <ProfessionalTrendingTable 
+                  title="Last 7 Days" 
+                  data={trendingData.youtube["7days"]} 
+                  isLocked={!isRegistered}
+                />
+              </motion.div>
             </div>
-          ))}
+          </div>
+
+          {/* Telegram Tables */}
+          <div>
+            <motion.div
+              className="text-center mb-12"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
+              <h3 className="text-3xl font-bold mb-4 flex items-center justify-center gap-4">
+                <svg className="w-10 h-10" viewBox="0 0 24 24" fill="#0088cc">
+                  <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                </svg>
+                Telegram Recommendations
+              </h3>
+            </motion.div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+              >
+                <ProfessionalTrendingTable 
+                  title="Last 24 Hours" 
+                  data={trendingData.telegram["24hours"]} 
+                  isLocked={!isRegistered}
+                />
+              </motion.div>
+              
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                <ProfessionalTrendingTable 
+                  title="Last 7 Days" 
+                  data={trendingData.telegram["7days"]} 
+                  isLocked={!isRegistered}
+                />
+              </motion.div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Telegram Channels Section */}
-      <section className="max-w-7xl mx-auto px-4 py-12 relative z-10">
+      {/* Testimonials Section */}
+      <section className="max-w-7xl mx-auto px-4 py-16 relative z-10">
         <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0 }}
@@ -464,249 +1018,16 @@ export default function Home() {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="text-5xl font-bold mb-2 text-white flex items-center justify-center gap-4">
-            Telegram Channels
-            <svg className="w-12 h-12" viewBox="0 0 24 24" fill="#0088cc">
-              <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
-            </svg>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+              💬 CRYPTO COMMUNITY LOVES US 💬
+            </span>
           </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-blue-500 mx-auto rounded-full"></div>
+          <p className="text-blue-200 text-lg mb-8 font-bold">🌟 REAL DIAMOND HANDS SHARE THEIR SUCCESS STORIES 🌟</p>
+          <div className="w-24 h-1 bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 mx-auto rounded-full animate-pulse"></div>
         </motion.div>
 
-        {/* Mobile View */}
-        <div className="md:hidden space-y-20">
-          {timePeriods.map((period, idx) => (
-            <div key={period.id} className="mb-40 pb-20">
-              <TimePeriodTree
-                period={period}
-                channels={channelsByPeriod[period.id]}
-                index={idx}
-              />
-            </div>
-          ))}
-        </div>
-
-        {/* Desktop View */}
-        <div className="hidden md:block">
-          {timePeriodGroups.map((group, groupIndex) => (
-            <div key={groupIndex} className={`mb-32 ${groupIndex < timePeriodGroups.length - 1 ? 'pb-24' : ''}`}>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-32">
-                {group.map((period, idx) => (
-                  <TimePeriodTree
-                    key={period.id}
-                    period={period}
-                    channels={channelsByPeriod[period.id]}
-                    index={groupIndex * 3 + idx}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Key Features Preview */}
-      <section className="max-w-7xl mx-auto px-4 py-12 relative z-10">
-        <motion.div
-          className="text-center mb-12"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
-          <h2 className="text-3xl font-bold mb-2">Key Monitors</h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-blue-500 mx-auto rounded-full"></div>
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {features.map((feature, i) => (
-            <motion.div
-              key={feature.title}
-              className="bg-gradient-to-br from-[#232042] to-[#1a1731] rounded-2xl p-6 flex flex-col items-center text-center shadow-xl border border-purple-500/10"
-              custom={i}
-              initial="hidden"
-              whileInView="visible"
-              whileHover={{
-                y: -10,
-                borderColor: "rgba(139, 92, 246, 0.5)",
-                transition: { duration: 0.3 }
-              }}
-              viewport={{ once: true, amount: 0.6 }}
-              variants={cardVariants}
-            >
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center mb-4">
-                <Image src={feature.icon} alt={feature.title} width={30} height={30} />
-              </div>
-              <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
-              <p className="text-gray-400 text-sm">{feature.description}</p>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-        {/* Top 5 Featured Cryptos Section */}
-      <section className="max-w-7xl mx-auto px-4 py-12 relative z-10">
-        <motion.div
-          className="text-center mb-12"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
-          <h2 className="text-3xl font-bold mb-2">Top 5 Featured Cryptos</h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-blue-500 mx-auto rounded-full"></div>
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-          {featuredCryptos.map((coin, i) => (
-            <motion.div
-              key={coin.coin}
-              className="bg-gradient-to-br from-[#232042] to-[#1a1731] rounded-2xl p-6 flex flex-col items-center text-center shadow-xl border border-purple-500/10"
-              custom={i}
-              initial="hidden"
-              whileInView="visible"
-              whileHover={{
-                y: -10,
-                borderColor: "rgba(139, 92, 246, 0.5)",
-                transition: { duration: 0.3 }
-              }}
-              viewport={{ once: true, amount: 0.6 }}
-              variants={cardVariants}
-            >
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center mb-4 font-bold text-xl border border-purple-500/30">
-                {coin.coin}
-              </div>
-              
-              <h3 className="text-xl font-bold mb-2">{coin.coin}</h3>
-              
-              <div className="text-lg font-bold mb-2">{coin.price}</div>
-              
-              <div className={`text-sm px-3 py-1 rounded-full font-medium mb-3 ${coin.change.startsWith('+') ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                {coin.change}
-              </div>
-              
-              <div className="text-sm text-gray-400 mb-2">
-                <span className="text-purple-400 font-medium">{coin.mentions}</span> mentions
-              </div>
-              
-              <div className="text-sm text-gray-400">
-                ROI: <span className="text-green-400 font-medium">{coin.roi}</span>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* Trending Influencers Section */}
-      <section className="max-w-7xl mx-auto px-4 py-12 relative z-10">
-        <motion.div
-          className="text-center mb-12"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
-          <h2 className="text-3xl font-bold mb-2">Trending Influencers</h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-blue-500 mx-auto rounded-full"></div>
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-          {trendingInfluencers.map((inf, i) => (
-            <motion.div
-              key={inf.name}
-              className="bg-gradient-to-br from-[#232042] to-[#1a1731] rounded-2xl p-6 flex flex-col items-center text-center shadow-xl border border-purple-500/10"
-              custom={i}
-              initial="hidden"
-              whileInView="visible"
-              whileHover={{
-                y: -10,
-                borderColor: "rgba(139, 92, 246, 0.5)",
-                transition: { duration: 0.3 }
-              }}
-              viewport={{ once: true, amount: 0.6 }}
-              variants={cardVariants}
-            >
-              <div className="relative mb-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center">
-                  <Image src={inf.avatar} alt={inf.name} width={50} height={50} />
-                </div>
-                <div className="absolute -bottom-1 -right-1 bg-gradient-to-r from-purple-600 to-blue-600 text-xs px-2 py-0.5 rounded-full font-bold">
-                  #{i + 1}
-                </div>
-              </div>
-              
-              <h3 className="text-lg font-bold mb-2">{inf.name}</h3>
-              
-              <div className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full mb-3">
-                {inf.winRate} Win Rate
-              </div>
-              
-              <div className="text-sm text-gray-400 mb-3">
-                <span className="text-purple-400">{inf.recentPick.coin}</span>
-              </div>
-              
-              <div className="text-xs text-center mb-3">
-                <div className="text-gray-400">30D ROI:</div>
-                <div className="text-green-400 font-bold">{inf.roi["30D"]}</div>
-              </div>
-              
-              <div className="w-full">
-                <div className="flex justify-between text-xs mb-1">
-                  <span className="text-gray-400">Accuracy</span>
-                  <span className="text-blue-400 font-medium">{inf.accuracy}%</span>
-                </div>
-                <div className="w-full bg-gray-700 rounded-full h-2">
-                  <motion.div
-                    className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full"
-                    initial={{ width: 0 }}
-                    whileInView={{ width: `${inf.accuracy}%` }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 1, delay: 0.2 }}
-                  ></motion.div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* Live Stats */}
-      <section className="max-w-7xl mx-auto px-4 py-12 relative z-10">
-        <motion.div
-          className="text-center mb-12"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
-          <h2 className="text-3xl font-bold mb-2">Platform Statistics</h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-blue-500 mx-auto rounded-full"></div>
-        </motion.div>
-
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          {stats.map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              className="bg-gradient-to-br from-[#232042] to-[#1a1731] rounded-2xl p-6 flex flex-col items-center shadow-xl border border-purple-500/10"
-              custom={i}
-              initial="hidden"
-              whileInView="visible"
-              whileHover="hover"
-              viewport={{ once: true, amount: 0.6 }}
-              variants={cardVariants}
-            >
-              <div className="text-3xl mb-3">{stat.icon}</div>
-              <span className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                {stat.isString ? (
-                  stat.value
-                ) : (
-                  <CountUp end={stat.value} duration={1.5} suffix={stat.suffix || ""} />
-                )}
-              </span>
-              <span className="text-sm text-gray-400 mt-2 text-center">{stat.label}</span>
-            </motion.div>
-          ))}
-        </div>
+        <TestimonialsCarousel testimonials={testimonials} />
       </section>
 
       {/* CTA Section */}
@@ -719,30 +1040,32 @@ export default function Home() {
           transition={{ duration: 0.7 }}
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Ready to Track Crypto Influencers?
+            <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+              🚀 READY TO MOON WITH THE PROS? 🚀
+            </span>
           </h2>
-          <p className="text-gray-300 max-w-2xl mx-auto mb-10 text-lg">
-            Join thousands of traders who make informed decisions based on influencer performance data
+          <p className="text-blue-200 max-w-2xl mx-auto mb-10 text-lg font-bold">
+            💎 JOIN THE ELITE CRYPTO TRADERS! 💰 Stop chasing hype, start following PROVEN WINNERS! 🏆
           </p>
 
           <div className="flex flex-col sm:flex-row justify-center gap-6">
             <Link href="/login">
               <motion.button
-                className="bg-gradient-to-r from-purple-600 to-blue-600 px-10 py-5 rounded-xl font-bold text-xl shadow-lg"
+                className="bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 px-10 py-5 rounded-xl font-bold text-xl shadow-lg border-2 border-purple-400"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                Get Started Now
+                🚀 GET STARTED NOW! 🚀
               </motion.button>
             </Link>
 
             <Link href="/influencers">
               <motion.button
-                className="bg-transparent border-2 border-purple-500/50 px-10 py-5 rounded-xl font-bold text-xl hover:bg-purple-500/10 transition-colors"
+                className="bg-transparent border-2 border-cyan-400 px-10 py-5 rounded-xl font-bold text-xl hover:bg-cyan-400/20 transition-colors text-cyan-300"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                Browse Influencers
+                💎 BROWSE CRYPTO LEGENDS
               </motion.button>
             </Link>
           </div>
@@ -750,12 +1073,12 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="max-w-7xl mx-auto px-4 pt-8 border-t border-purple-500/20 text-center text-gray-500 text-sm">
-        <p>© 2024 Crypto Influence Tracker. All rights reserved.</p>
+      <footer className="max-w-7xl mx-auto px-4 pt-8 border-t border-purple-500/30 text-center text-blue-200 text-sm">
+        <p className="font-bold">© 2025 MCM - THE CRYPTO INFLUENCE EMPIRE! 👑 All rights reserved.</p>
         <div className="flex justify-center gap-6 mt-4">
-          <a href="#" className="hover:text-purple-400 transition-colors">Privacy Policy</a>
-          <a href="#" className="hover:text-purple-400 transition-colors">Terms of Service</a>
-          <a href="#" className="hover:text-purple-400 transition-colors">Contact Us</a>
+          <a href="#" className="hover:text-cyan-400 transition-colors font-semibold">🔒 Privacy Policy</a>
+          <a href="#" className="hover:text-cyan-400 transition-colors font-semibold">📜 Terms of Service</a>
+          <a href="#" className="hover:text-cyan-400 transition-colors font-semibold">💬 Contact Us</a>
         </div>
       </footer>
     </div>
