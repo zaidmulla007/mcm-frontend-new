@@ -145,6 +145,13 @@ const DragDropCards = ({ cards = [] }) => {
               backfaceVisibility: 'hidden', // Prevent flickering
             }}
           >
+            {/* MCM Rank - Top Left */}
+            <div className="absolute top-4 left-4 z-10">
+              <div className="bg-gradient-to-br from-purple-500/40 to-blue-600/40 rounded-full px-3 py-1 flex items-center justify-center">
+                <span className="text-white font-bold text-xs">MCM Rank {currentCard.rank || '1'}</span>
+              </div>
+            </div>
+
             {/* Diamond Icon - Top Right */}
             <div className="absolute top-4 right-4 z-10">
               <motion.div
@@ -158,13 +165,21 @@ const DragDropCards = ({ cards = [] }) => {
               </motion.div>
             </div>
 
+            {/* ROI with Blurred Number - Between Profile Image and Lock */}
+            <div className="absolute top-52 left-1/2 transform -translate-x-1/2 z-20">
+              <div className="flex items-center gap-2 bg-black/30 px-3 py-1 rounded-lg">
+                <span className="text-purple-300 text-sm font-semibold">ROI:</span>
+                <span className="text-white text-sm font-bold filter blur-sm">{Math.round(Math.random() * 50 + 20)}</span>
+              </div>
+            </div>
+
             {/* Current Card Content */}
             <div className="text-center px-6 py-8 h-full flex flex-col relative z-10">
               {/* Channel Image Only - Positioned at top */}
               <div className="flex justify-center mb-8 relative z-30">
                 {currentCard.avatar && currentCard.avatar !== "/window.svg" && currentCard.avatar !== "/next.svg" && currentCard.avatar !== "/file.svg" && currentCard.avatar !== "/globe.svg" ? (
                   <motion.div 
-                    className="w-20 h-20 rounded-full overflow-hidden border-2 border-white/20 shadow-lg relative"
+                    className="w-28 h-28 rounded-full overflow-hidden border-2 border-white/20 shadow-lg relative"
                     whileHover={{ scale: 1.1 }}
                   >
                     <Image
@@ -263,9 +278,9 @@ const DragDropCards = ({ cards = [] }) => {
                   </motion.div>
                   
                   {/* Premium Content Title */}
-                  <h4 className="text-white font-bold text-xl mb-3 flex items-center gap-2">
+                  {/* <h4 className="text-white font-bold text-xl mb-3 flex items-center gap-2">
                     🔥 Premium Analytics
-                  </h4>
+                  </h4> */}
                   
                   {/* Premium Features List */}
                   <div className="text-center mb-6">

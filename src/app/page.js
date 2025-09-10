@@ -5,6 +5,55 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import DragDropCards from "../components/DragDropCards";
 
+// Top 5 mentioned coins data based on the image
+const topMentionedCoins = [
+  {
+    rank: 1,
+    symbol: "BTC",
+    name: "Bitcoin",
+    totalMentions: 12,
+    totalInfluencers: 9,
+    sentiment: "Mild_Bullish:6",
+    icon: "/window.svg"
+  },
+  {
+    rank: 2,
+    symbol: "ETH",
+    name: "Ethereum",
+    totalMentions: 8,
+    totalInfluencers: 8,
+    sentiment: "Mild_Bullish:4",
+    icon: "/next.svg"
+  },
+  {
+    rank: 3,
+    symbol: "LINK",
+    name: "Chainlink",
+    totalMentions: 5,
+    totalInfluencers: 5,
+    sentiment: "Mild_Bullish:5",
+    icon: "/file.svg"
+  },
+  {
+    rank: 4,
+    symbol: "SOL",
+    name: "Solana",
+    totalMentions: 4,
+    totalInfluencers: 4,
+    sentiment: "Mild_Bullish:3",
+    icon: "/globe.svg"
+  },
+  {
+    rank: 5,
+    symbol: "XRP",
+    name: "XRP",
+    totalMentions: 3,
+    totalInfluencers: 3,
+    sentiment: "Strong_Bullish:2",
+    icon: "/window.svg"
+  }
+];
+
 // Default fallback data for top 5 YouTube influencers  
 const defaultTopInfluencers = [
   // YouTube Influencers
@@ -134,7 +183,7 @@ const testimonials = [
 // Function to generate trending data using dynamic YouTube influencers
 const getTrendingData = (influencers) => {
   const youtubeInfluencers = influencers.length > 0 ? influencers : defaultTopInfluencers.slice(0, 5);
-  
+
   // Static telegram data for now (could be replaced with Telegram API later)
   const telegramInfluencers = [
     {
@@ -148,7 +197,7 @@ const getTrendingData = (influencers) => {
       avatar: "/next.svg"
     }
   ];
-  
+
   return {
     youtube: {
       "24hours": [
@@ -247,11 +296,11 @@ const TestimonialsCarousel = ({ testimonials }) => {
   // Auto-scroll functionality - 5 seconds per card
   useEffect(() => {
     if (isHovered) return; // Pause on hover
-    
+
     const interval = setInterval(() => {
       nextTestimonial();
     }, 5000);
-    
+
     return () => clearInterval(interval);
   }, [isHovered, testimonials.length]);
 
@@ -272,7 +321,7 @@ const TestimonialsCarousel = ({ testimonials }) => {
   const getVisibleCards = () => {
     const cards = [];
     const totalCards = testimonials.length;
-    
+
     for (let i = -1; i <= 1; i++) {
       const index = (currentIndex + i + totalCards) % totalCards;
       cards.push({
@@ -282,14 +331,14 @@ const TestimonialsCarousel = ({ testimonials }) => {
         isFocused: i === 0 // Center card is focused
       });
     }
-    
+
     return cards;
   };
 
   const visibleCards = getVisibleCards();
 
   return (
-    <div 
+    <div
       className="relative max-w-6xl mx-auto"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -300,7 +349,7 @@ const TestimonialsCarousel = ({ testimonials }) => {
         <div className="flex items-center justify-center space-x-2 md:space-x-6 w-full">
           {visibleCards.map((card, index) => {
             const { testimonial, position, isFocused } = card;
-            
+
             return (
               <motion.div
                 key={card.index}
@@ -310,26 +359,25 @@ const TestimonialsCarousel = ({ testimonials }) => {
                   filter: `brightness(${isFocused ? 1 : 0.7})`,
                   zIndex: isFocused ? 10 : 5
                 }}
-                transition={{ 
+                transition={{
                   duration: 0.8,
                   ease: "easeInOut"
                 }}
                 className={`${isFocused ? 'w-full max-w-sm sm:w-72' : 'w-64 sm:w-72 hover:scale-95 hidden md:block'}`}
               >
                 {/* Dark Themed Card matching homepage colors */}
-                <div className={`rounded-3xl p-4 sm:p-6 shadow-xl border transition-all duration-500 h-full flex flex-col ${
-                  isFocused 
-                    ? 'bg-gradient-to-br from-[#2d2555] to-[#1f1b35] shadow-[0_12px_40px_rgb(139,92,246,0.3)] border-purple-400/30' 
+                <div className={`rounded-3xl p-4 sm:p-6 shadow-xl border transition-all duration-500 h-full flex flex-col ${isFocused
+                    ? 'bg-gradient-to-br from-[#2d2555] to-[#1f1b35] shadow-[0_12px_40px_rgb(139,92,246,0.3)] border-purple-400/30'
                     : 'bg-gradient-to-br from-[#1a1731] to-[#0f0c1d] shadow-[0_8px_30px_rgb(0,0,0,0.3)] border-purple-500/10'
-                }`}>
+                  }`}>
                   {/* Profile Image - Circular with Gradient */}
-                  <motion.div 
+                  <motion.div
                     className={`mx-auto mb-4`}
-                    animate={{ 
+                    animate={{
                       width: isFocused ? 80 : 64,
                       height: isFocused ? 80 : 64
                     }}
-                    transition={{ 
+                    transition={{
                       duration: 0.8,
                       ease: "easeInOut"
                     }}
@@ -340,33 +388,30 @@ const TestimonialsCarousel = ({ testimonials }) => {
                       </span>
                     </div>
                   </motion.div>
-                  
+
                   {/* Testimonial Quote */}
                   <div className="text-center mb-4 flex-grow">
-                    <p className={`leading-relaxed font-medium italic ${
-                      isFocused 
-                        ? 'text-gray-100 text-base sm:text-lg' 
+                    <p className={`leading-relaxed font-medium italic ${isFocused
+                        ? 'text-gray-100 text-base sm:text-lg'
                         : 'text-gray-300 text-sm sm:text-base'
-                    }`}>
-                      &ldquo;{testimonial.quote}&rdquo;
+                      }`}>
+                      "{testimonial.quote}"
                     </p>
                   </div>
-                  
+
                   {/* Author Info */}
                   <div className="text-center mt-auto">
-                    <div className={`font-bold mb-1 ${
-                      isFocused 
-                        ? 'text-purple-300 text-base sm:text-lg' 
+                    <div className={`font-bold mb-1 ${isFocused
+                        ? 'text-purple-300 text-base sm:text-lg'
                         : 'text-purple-400/70 text-sm sm:text-base'
-                    }`}>
+                      }`}>
                       {testimonial.author}
                     </div>
                     {testimonial.title && (
-                      <div className={`text-xs sm:text-sm font-medium ${
-                        isFocused 
-                          ? 'text-gray-400' 
+                      <div className={`text-xs sm:text-sm font-medium ${isFocused
+                          ? 'text-gray-400'
                           : 'text-gray-500'
-                      }`}>
+                        }`}>
                         {testimonial.title}
                       </div>
                     )}
@@ -387,27 +432,27 @@ const TestimonialsCarousel = ({ testimonials }) => {
 // Professional Trending Table Component
 const ProfessionalTrendingTable = ({ title, data, isLocked = false }) => {
   const [isRegistered, setIsRegistered] = useState(false);
-  
+
   return (
     <div className="relative bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden">
       <div className="px-6 py-4 border-b border-white/10">
         <h3 className="text-xl font-semibold text-white">{title}</h3>
       </div>
-      
+
       {isLocked && !isRegistered && (
         <div className="absolute inset-0 bg-black/80 backdrop-blur-lg rounded-2xl flex flex-col items-center justify-center z-20 p-6">
           <div className="text-center">
             <div className="w-20 h-20 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-full flex items-center justify-center mb-4 mx-auto">
               <svg className="w-10 h-10 text-purple-400" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6z"/>
+                <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6z" />
               </svg>
             </div>
-            <h3 className="text-white font-bold text-xl mb-2">Premium Analytics</h3>
+            {/* <h3 className="text-white font-bold text-xl mb-2">Premium Analytics</h3> */}
             <p className="text-gray-300 text-base mb-6 max-w-sm mx-auto">
               Get access to detailed influencer performance data, ROI tracking across multiple time periods, and actionable investment recommendations.
             </p>
             <div className="bg-white/5 rounded-lg p-4 mb-6 border border-purple-500/20">
-              <div className="text-purple-300 text-sm font-semibold mb-2">What you&apos;ll unlock:</div>
+              <div className="text-purple-300 text-sm font-semibold mb-2">What you'll unlock:</div>
               <ul className="text-gray-300 text-sm space-y-1 text-left">
                 <li className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
@@ -435,13 +480,13 @@ const ProfessionalTrendingTable = ({ title, data, isLocked = false }) => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                Start Free Trial
+                🚀 Start Free Trial
               </motion.button>
             </Link>
           </div>
         </div>
       )}
-      
+
       <div className="overflow-hidden">
         <table className="w-full">
           <thead className="bg-white/5">
@@ -462,13 +507,7 @@ const ProfessionalTrendingTable = ({ title, data, isLocked = false }) => {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center space-x-3">
                     <div className="w-8 h-8 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-full flex items-center justify-center">
-                      <Image
-                        src={item.influencer.channelData?.channel_thumbnails?.high?.url || item.influencer.avatar}
-                        alt={item.influencer.channelData?.influencer_name || item.influencer.channelData?.channel_title || item.influencer.name}
-                        width={112}
-                        height={112}
-                        className="rounded-full w-full h-full object-cover"
-                      />
+                      <Image src={item.influencer.avatar} alt={item.influencer.name} width={20} height={20} className="rounded-full" />
                     </div>
                     <div>
                       <div className="text-sm font-medium text-white">{item.influencer.name}</div>
@@ -502,11 +541,10 @@ const ProfessionalTrendingTable = ({ title, data, isLocked = false }) => {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                    item.recommendation === 'STRONG BUY' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
-                    item.recommendation === 'BUY' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
-                    'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
-                  }`}>
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${item.recommendation === 'STRONG BUY' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
+                      item.recommendation === 'BUY' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
+                        'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                    }`}>
                     {item.recommendation}
                   </span>
                 </td>
@@ -537,7 +575,7 @@ export default function Home() {
       try {
         const params = new URLSearchParams({
           sentiment: "all",
-          timeframe: "1_hour", 
+          timeframe: "1_hour",
           type: "overall",
           year: "all",
           quarter: "all"
@@ -545,7 +583,7 @@ export default function Home() {
 
         const res = await fetch(`/api/youtube-data?${params.toString()}`);
         const data = await res.json();
-        
+
         if (data.success && Array.isArray(data.results)) {
           // Get top 5 influencers based on rank, ensure only 5 results
           const top5 = data.results
@@ -597,13 +635,13 @@ export default function Home() {
   if (!isMounted) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0611] via-[#1a0b2e] to-[#2d1b69] text-white font-sans pb-16 overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-[#0f0c1d] via-[#19162b] to-[#1a1731] text-white font-sans pb-16 overflow-x-hidden">
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {[...Array(10)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute rounded-full bg-gradient-to-r from-purple-500/20 via-blue-400/15 to-cyan-400/20"
+            className="absolute rounded-full bg-purple-500/10"
             style={{
               width: `${Math.random() * 100 + 50}px`,
               height: `${Math.random() * 100 + 50}px`,
@@ -634,34 +672,34 @@ export default function Home() {
               transition={{ duration: 0.5 }}
             >
               <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-                <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent animate-pulse">
-                  🚀 CRYPTO&apos;S ULTIMATE INFLUENCE TRACKER 🚀
+                <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
+                  World's only Trust Engine for Financial Influencers
                 </span>
               </h1>
             </motion.div>
 
             <motion.p
-              className="text-lg text-blue-200 max-w-lg font-semibold"
+              className="text-lg text-gray-300 max-w-lg"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              💎 DIAMOND HANDS DATA! Track every crypto guru&apos;s wins & fails. Real ROI tracking. Real accountability. No more FOMO - just FACTS! 📊✨
+              Social media moves markets. We make it accountable - back testing every call to compute a real Credibility Score. Back tested ROI & Win Rate per influencer.
             </motion.p>
 
             <motion.div
-              className="text-base text-cyan-300 mb-6 font-bold"
+              className="text-base text-purple-300 mb-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-purple-400">🔥</span>
-                LIVE TRACKING: YouTube • Twitter • Telegram
+                <span className="text-green-400">✓</span>
+                Live across YouTube, X, Telegram
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-purple-400">⚡</span>
-                BULLETPROOF METHODOLOGY - Every call verified!
+                <span className="text-green-400">✓</span>
+                Transparent methodology & audit trail
               </div>
             </motion.div>
 
@@ -674,14 +712,14 @@ export default function Home() {
               {/* Primary CTA */}
               <Link href="/leaderboard">
                 <motion.button
-                  className="bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 px-8 py-4 rounded-xl font-bold text-lg shadow-lg flex items-center gap-2 border-2 border-purple-400"
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-4 rounded-xl font-bold text-lg shadow-lg flex items-center gap-2"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   variants={glowVariants}
                   animate="glow"
                 >
-                  🏆 LIVE CRYPTO LEADERBOARD 🏆
-                  <span>🚀</span>
+                  See Live Leaderboard
+                  <span>→</span>
                 </motion.button>
               </Link>
             </motion.div>
@@ -695,22 +733,22 @@ export default function Home() {
               {/* Secondary CTA */}
               <Link href="#trending">
                 <motion.button
-                  className="bg-transparent border-2 border-cyan-400 px-6 py-3 rounded-xl font-bold text-sm hover:bg-cyan-400/20 transition-colors text-cyan-300"
+                  className="bg-transparent border-2 border-purple-500/50 px-6 py-3 rounded-xl font-bold text-sm hover:bg-purple-500/10 transition-colors"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  📈 WHAT&apos;S TRENDING
+                  What's Trending
                 </motion.button>
               </Link>
 
               {/* Third CTA */}
               <Link href="/login">
                 <motion.button
-                  className="bg-gradient-to-r from-purple-500 to-blue-500 px-6 py-3 rounded-xl font-bold text-sm shadow-lg border border-purple-400"
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-3 rounded-xl font-bold text-sm shadow-lg"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  💎 START FREE TRIAL
+                  🚀 Start Free Trial
                 </motion.button>
               </Link>
 
@@ -718,12 +756,12 @@ export default function Home() {
               <div className="relative inline-block">
                 <button
                   disabled
-                  className="bg-[#232042] px-6 py-3 rounded-xl font-bold text-sm border border-purple-400/50 opacity-80 cursor-not-allowed text-purple-200"
+                  className="bg-[#232042] px-6 py-3 rounded-xl font-bold text-sm border border-purple-500/30 opacity-70 cursor-not-allowed"
                 >
-                  🎯 PORTFOLIO SIMULATOR
+                  Portfolio Simulator
                 </button>
-                <span className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-600 to-blue-600 text-xs px-2 py-1 rounded-full font-bold animate-bounce">
-                  🔜 SOON
+                <span className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-600 to-pink-600 text-xs px-2 py-1 rounded-full font-bold">
+                  Coming Soon
                 </span>
               </div>
             </motion.div>
@@ -739,36 +777,36 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.6 }}
             >
               <h2 className="text-3xl md:text-4xl font-bold mb-1">
-                <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent animate-pulse">
-                  🔥 TOP CRYPTO LEGENDS 🔥
+                <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
+                  TOP 5 CRYPTO INFLUENCERS
                 </span>
-              </h2> 
-              <p className="text-cyan-300 text-lg font-bold flex items-center justify-center gap-3 animate-bounce">
-                ⚡
+              </h2>
+              <p className="text-purple-300 text-lg font-semibold flex items-center justify-center gap-3">
+                🔥
                 <span className="flex items-center gap-1">
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#FF0000">
-                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
                   </svg>
                   YOUTUBE
                 </span>
                 •
                 <span className="flex items-center gap-1">
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#0088cc">
-                    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
                   </svg>
                   TELEGRAM
                 </span>
                 •
                 <span className="flex items-center gap-1">
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#1DA1F2">
-                    <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                    <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
                   </svg>
                   TWITTER
                 </span>
-                ⚡
+                🔥
               </p>
-              <p className="text-blue-300 text-sm mt-1 font-bold">
-                  💰 HOTTEST CRYPTO MENTIONS — LIVE 24H DATA! 💰
+              <p className="text-gray-300 text-sm mt-1">
+                Crypto’s Top 5 Mentions — 24H!
               </p>
             </motion.div>
 
@@ -795,8 +833,8 @@ export default function Home() {
                   willChange: 'transform',
                 }}
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/30 via-blue-500/25 to-cyan-500/30 rounded-full blur-3xl animate-pulse"></div>
-                <div 
+                <div className="absolute inset-0 bg-purple-500/20 rounded-full blur-3xl"></div>
+                <div
                   className="relative z-10"
                   style={{
                     transform: 'translateZ(0)',
@@ -817,7 +855,7 @@ export default function Home() {
                     },
                     {
                       name: "TokenTornado",
-                      platform: "Telegram", 
+                      platform: "Telegram",
                       score: 93,
                       rank: 2,
                       roi2025: { "24h": "+13.1%", "7d": "+25.4%", "30d": "+51.8%", "180d": "+137.9%" },
@@ -906,107 +944,325 @@ export default function Home() {
           transition={{ duration: 0.5 }}
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
-              🚀 WHAT&apos;S TRENDING 🚀
+            <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
+              What's Trending
             </span>
           </h2>
-          <p className="text-blue-200 text-lg mb-8 font-bold">💎 DIAMOND-TIER INFLUENCERS & THEIR HOT PICKS! 💎</p>
-          <div className="w-24 h-1 bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 mx-auto rounded-full animate-pulse"></div>
+          <p className="text-gray-300 text-xl mb-8">Top 5 Mentioned Coins in 24H</p>
+          <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-blue-500 mx-auto rounded-full"></div>
         </motion.div>
 
-        <div className="space-y-16">
-          {/* YouTube Tables */}
-          <div>
-            <motion.div
-              className="text-center mb-12"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-            >
-              <h3 className="text-3xl font-bold mb-4 flex items-center justify-center gap-4">
-                <svg className="w-10 h-10" viewBox="0 0 24 24" fill="#FF0000">
-                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                </svg>
-                YouTube Recommendations
-              </h3>
-            </motion.div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-              >
-                <ProfessionalTrendingTable 
-                  title="Last 24 Hours" 
-                  data={trendingData.youtube["24hours"]} 
-                  isLocked={!isRegistered}
-                />
-              </motion.div>
-              
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-              >
-                <ProfessionalTrendingTable 
-                  title="Last 7 Days" 
-                  data={trendingData.youtube["7days"]} 
-                  isLocked={!isRegistered}
-                />
-              </motion.div>
+        {/* Top Mentioned Coins - Redesigned UI */}
+        <div className="space-y-12 mt-16">
+          {/* Top 3 Coins (3rd, 4th, 5th) - Horizontal Row with Drag & Drop */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="text-center mb-8">
+              <h3 className="text-3xl font-bold text-white mb-2">Preview Available Data</h3>
+              <p className="text-gray-300 text-lg">Get full insights with your free trial</p>
             </div>
-          </div>
 
-          {/* Telegram Tables */}
-          <div>
-            <motion.div
-              className="text-center mb-12"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-            >
-              <h3 className="text-3xl font-bold mb-4 flex items-center justify-center gap-4">
-                <svg className="w-10 h-10" viewBox="0 0 24 24" fill="#0088cc">
-                  <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
-                </svg>
-                Telegram Recommendations
-              </h3>
-            </motion.div>
+            {/* Static Cards Row - No Scrolling */}
+            {/* Desktop: Static Cards, Mobile: Continuous Scrolling */}
+            <div className="relative w-full">
+              {/* Desktop View - Static Cards */}
+              <div className="hidden md:flex items-center justify-center gap-8 max-w-6xl mx-auto">
+                {topMentionedCoins.slice(2, 5).map((coin, index) => (
+                  <motion.div
+                    key={`desktop-${coin.symbol}`}
+                    className="relative group flex-shrink-0"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.2, duration: 0.8, type: "spring" }}
+                    whileHover={{
+                      scale: 1.05,
+                      y: -5
+                    }}
+                  >
+                    {/* Desktop Card */}
+                    <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-2xl border border-white/20 p-6 w-72 h-80 overflow-hidden">
+                      {/* Blurred Background Content */}
+                      <div className="absolute inset-0 p-6 filter blur-sm opacity-30">
+                        <div className="flex flex-col items-center space-y-4">
+                          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold text-xl">#{coin.rank}</span>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-white font-bold text-2xl mb-1">{coin.symbol}</div>
+                            <div className="text-gray-300 text-sm">{coin.name}</div>
+                          </div>
+                          <div className="grid grid-cols-1 gap-3 text-center w-full">
+                            <div className="bg-white/10 rounded-lg p-3">
+                              <div className="text-gray-300 text-xs">Total Mentions</div>
+                              <div className="text-white font-bold text-lg">{coin.totalMentions}</div>
+                            </div>
+                            <div className="bg-white/10 rounded-lg p-3">
+                              <div className="text-gray-300 text-xs">Influencers</div>
+                              <div className="text-white font-bold text-lg">{coin.totalInfluencers}</div>
+                            </div>
+                            <div className="bg-white/10 rounded-lg p-3">
+                              <div className="text-gray-300 text-xs">Sentiment</div>
+                              <div className="text-green-400 font-bold text-sm">{coin.sentiment}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-              >
-                <ProfessionalTrendingTable 
-                  title="Last 24 Hours" 
-                  data={trendingData.telegram["24hours"]} 
-                  isLocked={!isRegistered}
-                />
-              </motion.div>
-              
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-              >
-                <ProfessionalTrendingTable 
-                  title="Last 7 Days" 
-                  data={trendingData.telegram["7days"]} 
-                  isLocked={!isRegistered}
-                />
-              </motion.div>
+                      {/* Rank Number - Top Left */}
+                      <div className="absolute top-4 left-4 bg-gradient-to-br from-purple-500/40 to-blue-600/40 rounded-full px-2 py-1 flex items-center justify-center">
+                        <span className="text-white font-bold text-xs">Rank {coin.rank}</span>
+                      </div>
+
+                      {/* Lock Icon - Top Right */}
+                      <div className="absolute top-4 right-4 w-8 h-8 bg-black/60 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-purple-400" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6z"/>
+                        </svg>
+                      </div>
+
+                      {/* Clear Foreground Content */}
+                      <div className="relative z-10 flex flex-col items-center justify-center h-full pt-8 pb-6">
+                        {/* Coin Icon Circle */}
+                        <div className="w-16 h-16 bg-gradient-to-br from-purple-500/40 to-blue-600/40 rounded-full flex items-center justify-center mb-3 shadow-2xl">
+                          <span className="text-white font-bold text-2xl">
+                            {coin.symbol === 'LINK' ? '🔗' : coin.symbol === 'SOL' ? '☀️' : coin.symbol === 'XRP' ? '💰' : '₿'}
+                          </span>
+                        </div>
+                        
+                        {/* Coin Name */}
+                        <div className="text-center mb-4">
+                          <div className="text-white font-bold text-xl mb-1">{coin.name}</div>
+                        </div>
+
+                        {/* Unlock Full Data Section */}
+                        <div className="text-center mb-4">
+                          <div className="text-purple-300 text-sm font-semibold mb-2">Unlock Full Data:</div>
+                          <div className="space-y-1 text-gray-300 text-xs">
+                            <div className="flex items-center justify-center gap-2">
+                              <span className="text-green-400">✓</span> Total Number of Mentions
+                            </div>
+                            <div className="flex items-center justify-center gap-2">
+                              <span className="text-green-400">✓</span> Total Number of Influencers
+                            </div>
+                            <div className="flex items-center justify-center gap-2">
+                              <span className="text-green-400">✓</span> Sentiment Majority Analysis
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* CTA Button */}
+                        <Link href="/login">
+                          <motion.button
+                            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-6 py-3 rounded-xl font-bold text-white shadow-lg transition-all duration-200"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            🚀 Start Free Trial
+                          </motion.button>
+                        </Link>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Mobile View - Continuous Scrolling with Drag */}
+              <div className="md:hidden relative overflow-hidden w-full">
+                <motion.div
+                  className="flex items-center gap-4"
+                  animate={{
+                    x: ["-100%", "200%"],
+                  }}
+                  transition={{
+                    duration: 15,
+                    repeat: Infinity,
+                    ease: "linear",
+                    repeatDelay: 2,
+                  }}
+                >
+                    {topMentionedCoins.slice(2, 5).map((coin, index) => (
+                      <motion.div
+                        key={`mobile-${coin.symbol}-${index}`}
+                        className="relative group flex-shrink-0 cursor-grab active:cursor-grabbing"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: index * 0.2, duration: 0.8, type: "spring" }}
+                        drag
+                        dragConstraints={{
+                          top: -50,
+                          left: -50,
+                          right: 50,
+                          bottom: 50,
+                        }}
+                        whileDrag={{
+                          scale: 1.1,
+                          rotate: 5,
+                          zIndex: 100,
+                          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)"
+                        }}
+                        whileHover={{
+                          scale: 1.05,
+                          y: -5
+                        }}
+                      >
+                    {/* Card Background with Blur Effect */}
+                        <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-2xl border border-white/20 p-4 w-64 h-80 overflow-hidden">
+                      {/* Blurred Background Content */}
+                      <div className="absolute inset-0 p-6 filter blur-sm opacity-30">
+                        <div className="flex flex-col items-center space-y-4">
+                          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold text-xl">#{coin.rank}</span>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-white font-bold text-2xl mb-1">{coin.symbol}</div>
+                            <div className="text-gray-300 text-sm">{coin.name}</div>
+                          </div>
+                          <div className="grid grid-cols-1 gap-3 text-center w-full">
+                            <div className="bg-white/10 rounded-lg p-3">
+                              <div className="text-gray-300 text-xs">Total Mentions</div>
+                              <div className="text-white font-bold text-lg">{coin.totalMentions}</div>
+                            </div>
+                            <div className="bg-white/10 rounded-lg p-3">
+                              <div className="text-gray-300 text-xs">Influencers</div>
+                              <div className="text-white font-bold text-lg">{coin.totalInfluencers}</div>
+                            </div>
+                            <div className="bg-white/10 rounded-lg p-3">
+                              <div className="text-gray-300 text-xs">Sentiment</div>
+                              <div className="text-green-400 font-bold text-sm">{coin.sentiment}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Rank Number - Top Left */}
+                      <div className="absolute top-4 left-4 bg-gradient-to-br from-purple-500/40 to-blue-600/40 rounded-full px-2 py-1 flex items-center justify-center">
+                        <span className="text-white font-bold text-xs">Rank {coin.rank}</span>
+                      </div>
+
+                      {/* Clear Foreground Content */}
+                      <div className="relative z-10 flex flex-col items-center justify-center h-full pt-8 pb-6">
+                        {/* Coin Icon Circle */}
+                        <div className="w-16 h-16 bg-gradient-to-br from-purple-500/40 to-blue-600/40 rounded-full flex items-center justify-center mb-3 shadow-2xl">
+                          <span className="text-white font-bold text-2xl">
+                            {coin.symbol === 'LINK' ? '🔗' : coin.symbol === 'SOL' ? '☀️' : coin.symbol === 'XRP' ? '💰' : '₿'}
+                          </span>
+                        </div>
+                        
+                        {/* Coin Name */}
+                        <div className="text-center mb-4">
+                          <div className="text-white font-bold text-xl mb-1">{coin.name}</div>
+                        </div>
+
+                        {/* Unlock Full Data Section */}
+                        <div className="text-center mb-4">
+                          <div className="text-purple-300 text-sm font-semibold mb-2">Unlock Full Data:</div>
+                          <div className="space-y-1 text-gray-300 text-xs">
+                            <div className="flex items-center justify-center gap-2">
+                              <span className="text-green-400">✓</span> Total Number of Mentions
+                            </div>
+                            <div className="flex items-center justify-center gap-2">
+                              <span className="text-green-400">✓</span> Total Number of Influencers
+                            </div>
+                            <div className="flex items-center justify-center gap-2">
+                              <span className="text-green-400">✓</span> Sentiment Majority Analysis
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* CTA Button */}
+                        <Link href="/login">
+                          <motion.button
+                            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-6 py-3 rounded-xl font-bold text-white shadow-lg transition-all duration-200"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            🚀 Start Free Trial
+                          </motion.button>
+                        </Link>
+                      </div>
+
+                      {/* Lock Icon */}
+                      <div className="absolute top-4 right-4 w-8 h-8 bg-black/60 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-purple-400" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6z" />
+                        </svg>
+                      </div>
+
+                      {/* Drag Indicator */}
+                      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 opacity-50 group-hover:opacity-100 transition-opacity">
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-white/40 rounded-full"></div>
+                          <div className="w-2 h-2 bg-white/40 rounded-full"></div>
+                          <div className="w-2 h-2 bg-white/40 rounded-full"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                      ))}
+                </motion.div>
+              </div>
             </div>
-          </div>
+          </motion.div>
+
+          {/* Top 2 Coins - Animated Text Box */}
+          <motion.div
+            className="max-w-4xl mx-auto"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            <div className="text-center mb-8">
+              <h3 className="text-3xl font-bold text-white mb-2">Top 5 Coins mentioned in 24H</h3>
+            </div>
+
+            {/* Animated Text Container */}
+            <div className="relative h-32 bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-2xl border border-purple-500/30 overflow-hidden shadow-2xl">
+              {/* Continuous Left-to-Right Scrolling Text */}
+              <div className="absolute inset-0 flex items-center">
+                <motion.div
+                  className="flex whitespace-nowrap"
+                  animate={{
+                    x: ["-100vw", "100vw"],
+                  }}
+                  transition={{
+                    duration: 20,
+                    repeat: Infinity,
+                    ease: "linear",
+                  }}
+                >
+                  {/* Repeat the text multiple times for continuous scroll */}
+                  {[...Array(3)].map((_, index) => (
+                    <div key={index} className="flex items-center space-x-8 mx-8">
+                      <span className="text-white text-xl font-bold">
+                        🏆 To View Bitcoin and Ethereum 🏆
+                      </span>
+                      <Link href="/login">
+                        <span className="bg-gradient-to-r from-purple-600 to-blue-600 px-6 py-2 rounded-xl font-bold text-white cursor-pointer hover:from-purple-700 hover:to-blue-700 transition-all">
+                          🚀 Start Free Trial
+                        </span>
+                      </Link>
+                      <span className="text-purple-300 text-lg">
+                        • • •
+                      </span>
+                    </div>
+                  ))}
+                </motion.div>
+              </div>
+
+              {/* Gradient Overlay Edges */}
+              <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-purple-900/60 to-transparent"></div>
+              <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-purple-900/60 to-transparent"></div>
+            </div>
+          </motion.div>
         </div>
+
       </section>
 
       {/* Testimonials Section */}
@@ -1019,12 +1275,12 @@ export default function Home() {
           transition={{ duration: 0.5 }}
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
-              💬 CRYPTO COMMUNITY LOVES US 💬
+            <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
+              What Our Users Say
             </span>
           </h2>
-          <p className="text-blue-200 text-lg mb-8 font-bold">🌟 REAL DIAMOND HANDS SHARE THEIR SUCCESS STORIES 🌟</p>
-          <div className="w-24 h-1 bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 mx-auto rounded-full animate-pulse"></div>
+          <p className="text-gray-300 text-lg mb-8">Real feedback from traders using our platform</p>
+          <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-blue-500 mx-auto rounded-full"></div>
         </motion.div>
 
         <TestimonialsCarousel testimonials={testimonials} />
@@ -1040,32 +1296,30 @@ export default function Home() {
           transition={{ duration: 0.7 }}
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
-              🚀 READY TO MOON WITH THE PROS? 🚀
-            </span>
+            Ready to Track Crypto Influencers?
           </h2>
-          <p className="text-blue-200 max-w-2xl mx-auto mb-10 text-lg font-bold">
-            💎 JOIN THE ELITE CRYPTO TRADERS! 💰 Stop chasing hype, start following PROVEN WINNERS! 🏆
+          <p className="text-gray-300 max-w-2xl mx-auto mb-10 text-lg">
+            Join thousands of traders who make informed decisions based on influencer performance data
           </p>
 
           <div className="flex flex-col sm:flex-row justify-center gap-6">
             <Link href="/login">
               <motion.button
-                className="bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 px-10 py-5 rounded-xl font-bold text-xl shadow-lg border-2 border-purple-400"
+                className="bg-gradient-to-r from-purple-600 to-blue-600 px-10 py-5 rounded-xl font-bold text-xl shadow-lg"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                🚀 GET STARTED NOW! 🚀
+                Get Started Now
               </motion.button>
             </Link>
 
             <Link href="/influencers">
               <motion.button
-                className="bg-transparent border-2 border-cyan-400 px-10 py-5 rounded-xl font-bold text-xl hover:bg-cyan-400/20 transition-colors text-cyan-300"
+                className="bg-transparent border-2 border-purple-500/50 px-10 py-5 rounded-xl font-bold text-xl hover:bg-purple-500/10 transition-colors"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                💎 BROWSE CRYPTO LEGENDS
+                Browse Influencers
               </motion.button>
             </Link>
           </div>
@@ -1073,12 +1327,12 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="max-w-7xl mx-auto px-4 pt-8 border-t border-purple-500/30 text-center text-blue-200 text-sm">
-        <p className="font-bold">© 2025 MCM - THE CRYPTO INFLUENCE EMPIRE! 👑 All rights reserved.</p>
+      <footer className="max-w-7xl mx-auto px-4 pt-8 border-t border-purple-500/20 text-center text-gray-500 text-sm">
+        <p>© 2025 MCM. All rights reserved.</p>
         <div className="flex justify-center gap-6 mt-4">
-          <a href="#" className="hover:text-cyan-400 transition-colors font-semibold">🔒 Privacy Policy</a>
-          <a href="#" className="hover:text-cyan-400 transition-colors font-semibold">📜 Terms of Service</a>
-          <a href="#" className="hover:text-cyan-400 transition-colors font-semibold">💬 Contact Us</a>
+          <a href="#" className="hover:text-purple-400 transition-colors">Privacy Policy</a>
+          <a href="#" className="hover:text-purple-400 transition-colors">Terms of Service</a>
+          <a href="#" className="hover:text-purple-400 transition-colors">Contact Us</a>
         </div>
       </footer>
     </div>
