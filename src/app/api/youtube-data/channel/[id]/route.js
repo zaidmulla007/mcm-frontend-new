@@ -16,7 +16,7 @@ export async function GET(request, { params }) {
         "User-Agent": "Mozilla/5.0 (compatible; MCM-Frontend/1.0)",
       },
       // Add timeout
-      signal: AbortSignal.timeout(10000), // 10 second timeout
+      signal: AbortSignal.timeout(15000), // 15 second timeout
     });
 
     console.log(`External API response status: ${response.status}`);

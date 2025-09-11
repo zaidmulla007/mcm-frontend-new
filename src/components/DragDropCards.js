@@ -320,7 +320,7 @@ const DragDropCards = ({ cards = [] }) => {
                         ease: "easeInOut"
                       }}
                     >
-                      🚀 Start Free Trial
+                      Start Free Trial
                     </motion.button>
                   </Link>
                 </div>

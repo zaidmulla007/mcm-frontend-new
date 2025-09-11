@@ -64,7 +64,8 @@ export const getYearOptions = (startYear = 2022, includeNextYear = false) => {
   const years = getAvailableYears(startYear, includeNextYear);
   const options = [{ value: "all", label: "All Years" }];
   
-  years.forEach(year => {
+  // Reverse the years array to show current year first (descending order)
+  years.reverse().forEach(year => {
     options.push({ value: year.toString(), label: year.toString() });
   });
   

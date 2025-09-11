@@ -9,7 +9,6 @@ const navLinks = [
   { name: "Home", href: "/" },
   { name: "Influencers", href: "/influencers" },
   { name: "Leaderboard", href: "/leaderboard" },
-  { name: "Enhanced", href: "/enhanced" },
   { name: "About", href: "/about" },
   { name: "Contact", href: "/contact" },
 ];
@@ -107,7 +106,7 @@ export default function ClientHeader() {
         </nav>
         {/* Search + Auth */}
         <div className="flex items-center gap-4 ml-auto">
-          <div className="relative hidden md:block">
+          {/* <div className="relative hidden md:block">
             <input
               type="text"
               placeholder="Search..."
@@ -126,7 +125,7 @@ export default function ClientHeader() {
                 <path d="M21 21l-4.35-4.35" />
               </svg>
             </span>
-          </div>
+          </div> */}
           {isLoggedIn ? (
             <div className="relative" ref={dropdownRef}>
               <button

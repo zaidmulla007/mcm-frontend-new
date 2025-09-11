@@ -2,9 +2,32 @@
 import Image from "next/image";
 import { FaTrophy, FaHeart, FaRegHeart } from "react-icons/fa";
 import { useState } from "react";
+import Swal from "sweetalert2";
 
 export default function InfluencerProfileHeader({ channelData }) {
   const [isFavorite, setIsFavorite] = useState(false);
+
+  const handleFavoriteClick = () => {
+    const newFavoriteState = !isFavorite;
+    setIsFavorite(newFavoriteState);
+    
+    // Show SweetAlert with layout colors based on action
+    Swal.fire({
+      title: newFavoriteState ? 'Added to favourites' : 'Removed from favourite list',
+      icon: newFavoriteState ? 'success' : 'info',
+      background: '#232042',
+      color: '#ffffff',
+      confirmButtonColor: '#8b5cf6',
+      timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false,
+      toast: true,
+      position: 'top-end',
+      customClass: {
+        popup: 'colored-toast'
+      }
+    });
+  };
   return (
     <section className="w-full bg-gradient-to-br from-purple-400/10 to-blue-400/10 border-b border-[#232042] mb-3 py-5">
       <div className="flex flex-col gap-6 px-4">
@@ -25,29 +48,22 @@ export default function InfluencerProfileHeader({ channelData }) {
                 ?.join("") || "U"
             )}
           </div> */}
-          {/* Details and MCM Ranking */}
+          {/* Details and Heart Icon for Desktop */}
           <div className="flex-1 flex flex-col md:flex-row gap-8">
             {/* Channel Details */}
             <div className="flex-1 flex flex-col gap-2 items-center md:items-start">
-              {/* Title Section with Heart Icon */}
+              {/* Title Section with Heart Icon (Mobile Only) */}
               <div className="flex flex-col items-center md:items-start w-full">
                 <div className="flex items-center justify-center md:justify-start gap-2 w-full">
                   <h1 className="text-2xl md:text-4xl font-bold flex items-center gap-2">
                     {channelData.influencer_name ||
                       channelData.channel_title ||
                       "Unknown Channel"}
-                    <svg
-                      className="w-6 h-6 md:w-8 md:h-8 text-red-500 flex-shrink-0"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                    </svg>
                   </h1>
-                  {/* Heart Icon Button */}
+                  {/* Heart Icon Button - Mobile View Only */}
                   <button 
-                    onClick={() => setIsFavorite(!isFavorite)}
-                    className="focus:outline-none transition-all duration-300 hover:scale-110 flex-shrink-0"
+                    onClick={handleFavoriteClick}
+                    className="md:hidden focus:outline-none transition-all duration-300 hover:scale-110 flex-shrink-0"
                     aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
                   >
                     {isFavorite ? (
@@ -61,11 +77,18 @@ export default function InfluencerProfileHeader({ channelData }) {
               
               <a
                 href={`https://www.youtube.com/channel/${channelData.channel_id}`}
-                className="text-blue-400 hover:underline text-base mb-2"
+                className="text-blue-400 hover:underline text-base mb-2 flex items-center gap-2"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                📺 {channelData.channel_custom_url || "@Unknown"} -{" "}
+                <svg
+                  className="w-4 h-4 text-red-500 flex-shrink-0 ml-1"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                </svg>
+                {channelData.channel_custom_url || "@Unknown"} -{" "}
                 {channelData.subscriber_count
                   ? `${channelData.subscriber_count.toLocaleString()} Subscribers`
                   : "Unknown Subscribers"}
@@ -144,40 +167,24 @@ export default function InfluencerProfileHeader({ channelData }) {
                 </div>
               </div>
             </div>
-            {/* MCM Ranking Table */}
-            <div className="flex flex-col items-center md:items-end">
-              <div className="bg-white/5 border border-gray-600 rounded-lg p-4 min-w-[200px] max-w-[200px] flex flex-col gap-1">
-                <div className="text-center mb-3 flex flex-row gap-2 items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="">
-                      <FaTrophy size={32} color="gold" />
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <h3 className="text-lg font-bold text-white">
-                      MCM Ranking
-                    </h3>
-                    <p className="text-sm text-gray-400">For the Year</p>
-                  </div>
-                </div>
-                <div className=" flex flex-col gap-1">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-300 text-sm">2025</span>
-                    <span className="text-white font-semibold text-sm">10</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-300 text-sm">2024</span>
-                    <span className="text-white font-semibold text-sm">6</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-300 text-sm">2023</span>
-                    <span className="text-white font-semibold text-sm">50</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-300 text-sm">2022</span>
-                    <span className="text-white font-semibold text-sm">52</span>
-                  </div>
-                </div>
+            {/* Heart Icon for Desktop View */}
+            <div className="hidden md:flex flex-col items-center md:items-end relative">
+              <div className="flex flex-col items-center gap-2">
+                {/* Heart Icon Button - Desktop View Only */}
+                <button 
+                  onClick={handleFavoriteClick}
+                  className="focus:outline-none transition-all duration-300 hover:scale-110 flex-shrink-0 p-3 rounded-full bg-white/5 border border-gray-600 hover:bg-white/10"
+                  aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                >
+                  {isFavorite ? (
+                    <FaHeart className="text-red-500" size={32} />
+                  ) : (
+                    <FaRegHeart className="text-gray-400" size={32} />
+                  )}
+                </button>
+                <span className="text-sm text-gray-400">
+                  {isFavorite ? "Added to Favorites" : "Add to Favorites"}
+                </span>
               </div>
             </div>
           </div>

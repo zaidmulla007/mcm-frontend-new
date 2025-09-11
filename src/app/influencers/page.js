@@ -435,7 +435,7 @@ export default function InfluencersPage() {
 
   const typeOptions = [
     { value: "overall", label: "Overall" },
-    { value: "hyperactive", label: "Hyperactive" },
+    { value: "hyperactive", label: "Moonshots" },
     { value: "normal", label: "Normal" },
     { value: "pre_ico", label: "Pre ICO" },
   ];
