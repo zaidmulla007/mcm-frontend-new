@@ -939,7 +939,7 @@ const TestimonialsCarousel = ({ testimonials }) => {
                       ? 'text-gray-100 text-base sm:text-lg'
                       : 'text-gray-300 text-sm sm:text-base'
                       }`}>
-                      "{testimonial.quote}"
+                      &ldquo;{testimonial.quote}&rdquo;
                     </p>
                   </div>
 
@@ -996,7 +996,7 @@ const ProfessionalTrendingTable = ({ title, data, isLocked = false }) => {
               Get access to detailed influencer performance data, ROI tracking across multiple time periods, and actionable investment recommendations.
             </p>
             <div className="bg-white/5 rounded-lg p-4 mb-6 border border-purple-500/20">
-              <div className="text-purple-300 text-sm font-semibold mb-2">What you'll unlock:</div>
+              <div className="text-purple-300 text-sm font-semibold mb-2">What you&apos;ll unlock:</div>
               <ul className="text-gray-300 text-sm space-y-1 text-left">
                 <li className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
@@ -1245,7 +1245,7 @@ export default function Home() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  What's Trending
+                  What&apos;s Trending
                 </motion.button>
               </Link>
 
@@ -1358,7 +1358,7 @@ export default function Home() {
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-2">
             <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              What's Trending
+              What&apos;s Trending
             </span>
           </h2>
           {/* <h2 className="text-white-300 text-2xl font-bold mb-3">Top 5 Mentioned Coins in 24H</h2> */}
