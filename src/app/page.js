@@ -54,80 +54,624 @@ const topMentionedCoins = [
   }
 ];
 
-// Default fallback data for top 5 YouTube influencers  
-const defaultTopInfluencers = [
-  // YouTube Influencers
+// Static data for 7 YouTube profiles with complete performance metrics
+const staticYouTubeProfiles = [
   {
     name: "CryptoKingdom",
-    platform: "YouTube",
-    score: 94,
+    platform: "YouTube", 
+    rank: 1,
+    mcmScore: 94,
+    timePeriod: "1 hour",
+    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face",
+    yearlyPerformance: {
+      2025: {
+        recommendations: {
+          total: 674,
+          moonshots: 1,
+          withoutMoonshots: 673
+        },
+        winLossRatio: {
+          overall: 32,
+          moonshots: 100,
+          withoutMoonshots: 32
+        },
+        averageReturn: {
+          overall: -11.7,
+          moonshots: 446.4,
+          withoutMoonshots: -12.4
+        }
+      },
+      2024: {
+        recommendations: {
+          total: 985,
+          moonshots: 15,
+          withoutMoonshots: 970
+        },
+        winLossRatio: {
+          overall: 49,
+          moonshots: 87,
+          withoutMoonshots: 49
+        },
+        averageReturn: {
+          overall: 7.9,
+          moonshots: 216.9,
+          withoutMoonshots: 4.7
+        }
+      },
+      2023: {
+        recommendations: {
+          total: 514,
+          moonshots: 8,
+          withoutMoonshots: 506
+        },
+        winLossRatio: {
+          overall: 35,
+          moonshots: 100,
+          withoutMoonshots: 34
+        },
+        averageReturn: {
+          overall: -0.2,
+          moonshots: 398.5,
+          withoutMoonshots: -6.5
+        }
+      },
+      2022: {
+        recommendations: {
+          total: 212,
+          moonshots: 0,
+          withoutMoonshots: 212
+        },
+        winLossRatio: {
+          overall: 28,
+          moonshots: 0,
+          withoutMoonshots: 28
+        },
+        averageReturn: {
+          overall: -8.8,
+          moonshots: 0.0,
+          withoutMoonshots: -8.8
+        }
+      }
+    },
     roi2025: {
+      "1h": "+2.1%",
       "24h": "+12.8%",
       "7d": "+24.1%",
       "30d": "+48.4%",
       "60d": "+72.7%",
       "90d": "+95.3%",
-      "180d": "+128.9%"
-    },
-    avatar: "/window.svg"
+      "180d": "+128.9%",
+      "1y": "+287.5%"
+    }
   },
   {
     name: "BlockchainBeast",
     platform: "YouTube",
-    score: 91,
+    rank: 2, 
+    mcmScore: 91,
+    timePeriod: "24 hours",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face",
+    yearlyPerformance: {
+      2025: {
+        recommendations: {
+          total: 523,
+          moonshots: 3,
+          withoutMoonshots: 520
+        },
+        winLossRatio: {
+          overall: 45,
+          moonshots: 100,
+          withoutMoonshots: 44
+        },
+        averageReturn: {
+          overall: 12.3,
+          moonshots: 324.7,
+          withoutMoonshots: 8.9
+        }
+      },
+      2024: {
+        recommendations: {
+          total: 892,
+          moonshots: 18,
+          withoutMoonshots: 874
+        },
+        winLossRatio: {
+          overall: 56,
+          moonshots: 89,
+          withoutMoonshots: 55
+        },
+        averageReturn: {
+          overall: 15.2,
+          moonshots: 189.4,
+          withoutMoonshots: 12.1
+        }
+      },
+      2023: {
+        recommendations: {
+          total: 467,
+          moonshots: 12,
+          withoutMoonshots: 455
+        },
+        winLossRatio: {
+          overall: 42,
+          moonshots: 92,
+          withoutMoonshots: 40
+        },
+        averageReturn: {
+          overall: 3.8,
+          moonshots: 276.3,
+          withoutMoonshots: -2.1
+        }
+      },
+      2022: {
+        recommendations: {
+          total: 189,
+          moonshots: 2,
+          withoutMoonshots: 187
+        },
+        winLossRatio: {
+          overall: 31,
+          moonshots: 50,
+          withoutMoonshots: 30
+        },
+        averageReturn: {
+          overall: -5.4,
+          moonshots: 78.5,
+          withoutMoonshots: -6.2
+        }
+      }
+    },
     roi2025: {
+      "1h": "+1.8%",
       "24h": "+10.3%",
       "7d": "+19.7%",
       "30d": "+41.2%",
       "60d": "+65.5%",
       "90d": "+87.8%",
-      "180d": "+114.3%"
-    },
-    avatar: "/next.svg"
+      "180d": "+114.3%",
+      "1y": "+245.8%"
+    }
   },
   {
-    name: "CoinSensei",
+    name: "CoinSensei", 
     platform: "YouTube",
-    score: 89,
+    rank: 3,
+    mcmScore: 89,
+    timePeriod: "7 days",
+    avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=80&h=80&fit=crop&crop=face",
+    yearlyPerformance: {
+      2025: {
+        recommendations: {
+          total: 456,
+          moonshots: 5,
+          withoutMoonshots: 451
+        },
+        winLossRatio: {
+          overall: 38,
+          moonshots: 80,
+          withoutMoonshots: 37
+        },
+        averageReturn: {
+          overall: 8.7,
+          moonshots: 298.2,
+          withoutMoonshots: 4.3
+        }
+      },
+      2024: {
+        recommendations: {
+          total: 734,
+          moonshots: 22,
+          withoutMoonshots: 712
+        },
+        winLossRatio: {
+          overall: 52,
+          moonshots: 91,
+          withoutMoonshots: 50
+        },
+        averageReturn: {
+          overall: 11.8,
+          moonshots: 167.3,
+          withoutMoonshots: 7.9
+        }
+      },
+      2023: {
+        recommendations: {
+          total: 389,
+          moonshots: 14,
+          withoutMoonshots: 375
+        },
+        winLossRatio: {
+          overall: 46,
+          moonshots: 86,
+          withoutMoonshots: 44
+        },
+        averageReturn: {
+          overall: 6.2,
+          moonshots: 234.8,
+          withoutMoonshots: 1.7
+        }
+      },
+      2022: {
+        recommendations: {
+          total: 167,
+          moonshots: 3,
+          withoutMoonshots: 164
+        },
+        winLossRatio: {
+          overall: 33,
+          moonshots: 67,
+          withoutMoonshots: 32
+        },
+        averageReturn: {
+          overall: -3.2,
+          moonshots: 123.4,
+          withoutMoonshots: -4.8
+        }
+      }
+    },
     roi2025: {
+      "1h": "+1.5%",
       "24h": "+8.9%",
       "7d": "+17.4%",
       "30d": "+36.8%",
       "60d": "+58.2%",
       "90d": "+79.6%",
-      "180d": "+102.4%"
-    },
-    avatar: "/file.svg"
+      "180d": "+102.4%",
+      "1y": "+198.7%"
+    }
   },
   {
     name: "DeFiDominator",
     platform: "YouTube",
-    score: 87,
+    rank: 4,
+    mcmScore: 87,
+    timePeriod: "30 days",
+    avatar: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=80&h=80&fit=crop&crop=face",
+    yearlyPerformance: {
+      2025: {
+        recommendations: {
+          total: 398,
+          moonshots: 7,
+          withoutMoonshots: 391
+        },
+        winLossRatio: {
+          overall: 41,
+          moonshots: 86,
+          withoutMoonshots: 40
+        },
+        averageReturn: {
+          overall: 5.9,
+          moonshots: 267.5,
+          withoutMoonshots: 2.1
+        }
+      },
+      2024: {
+        recommendations: {
+          total: 621,
+          moonshots: 19,
+          withoutMoonshots: 602
+        },
+        winLossRatio: {
+          overall: 48,
+          moonshots: 84,
+          withoutMoonshots: 47
+        },
+        averageReturn: {
+          overall: 9.4,
+          moonshots: 145.7,
+          withoutMoonshots: 6.8
+        }
+      },
+      2023: {
+        recommendations: {
+          total: 312,
+          moonshots: 11,
+          withoutMoonshots: 301
+        },
+        winLossRatio: {
+          overall: 39,
+          moonshots: 82,
+          withoutMoonshots: 37
+        },
+        averageReturn: {
+          overall: 2.8,
+          moonshots: 198.6,
+          withoutMoonshots: -1.4
+        }
+      },
+      2022: {
+        recommendations: {
+          total: 145,
+          moonshots: 1,
+          withoutMoonshots: 144
+        },
+        winLossRatio: {
+          overall: 29,
+          moonshots: 100,
+          withoutMoonshots: 28
+        },
+        averageReturn: {
+          overall: -6.7,
+          moonshots: 89.3,
+          withoutMoonshots: -7.2
+        }
+      }
+    },
     roi2025: {
+      "1h": "+1.2%",
       "24h": "+7.6%",
       "7d": "+15.2%",
       "30d": "+32.1%",
       "60d": "+51.8%",
       "90d": "+71.4%",
-      "180d": "+96.7%"
-    },
-    avatar: "/globe.svg"
+      "180d": "+96.7%",
+      "1y": "+178.3%"
+    }
   },
   {
     name: "AltcoinAlchemist",
     platform: "YouTube",
-    score: 85,
+    rank: 5,
+    mcmScore: 85,
+    timePeriod: "60 days",
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=face",
+    yearlyPerformance: {
+      2025: {
+        recommendations: {
+          total: 342,
+          moonshots: 4,
+          withoutMoonshots: 338
+        },
+        winLossRatio: {
+          overall: 36,
+          moonshots: 75,
+          withoutMoonshots: 35
+        },
+        averageReturn: {
+          overall: 3.4,
+          moonshots: 189.7,
+          withoutMoonshots: 0.8
+        }
+      },
+      2024: {
+        recommendations: {
+          total: 567,
+          moonshots: 16,
+          withoutMoonshots: 551
+        },
+        winLossRatio: {
+          overall: 44,
+          moonshots: 81,
+          withoutMoonshots: 43
+        },
+        averageReturn: {
+          overall: 7.1,
+          moonshots: 132.4,
+          withoutMoonshots: 4.9
+        }
+      },
+      2023: {
+        recommendations: {
+          total: 278,
+          moonshots: 9,
+          withoutMoonshots: 269
+        },
+        winLossRatio: {
+          overall: 37,
+          moonshots: 78,
+          withoutMoonshots: 36
+        },
+        averageReturn: {
+          overall: 1.2,
+          moonshots: 167.8,
+          withoutMoonshots: -2.3
+        }
+      },
+      2022: {
+        recommendations: {
+          total: 123,
+          moonshots: 2,
+          withoutMoonshots: 121
+        },
+        winLossRatio: {
+          overall: 26,
+          moonshots: 50,
+          withoutMoonshots: 25
+        },
+        averageReturn: {
+          overall: -8.1,
+          moonshots: 67.9,
+          withoutMoonshots: -9.4
+        }
+      }
+    },
     roi2025: {
+      "1h": "+1.0%",
       "24h": "+6.4%",
       "7d": "+13.8%",
       "30d": "+28.9%",
       "60d": "+46.3%",
       "90d": "+64.7%",
-      "180d": "+87.2%"
+      "180d": "+87.2%",
+      "1y": "+156.9%"
+    }
+  },
+  {
+    name: "CryptoVisionPro",
+    platform: "YouTube",
+    rank: 6,
+    mcmScore: 83,
+    timePeriod: "90 days",
+    avatar: "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?w=80&h=80&fit=crop&crop=face",
+    yearlyPerformance: {
+      2025: {
+        recommendations: {
+          total: 289,
+          moonshots: 6,
+          withoutMoonshots: 283
+        },
+        winLossRatio: {
+          overall: 34,
+          moonshots: 83,
+          withoutMoonshots: 33
+        },
+        averageReturn: {
+          overall: 2.1,
+          moonshots: 156.8,
+          withoutMoonshots: -0.7
+        }
+      },
+      2024: {
+        recommendations: {
+          total: 498,
+          moonshots: 13,
+          withoutMoonshots: 485
+        },
+        winLossRatio: {
+          overall: 41,
+          moonshots: 77,
+          withoutMoonshots: 40
+        },
+        averageReturn: {
+          overall: 5.8,
+          moonshots: 118.3,
+          withoutMoonshots: 3.2
+        }
+      },
+      2023: {
+        recommendations: {
+          total: 234,
+          moonshots: 7,
+          withoutMoonshots: 227
+        },
+        winLossRatio: {
+          overall: 33,
+          moonshots: 71,
+          withoutMoonshots: 32
+        },
+        averageReturn: {
+          overall: -0.8,
+          moonshots: 134.5,
+          withoutMoonshots: -3.9
+        }
+      },
+      2022: {
+        recommendations: {
+          total: 98,
+          moonshots: 1,
+          withoutMoonshots: 97
+        },
+        winLossRatio: {
+          overall: 24,
+          moonshots: 100,
+          withoutMoonshots: 23
+        },
+        averageReturn: {
+          overall: -9.5,
+          moonshots: 45.7,
+          withoutMoonshots: -10.1
+        }
+      }
     },
-    avatar: "/window.svg"
+    roi2025: {
+      "1h": "+0.8%",
+      "24h": "+5.7%",
+      "7d": "+12.3%",
+      "30d": "+26.4%",
+      "60d": "+42.1%",
+      "90d": "+58.9%",
+      "180d": "+79.6%",
+      "1y": "+142.7%"
+    }
+  },
+  {
+    name: "BlockchainWizard",
+    platform: "YouTube",
+    rank: 7,
+    mcmScore: 81,
+    timePeriod: "180 days",
+    avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=80&h=80&fit=crop&crop=face",
+    yearlyPerformance: {
+      2025: {
+        recommendations: {
+          total: 256,
+          moonshots: 3,
+          withoutMoonshots: 253
+        },
+        winLossRatio: {
+          overall: 31,
+          moonshots: 67,
+          withoutMoonshots: 30
+        },
+        averageReturn: {
+          overall: 0.9,
+          moonshots: 123.4,
+          withoutMoonshots: -1.8
+        }
+      },
+      2024: {
+        recommendations: {
+          total: 423,
+          moonshots: 10,
+          withoutMoonshots: 413
+        },
+        winLossRatio: {
+          overall: 38,
+          moonshots: 70,
+          withoutMoonshots: 37
+        },
+        averageReturn: {
+          overall: 4.2,
+          moonshots: 98.7,
+          withoutMoonshots: 2.1
+        }
+      },
+      2023: {
+        recommendations: {
+          total: 198,
+          moonshots: 5,
+          withoutMoonshots: 193
+        },
+        winLossRatio: {
+          overall: 30,
+          moonshots: 60,
+          withoutMoonshots: 29
+        },
+        averageReturn: {
+          overall: -2.1,
+          moonshots: 87.9,
+          withoutMoonshots: -4.6
+        }
+      },
+      2022: {
+        recommendations: {
+          total: 87,
+          moonshots: 0,
+          withoutMoonshots: 87
+        },
+        winLossRatio: {
+          overall: 22,
+          moonshots: 0,
+          withoutMoonshots: 22
+        },
+        averageReturn: {
+          overall: -11.3,
+          moonshots: 0.0,
+          withoutMoonshots: -11.3
+        }
+      }
+    },
+    roi2025: {
+      "1h": "+0.6%",
+      "24h": "+4.9%",
+      "7d": "+10.8%",
+      "30d": "+23.7%",
+      "60d": "+38.4%",
+      "90d": "+53.2%",
+      "180d": "+72.8%",
+      "1y": "+128.5%"
+    }
   }
-  // Only top 5 YouTube influencers needed for homepage
 ];
 
 
@@ -180,19 +724,19 @@ const testimonials = [
   }
 ];
 
-// Function to generate trending data using dynamic YouTube influencers
+// Function to generate trending data using static YouTube influencers
 const getTrendingData = (influencers) => {
-  const youtubeInfluencers = influencers.length > 0 ? influencers : defaultTopInfluencers.slice(0, 5);
+  const youtubeInfluencers = influencers.length > 0 ? influencers : staticYouTubeProfiles.slice(0, 5);
 
   // Static telegram data for now (could be replaced with Telegram API later)
   const telegramInfluencers = [
     {
-      name: "CryptoWhispers", platform: "Telegram", score: 96,
+      name: "CryptoWhispers", platform: "Telegram", mcmScore: 96,
       roi2025: { "24h": "+15.2%", "7d": "+28.6%", "30d": "+56.3%", "180d": "+148.7%" },
       avatar: "/file.svg"
     },
     {
-      name: "TokenTornado", platform: "Telegram", score: 93,
+      name: "TokenTornado", platform: "Telegram", mcmScore: 93,
       roi2025: { "24h": "+13.1%", "7d": "+25.4%", "30d": "+51.8%", "180d": "+137.9%" },
       avatar: "/next.svg"
     }
@@ -395,7 +939,7 @@ const TestimonialsCarousel = ({ testimonials }) => {
                       ? 'text-gray-100 text-base sm:text-lg'
                       : 'text-gray-300 text-sm sm:text-base'
                       }`}>
-                      &quot;{testimonial.quote}&quot;
+                      "{testimonial.quote}"
                     </p>
                   </div>
 
@@ -452,7 +996,7 @@ const ProfessionalTrendingTable = ({ title, data, isLocked = false }) => {
               Get access to detailed influencer performance data, ROI tracking across multiple time periods, and actionable investment recommendations.
             </p>
             <div className="bg-white/5 rounded-lg p-4 mb-6 border border-purple-500/20">
-              <div className="text-purple-300 text-sm font-semibold mb-2">What you&apos;ll unlock:</div>
+              <div className="text-purple-300 text-sm font-semibold mb-2">What you'll unlock:</div>
               <ul className="text-gray-300 text-sm space-y-1 text-left">
                 <li className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
@@ -517,7 +1061,7 @@ const ProfessionalTrendingTable = ({ title, data, isLocked = false }) => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-purple-300 border border-purple-500/30">
-                    {item.influencer.score}
+                    {item.influencer.mcmScore || item.influencer.score}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -561,75 +1105,16 @@ export default function Home() {
   const [isMounted, setIsMounted] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false); // This would come from auth context
   const [shouldScroll, setShouldScroll] = useState(false);
-  const [topInfluencers, setTopInfluencers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // No loading needed for static data
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // Fetch top 5 YouTube influencers from API
-  useEffect(() => {
-    async function fetchTopInfluencers() {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({
-          sentiment: "all",
-          timeframe: "1_hour",
-          type: "overall",
-          year: "all",
-          quarter: "all"
-        });
+  // Use static YouTube profiles data - no API calls
+  const topInfluencers = staticYouTubeProfiles;
 
-        const res = await fetch(`/api/youtube-data?${params.toString()}`);
-        const data = await res.json();
-
-        if (data.success && Array.isArray(data.results)) {
-          // Get top 5 influencers based on rank, ensure only 5 results
-          const top5 = data.results
-            .filter(inf => inf.rank && inf.rank <= 5)
-            .sort((a, b) => a.rank - b.rank)
-            .slice(0, 5) // Ensure exactly 5 results
-            .map((inf) => ({
-              name: inf.influencer_name,
-              platform: "YouTube",
-              score: Math.round(inf.ai_overall_score || 0), // MCM Score
-              rank: inf.rank,
-              roi2025: {
-                "24h": `+${(inf.prob_weighted_returns || 0).toFixed(1)}%`,
-                "7d": `+${((inf.prob_weighted_returns || 0) * 1.8).toFixed(1)}%`,
-                "30d": `+${((inf.prob_weighted_returns || 0) * 3.2).toFixed(1)}%`,
-                "60d": `+${((inf.prob_weighted_returns || 0) * 5.1).toFixed(1)}%`,
-                "90d": `+${((inf.prob_weighted_returns || 0) * 7.3).toFixed(1)}%`,
-                "180d": `+${((inf.prob_weighted_returns || 0) * 12.1).toFixed(1)}%`
-              },
-              avatar: inf.channel_thumbnails?.high?.url || "/window.svg",
-              subs: inf.subs,
-              win_percentage: inf.win_percentage
-            }));
-
-          console.log(`Fetched ${top5.length} top influencers:`, top5.map(inf => `${inf.name} (Rank: ${inf.rank}, MCM: ${inf.score})`));
-          setTopInfluencers(top5);
-        } else {
-          console.log("API failed or no results, using default data");
-          // Fallback to default data if API fails
-          setTopInfluencers(defaultTopInfluencers.slice(0, 5));
-        }
-      } catch (error) {
-        console.error("Failed to fetch top influencers:", error);
-        // Fallback to default data if API fails
-        setTopInfluencers(defaultTopInfluencers.slice(0, 5));
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchTopInfluencers();
-  }, []);
-
-  // Removed auto-scroll functionality that was interfering with user interaction
-
-  // Get dynamic trending data
+  // Get dynamic trending data using static profiles
   const trendingData = getTrendingData(topInfluencers);
 
   if (!isMounted) return null;
@@ -665,21 +1150,21 @@ export default function Home() {
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto pt-8 pb-4 px-4 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-start min-h-[60vh] lg:min-h-[50vh]">
-          <div className="space-y-8 lg:pt-20">
+          <div className="space-y-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
               <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-                <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                   AI Powered Crypto Influencers Analytics Platform
                 </span>
               </h1>
             </motion.div>
 
             <motion.div
-              className="text-base text-purple-300 mb-6"
+              className="text-base text-purple-300"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
@@ -726,6 +1211,69 @@ export default function Home() {
               </div>
             </motion.div>
 
+            <motion.div
+              className="flex flex-wrap gap-4 mt-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
+              {/* Primary CTA */}
+              <Link href="/leaderboard">
+                <motion.button
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-4 rounded-xl font-bold text-lg shadow-lg flex items-center gap-2"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  variants={glowVariants}
+                  animate="glow"
+                >
+                  See Live Leaderboard
+                  <span>→</span>
+                </motion.button>
+              </Link>
+            </motion.div>
+
+            <motion.div
+              className="flex flex-wrap gap-3 mt-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              {/* Secondary CTA */}
+              <Link href="#trending">
+                <motion.button
+                  className="bg-transparent border-2 border-purple-500/50 px-6 py-3 rounded-xl font-bold text-sm hover:bg-purple-500/10 transition-colors"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  What's Trending
+                </motion.button>
+              </Link>
+
+              {/* Third CTA */}
+              <Link href="/login">
+                <motion.button
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-3 rounded-xl font-bold text-sm shadow-lg"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  🚀 Start Free Trial
+                </motion.button>
+              </Link>
+
+              {/* Fourth CTA */}
+              <div className="relative inline-block">
+                <button
+                  disabled
+                  className="bg-[#232042] px-6 py-3 rounded-xl font-bold text-sm border border-purple-500/30 opacity-70 cursor-not-allowed"
+                >
+                  Portfolio Simulator
+                </button>
+                <span className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-600 to-pink-600 text-xs px-2 py-1 rounded-full font-bold">
+                  Coming Soon
+                </span>
+              </div>
+            </motion.div>
+
           </div>
 
           {/* Hero Visual - TOP CRYPTO INFLUENCERS BY PLATFORM */}
@@ -738,7 +1286,7 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.6 }}
             >
               <h2 className="text-3xl md:text-4xl font-bold mb-1">
-                <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                   CRYPTO INFLUENCERS
                 </span>
               </h2>
@@ -766,126 +1314,35 @@ export default function Home() {
               </p> */}
             </motion.div>
 
-            {loading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500"></div>
-              </div>
-            ) : (
-              <motion.div
-                className="relative w-full max-w-sm mx-auto mb-12"
-                animate={{
-                  y: [0, -15, 0],
-                }}
-                transition={{
-                  duration: 4,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  type: "tween"
-                }}
+            <motion.div
+              className="relative w-full max-w-sm mx-auto mb-12"
+              animate={{
+                y: [0, -15, 0],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut",
+                type: "tween"
+              }}
+              style={{
+                transform: 'translateZ(0)',
+                backfaceVisibility: 'hidden',
+                contain: 'layout style paint',
+                willChange: 'transform',
+              }}
+            >
+              <div className="absolute inset-0 bg-purple-500/20 rounded-full blur-3xl"></div>
+              <div
+                className="relative z-10"
                 style={{
                   transform: 'translateZ(0)',
-                  backfaceVisibility: 'hidden',
                   contain: 'layout style paint',
-                  willChange: 'transform',
                 }}
               >
-                <div className="absolute inset-0 bg-purple-500/20 rounded-full blur-3xl"></div>
-                <div
-                  className="relative z-10"
-                  style={{
-                    transform: 'translateZ(0)',
-                    contain: 'layout style paint',
-                  }}
-                >
-                  <DragDropCards cards={[
-                    // First 5: YouTube (API-driven)
-                    ...topInfluencers,
-                    // Next 5: Telegram (hardcoded)
-                    {
-                      name: "CryptoWhispers",
-                      platform: "Telegram",
-                      score: 96,
-                      rank: 1,
-                      roi2025: { "24h": "+15.2%", "7d": "+28.6%", "30d": "+56.3%", "180d": "+148.7%" },
-                      avatar: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=80&h=80&fit=crop&crop=face"
-                    },
-                    {
-                      name: "TokenTornado",
-                      platform: "Telegram",
-                      score: 93,
-                      rank: 2,
-                      roi2025: { "24h": "+13.1%", "7d": "+25.4%", "30d": "+51.8%", "180d": "+137.9%" },
-                      avatar: "https://images.unsplash.com/photo-1605792657660-596af9009e82?w=80&h=80&fit=crop&crop=face"
-                    },
-                    {
-                      name: "DiamondSignals",
-                      platform: "Telegram",
-                      score: 90,
-                      rank: 3,
-                      roi2025: { "24h": "+11.7%", "7d": "+22.8%", "30d": "+46.5%", "180d": "+124.6%" },
-                      avatar: "https://images.unsplash.com/photo-1518806118471-f28b20a1d79d?w=80&h=80&fit=crop&crop=face"
-                    },
-                    {
-                      name: "MoonMasterPro",
-                      platform: "Telegram",
-                      score: 88,
-                      rank: 4,
-                      roi2025: { "24h": "+10.4%", "7d": "+20.1%", "30d": "+42.8%", "180d": "+115.8%" },
-                      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face"
-                    },
-                    {
-                      name: "GemHunterElite",
-                      platform: "Telegram",
-                      score: 86,
-                      rank: 5,
-                      roi2025: { "24h": "+9.2%", "7d": "+18.4%", "30d": "+37.9%", "180d": "+104.2%" },
-                      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face"
-                    },
-                    // Last 5: Twitter (hardcoded)
-                    {
-                      name: "CryptoVortex",
-                      platform: "Twitter",
-                      score: 92,
-                      rank: 1,
-                      roi2025: { "24h": "+12.5%", "7d": "+23.9%", "30d": "+48.7%", "180d": "+129.4%" },
-                      avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=80&h=80&fit=crop&crop=face"
-                    },
-                    {
-                      name: "BlockBullionaire",
-                      platform: "Twitter",
-                      score: 89,
-                      rank: 2,
-                      roi2025: { "24h": "+10.8%", "7d": "+21.3%", "30d": "+43.6%", "180d": "+117.5%" },
-                      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=face"
-                    },
-                    {
-                      name: "DeFiDynamo",
-                      platform: "Twitter",
-                      score: 87,
-                      rank: 3,
-                      roi2025: { "24h": "+9.6%", "7d": "+18.7%", "30d": "+38.4%", "180d": "+105.2%" },
-                      avatar: "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?w=80&h=80&fit=crop&crop=face"
-                    },
-                    {
-                      name: "SatoshiSage",
-                      platform: "Twitter",
-                      score: 85,
-                      rank: 4,
-                      roi2025: { "24h": "+8.1%", "7d": "+16.4%", "30d": "+33.8%", "180d": "+92.4%" },
-                      avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=80&h=80&fit=crop&crop=face"
-                    },
-                    {
-                      name: "AltcoinAce",
-                      platform: "Twitter",
-                      score: 83,
-                      rank: 5,
-                      roi2025: { "24h": "+7.3%", "7d": "+14.9%", "30d": "+30.2%", "180d": "+83.7%" },
-                      avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=80&h=80&fit=crop&crop=face"
-                    }
-                  ]} />
-                </div>
-              </motion.div>
-            )}
+                <DragDropCards cards={staticYouTubeProfiles} />
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -900,21 +1357,20 @@ export default function Home() {
           transition={{ duration: 0.5 }}
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-2">
-            <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-              What&apos;s Trending
+            <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              What's Trending
             </span>
           </h2>
-          <h2 className="text-white-300 text-2xl font-bold mb-3">Top 5 Mentioned Coins in 24H</h2>
+          {/* <h2 className="text-white-300 text-2xl font-bold mb-3">Top 5 Mentioned Coins in 24H</h2> */}
         </motion.div>
 
         {/* Display Purpose Text */}
-        <p className="text-center text-gray-400 text-sm italic mb-4 mt-1">
+        {/* <p className="text-center text-gray-400 text-sm italic mb-4 mt-1">
           The coins are listed for display purpose
-        </p>
+        </p> */}
 
         {/* Animated Text Container */}
-        <div className="relative h-32 bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-2xl border border-purple-500/30 overflow-hidden shadow-2xl">
-          {/* Continuous Left-to-Right Scrolling Text */}
+        {/* <div className="relative h-32 bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-2xl border border-purple-500/30 overflow-hidden shadow-2xl">
           <div className="absolute inset-0 flex items-center">
             <motion.div
               className="flex whitespace-nowrap"
@@ -927,7 +1383,6 @@ export default function Home() {
                 ease: "linear",
               }}
             >
-              {/* Repeat the text multiple times for continuous scroll */}
               {[...Array(3)].map((_, index) => (
                 <div key={index} className="flex items-center space-x-8 mx-8">
                   {[
@@ -1060,16 +1515,16 @@ export default function Home() {
               ))}
             </motion.div>
           </div>
-
-          {/* Gradient Overlay Edges */}
           <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-purple-900/60 to-transparent"></div>
           <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-purple-900/60 to-transparent"></div>
-        </div>
-
+        </div> */}
+        {/* Top Mentioned Coins - Redesigned UI */}
+       
         {/* Influencer Flash News Text */}
         <h2 className="text-center text-white text-2xl font-bold mb-3 mt-4">
           Influencer Flash News Update
         </h2>
+        
 
         {/* Influencer News Scroller Container */}
         <div className="relative h-24 bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-2xl border border-purple-500/30 overflow-hidden shadow-2xl mb-4">
@@ -1137,8 +1592,7 @@ export default function Home() {
           <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-purple-900/60 to-transparent"></div>
         </div>
 
-        {/* Top Mentioned Coins - Redesigned UI */}
-        <div className="space-y-6 mt-4">
+ <div className="space-y-6 mt-4">
           {/* Top 3 Coins (3rd, 4th, 5th) - Horizontal Row with Drag & Drop */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -1256,7 +1710,7 @@ export default function Home() {
                 ))}
               </div>
 
-              {/* Mobile View - Continuous Scrolling with Drag */}
+              {/* Mobile View - Continuous Scrolling */}
               <div className="md:hidden relative overflow-hidden w-full">
                 <motion.div
                   className="flex items-center gap-4"
@@ -1267,128 +1721,109 @@ export default function Home() {
                     duration: 15,
                     repeat: Infinity,
                     ease: "linear",
-                    repeatDelay: 2,
+                    repeatDelay: 0,
                   }}
                 >
-                  {topMentionedCoins.slice(2, 5).map((coin, index) => (
-                    <motion.div
-                      key={`mobile-${coin.symbol}-${index}`}
-                      className="relative group flex-shrink-0 cursor-grab active:cursor-grabbing"
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      whileInView={{ opacity: 1, scale: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: index * 0.2, duration: 0.8, type: "spring" }}
-                      drag
-                      dragConstraints={{
-                        top: -50,
-                        left: -50,
-                        right: 50,
-                        bottom: 50,
-                      }}
-                      whileDrag={{
-                        scale: 1.1,
-                        rotate: 5,
-                        zIndex: 100,
-                        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)"
-                      }}
-                      whileHover={{
-                        scale: 1.05,
-                        y: -5
-                      }}
-                    >
-                      {/* Card Background with Blur Effect */}
-                      <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-2xl border border-white/20 p-4 w-64 h-80 overflow-hidden">
-                        {/* Blurred Background Content */}
-                        <div className="absolute inset-0 p-6 filter blur-sm opacity-30">
-                          <div className="flex flex-col items-center space-y-4">
-                            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
-                              <span className="text-white font-bold text-xl">#{coin.rank}</span>
-                            </div>
-                            <div className="text-center">
-                              <div className="text-white font-bold text-2xl mb-1">{coin.symbol}</div>
-                              <div className="text-gray-300 text-sm">{coin.name}</div>
-                            </div>
-                            <div className="grid grid-cols-1 gap-3 text-center w-full">
-                              <div className="bg-white/10 rounded-lg p-3">
-                                <div className="text-gray-300 text-xs">Total Mentions</div>
-                                <div className="text-white font-bold text-lg">{coin.totalMentions}</div>
+                  {/* Repeat the cards multiple times for continuous scrolling */}
+                  {[...Array(3)].map((repeatIndex) => (
+                    topMentionedCoins.slice(2, 5).map((coin, index) => (
+                      <motion.div
+                        key={`mobile-${coin.symbol}-${index}-${repeatIndex}`}
+                        className="relative group flex-shrink-0"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: index * 0.2, duration: 0.8, type: "spring" }}
+                        whileHover={{
+                          scale: 1.05,
+                          y: -5
+                        }}
+                      >
+                        {/* Card Background with Blur Effect */}
+                        <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-2xl border border-white/20 p-4 w-64 h-80 overflow-hidden">
+                          {/* Blurred Background Content */}
+                          <div className="absolute inset-0 p-6 filter blur-sm opacity-30">
+                            <div className="flex flex-col items-center space-y-4">
+                              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
+                                <span className="text-white font-bold text-xl">#{coin.rank}</span>
                               </div>
-                              <div className="bg-white/10 rounded-lg p-3">
-                                <div className="text-gray-300 text-xs">Influencers</div>
-                                <div className="text-white font-bold text-lg">{coin.totalInfluencers}</div>
+                              <div className="text-center">
+                                <div className="text-white font-bold text-2xl mb-1">{coin.symbol}</div>
+                                <div className="text-gray-300 text-sm">{coin.name}</div>
                               </div>
-                              <div className="bg-white/10 rounded-lg p-3">
-                                <div className="text-gray-300 text-xs">Sentiment</div>
-                                <div className="text-green-400 font-bold text-sm">{coin.sentiment}</div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Rank Number - Top Left */}
-                        <div className="absolute top-4 left-4 bg-gradient-to-br from-purple-500/40 to-blue-600/40 rounded-full px-2 py-1 flex items-center justify-center">
-                          <span className="text-white font-bold text-xs">Rank {coin.rank}</span>
-                        </div>
-
-                        {/* Clear Foreground Content */}
-                        <div className="relative z-10 flex flex-col items-center justify-center h-full pt-8 pb-6">
-                          {/* Coin Icon Circle */}
-                          <div className="w-16 h-16 bg-gradient-to-br from-purple-500/40 to-blue-600/40 rounded-full flex items-center justify-center mb-3 shadow-2xl">
-                            <span className="text-white font-bold text-2xl">
-                              {coin.symbol === 'LINK' ? '🔗' : coin.symbol === 'SOL' ? '☀️' : coin.symbol === 'XRP' ? '💰' : '₿'}
-                            </span>
-                          </div>
-
-                          {/* Coin Name */}
-                          <div className="text-center mb-4">
-                            <div className="text-white font-bold text-xl mb-1">{coin.name}</div>
-                          </div>
-
-                          {/* Unlock Full Data Section */}
-                          <div className="text-center mb-4">
-                            <div className="text-purple-300 text-sm font-semibold mb-2">Unlock Full Data:</div>
-                            <div className="space-y-1 text-gray-300 text-xs">
-                              <div className="flex items-center justify-center gap-2">
-                                <span className="text-green-400">✓</span> Total Number of Mentions
-                              </div>
-                              <div className="flex items-center justify-center gap-2">
-                                <span className="text-green-400">✓</span> Total Number of Influencers
-                              </div>
-                              <div className="flex items-center justify-center gap-2">
-                                <span className="text-green-400">✓</span> Sentiment Majority Analysis
+                              <div className="grid grid-cols-1 gap-3 text-center w-full">
+                                <div className="bg-white/10 rounded-lg p-3">
+                                  <div className="text-gray-300 text-xs">Total Mentions</div>
+                                  <div className="text-white font-bold text-lg">{coin.totalMentions}</div>
+                                </div>
+                                <div className="bg-white/10 rounded-lg p-3">
+                                  <div className="text-gray-300 text-xs">Influencers</div>
+                                  <div className="text-white font-bold text-lg">{coin.totalInfluencers}</div>
+                                </div>
+                                <div className="bg-white/10 rounded-lg p-3">
+                                  <div className="text-gray-300 text-xs">Sentiment</div>
+                                  <div className="text-green-400 font-bold text-sm">{coin.sentiment}</div>
+                                </div>
                               </div>
                             </div>
                           </div>
 
-                          {/* CTA Button */}
-                          <Link href="/login">
-                            <motion.button
-                              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-6 py-3 rounded-xl font-bold text-white shadow-lg transition-all duration-200"
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                            >
-                              Start Free Trial
-                            </motion.button>
-                          </Link>
-                        </div>
+                          {/* Rank Number - Top Left */}
+                          <div className="absolute top-4 left-4 bg-gradient-to-br from-purple-500/40 to-blue-600/40 rounded-full px-2 py-1 flex items-center justify-center">
+                            <span className="text-white font-bold text-xs">Rank {coin.rank}</span>
+                          </div>
 
-                        {/* Lock Icon */}
-                        <div className="absolute top-4 right-4 w-8 h-8 bg-black/60 rounded-full flex items-center justify-center">
-                          <svg className="w-4 h-4 text-purple-400" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6z" />
-                          </svg>
-                        </div>
+                          {/* Clear Foreground Content */}
+                          <div className="relative z-10 flex flex-col items-center justify-center h-full pt-8 pb-6">
+                            {/* Coin Icon Circle */}
+                            <div className="w-16 h-16 bg-gradient-to-br from-purple-500/40 to-blue-600/40 rounded-full flex items-center justify-center mb-3 shadow-2xl">
+                              <span className="text-white font-bold text-2xl">
+                                {coin.symbol === 'LINK' ? '🔗' : coin.symbol === 'SOL' ? '☀️' : coin.symbol === 'XRP' ? '💰' : '₿'}
+                              </span>
+                            </div>
 
-                        {/* Drag Indicator */}
-                        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 opacity-50 group-hover:opacity-100 transition-opacity">
-                          <div className="flex space-x-1">
-                            <div className="w-2 h-2 bg-white/40 rounded-full"></div>
-                            <div className="w-2 h-2 bg-white/40 rounded-full"></div>
-                            <div className="w-2 h-2 bg-white/40 rounded-full"></div>
+                            {/* Coin Name */}
+                            <div className="text-center mb-4">
+                              <div className="text-white font-bold text-xl mb-1">{coin.name}</div>
+                            </div>
+
+                            {/* Unlock Full Data Section */}
+                            <div className="text-center mb-4">
+                              <div className="text-purple-300 text-sm font-semibold mb-2">Unlock Full Data:</div>
+                              <div className="space-y-1 text-gray-300 text-xs">
+                                <div className="flex items-center justify-center gap-2">
+                                  <span className="text-green-400">✓</span> Total Number of Mentions
+                                </div>
+                                <div className="flex items-center justify-center gap-2">
+                                  <span className="text-green-400">✓</span> Total Number of Influencers
+                                </div>
+                                <div className="flex items-center justify-center gap-2">
+                                  <span className="text-green-400">✓</span> Sentiment Majority Analysis
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* CTA Button */}
+                            <Link href="/login">
+                              <motion.button
+                                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-6 py-3 rounded-xl font-bold text-white shadow-lg transition-all duration-200"
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                              >
+                                Start Free Trial
+                              </motion.button>
+                            </Link>
+                          </div>
+
+                          {/* Lock Icon */}
+                          <div className="absolute top-4 right-4 w-8 h-8 bg-black/60 rounded-full flex items-center justify-center">
+                            <svg className="w-4 h-4 text-purple-400" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6z" />
+                            </svg>
                           </div>
                         </div>
-                      </div>
-                    </motion.div>
+                      </motion.div>
+                    ))
                   ))}
                 </motion.div>
               </div>
@@ -1457,7 +1892,7 @@ export default function Home() {
           transition={{ duration: 0.5 }}
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
               What Our Users Say
             </span>
           </h2>
@@ -1495,7 +1930,7 @@ export default function Home() {
               </motion.button>
             </Link>
 
-            <Link href="/influencers">
+            {/* <Link href="/influencers">
               <motion.button
                 className="bg-transparent border-2 border-purple-500/50 px-10 py-5 rounded-xl font-bold text-xl hover:bg-purple-500/10 transition-colors"
                 whileHover={{ scale: 1.05 }}
@@ -1503,7 +1938,7 @@ export default function Home() {
               >
                 Browse Influencers
               </motion.button>
-            </Link>
+            </Link> */}
           </div>
         </motion.div>
       </section>
