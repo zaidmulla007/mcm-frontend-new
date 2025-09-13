@@ -424,14 +424,14 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
       {/* Summary Tables Container */}
       {analytics && (
         <div className="p-6 border-b border-gray-200">
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Performance Summary Table */}
             <div className="bg-[#f5f5f5] rounded-lg border border-gray-200 shadow-lg">
               <h4 className="text-lg font-semibold text-to-purple mb-4 p-4 pb-0">
                 Performance Summary (Avg ROI)
               </h4>
-              <div className="overflow-x-auto p-4 pt-0">
-                <table className="min-w-full text-sm">
+              <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 p-4 pt-0">
+                <table className="min-w-full text-sm" style={{ minWidth: '600px' }}>
                   <thead>
                     <tr className="bg-[#e8e8e8] text-to-purple">
                       <th className="p-2 text-left font-semibold">Metric</th>
@@ -581,8 +581,8 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
               <h4 className="text-lg font-semibold text-to-purple mb-4 p-4 pb-0">
                 Sentiment Summary
               </h4>
-              <div className="overflow-x-auto p-4 pt-0">
-                <table className="min-w-full text-sm">
+              <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 p-4 pt-0">
+                <table className="min-w-full text-sm" style={{ minWidth: '500px' }}>
                   <thead>
                     <tr className="bg-[#e8e8e8] text-to-purple">
                       <th className="p-2 text-left font-semibold">Metric</th>
@@ -649,69 +649,77 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
         </div>
       ) : recommendations.length > 0 ? (
         <>
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="bg-[#e8e8e8] text-to-purple">
-                <th className="p-2 text-left font-semibold">
-                  <div className="flex items-center gap-2">
-                    <span>Date of Post UTC</span>
-                    <button
-                      onClick={scrollToFilters}
-                      className="text-blue-600 hover:text-blue-700 transition-colors"
-                      title="View filters"
-                    >
-                      <FaEye size={16} />
-                    </button>
-                  </div>
-                </th>
-                <th className="p-2 text-center font-semibold">
-                  <div className="flex items-center justify-center gap-2">
-                    <span>Coin</span>
-                    <button
-                      onClick={scrollToFilters}
-                      className="text-blue-600 hover:text-blue-700 transition-colors"
-                      title="View filters"
-                    >
-                      <FaEye size={16} />
-                    </button>
-                  </div>
-                </th>
-                <th className="p-2 text-center font-semibold">
-                  <div className="flex flex-col items-center">
-                    {/* Main Label */}
-                    <span className="font-semibold text-black">Price</span>
-
-                    {/* Sub Labels as boxes */}
-                    <div className="flex gap-2 mt-1">
-                      <span
-                        className="px-2 py-0.5 rounded text-xs text-to-purple font-semibold"
-                        style={{ backgroundColor: "#ebe8e8", }}
+          <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+            <table className="min-w-full text-sm" style={{ minWidth: '1200px' }}>
+              <thead>
+                <tr className="bg-[#e8e8e8] text-to-purple">
+                  <th className="p-2 text-left font-semibold sticky left-0 bg-[#e8e8e8] z-10" style={{ minWidth: '120px' }}>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs">Date UTC</span>
+                      <button
+                        onClick={scrollToFilters}
+                        className="text-blue-600 hover:text-blue-700 transition-colors"
+                        title="View filters"
                       >
-                        Current Price
-                      </span>
-                      <span
-                        className="px-2 py-0.5 rounded text-xs font-semibold"
-                        style={{ backgroundColor: "#ebe8e8", color: "#2b7fff" }}
-                      >
-                        Last Updated
-                      </span>
+                        <FaEye size={12} />
+                      </button>
                     </div>
-                  </div>
-                </th>
-                <th className="p-2 text-center font-semibold">Sentiment</th>
-                <th className="p-2 text-left font-semibold">Initial Price</th>
-                <th className="p-2 text-left font-semibold">1H ROI</th>
-                <th className="p-2 text-left font-semibold">24H ROI</th>
-                <th className="p-2 text-left font-semibold">7D ROI</th>
-                <th className="p-2 text-left font-semibold">30D ROI</th>
-                <th className="p-2 text-left font-semibold">60D ROI</th>
-                <th className="p-2 text-left font-semibold">90D ROI</th>
-                <th className="p-2 text-left font-semibold">180D ROI</th>
-                <th className="p-2 text-left font-semibold">1Y ROI</th>
-                <th className="p-2 text-center font-semibold">Video Title</th>
-                <th className="p-2 text-left font-semibold">Video</th>
-              </tr>
-            </thead>
+                  </th>
+                  <th className="p-2 text-center font-semibold sticky left-[120px] bg-[#e8e8e8] z-10" style={{ minWidth: '100px' }}>
+                    <div className="flex items-center justify-center gap-1">
+                      <span className="text-xs">Coin</span>
+                      <button
+                        onClick={scrollToFilters}
+                        className="text-blue-600 hover:text-blue-700 transition-colors"
+                        title="View filters"
+                      >
+                        <FaEye size={12} />
+                      </button>
+                    </div>
+                  </th>
+                  <th className="p-2 text-center font-semibold" style={{ minWidth: '100px' }}>
+                    <div className="flex flex-col items-center">
+                      <span className="font-semibold text-black text-xs">Current Price</span>
+                    </div>
+                  </th>
+                  <th className="p-2 text-center font-semibold" style={{ minWidth: '90px' }}>
+                    <span className="text-xs">Sentiment</span>
+                  </th>
+                  <th className="p-2 text-left font-semibold" style={{ minWidth: '80px' }}>
+                    <span className="text-xs">Initial</span>
+                  </th>
+                  <th className="p-2 text-left font-semibold" style={{ minWidth: '60px' }}>
+                    <span className="text-xs">1H</span>
+                  </th>
+                  <th className="p-2 text-left font-semibold" style={{ minWidth: '60px' }}>
+                    <span className="text-xs">24H</span>
+                  </th>
+                  <th className="p-2 text-left font-semibold" style={{ minWidth: '60px' }}>
+                    <span className="text-xs">7D</span>
+                  </th>
+                  <th className="p-2 text-left font-semibold" style={{ minWidth: '60px' }}>
+                    <span className="text-xs">30D</span>
+                  </th>
+                  <th className="p-2 text-left font-semibold" style={{ minWidth: '60px' }}>
+                    <span className="text-xs">60D</span>
+                  </th>
+                  <th className="p-2 text-left font-semibold" style={{ minWidth: '60px' }}>
+                    <span className="text-xs">90D</span>
+                  </th>
+                  <th className="p-2 text-left font-semibold" style={{ minWidth: '60px' }}>
+                    <span className="text-xs">180D</span>
+                  </th>
+                  <th className="p-2 text-left font-semibold" style={{ minWidth: '60px' }}>
+                    <span className="text-xs">1Y</span>
+                  </th>
+                  <th className="p-2 text-center font-semibold" style={{ minWidth: '150px' }}>
+                    <span className="text-xs">Video Title</span>
+                  </th>
+                  <th className="p-2 text-left font-semibold" style={{ minWidth: '60px' }}>
+                    <span className="text-xs">Video</span>
+                  </th>
+                </tr>
+              </thead>
             <tbody>
               {recommendations.map((rec) => {
                 // Use the new ROI calculation keys directly from the response
@@ -724,34 +732,35 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                 const oneYearROI = rec["1_year_price_returns"];
                 const oneEightyDayROI = rec["180_days_price_returns"];
                 return (
-                  <tr key={rec._id} className="hover:bg-gray-100">
-                    <td className="p-3 text-to-purple">
-                      {new Date(rec.publishedAt).toLocaleDateString(undefined, {
-                        year: "numeric",
-                        month: "2-digit",
-                        day: "2-digit",
-                        timeZone: "UTC",
-                      })}{" "}
-                      <br />
-                      {new Date(rec.publishedAt).toLocaleTimeString(undefined, {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        second: "2-digit",
-                        timeZone: "UTC",
-                      })}
+                  <tr key={rec._id} className="hover:bg-gray-100 group">
+                    <td className="p-2 text-to-purple sticky left-0 bg-white group-hover:bg-gray-100 z-10" style={{ minWidth: '120px' }}>
+                      <div className="text-xs">
+                        {new Date(rec.publishedAt).toLocaleDateString(undefined, {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                          timeZone: "UTC",
+                        })}
+                        <br />
+                        {new Date(rec.publishedAt).toLocaleTimeString(undefined, {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          timeZone: "UTC",
+                        })}
+                      </div>
                     </td>
-                    <td className="p-3 flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center text-xs font-bold">
+                    <td className="p-2 flex items-center gap-1 sticky left-[120px] bg-white group-hover:bg-gray-100 z-10" style={{ minWidth: '100px' }}>
+                      <span className="w-5 h-5 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center text-xs font-bold">
                         {rec.symbol?.charAt(0) || "?"}
                       </span>
                       <div>
-                        <div className="font-semibold text-to-purple">{rec.symbol}</div>
-                        <div className="text-xs text-to-purple-400">
+                        <div className="font-semibold text-to-purple text-xs">{rec.symbol}</div>
+                        <div className="text-xs text-to-purple-400 truncate" style={{ maxWidth: '60px' }}>
                           {rec.coin_name}
                         </div>
                       </div>
                     </td>
-                    <td className="px-2 py-3 text-center">
+                    <td className="p-2 text-center">
                       {(() => {
                         const priceText = formatLivePrice(rec.symbol);
                         const isLive = isSymbolLive(rec.symbol);
@@ -759,14 +768,14 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                         const timestamp = getPriceTimestamp(rec.symbol);
 
                         if (priceText === "-" || priceText === "" || priceText === null || priceText === undefined) {
-                          return <span className="text-red-400 font-semibold">-</span>;
+                          return <span className="text-red-400 font-semibold text-xs">-</span>;
                         }
 
                         return (
                           <div className="flex flex-col items-center">
                             <div className="flex items-center gap-1">
                               <span
-                                className={`font-semibold text-sm ${isLive ? 'text-to-purple' : ''}`}
+                                className={`font-semibold text-xs ${isLive ? 'text-to-purple' : ''}`}
                                 style={{ color: isLive ? undefined : '#2b7fff' }}
                               >
                                 ${priceText}
@@ -791,18 +800,18 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                       })()}
                     </td>
                     {/* <td className="p-3 text-to-purple">-</td> */}
-                    <td className="p-3 text-center">
+                    <td className="p-2 text-center">
                       <span
-                        className={`inline-block min-w-[110px] text-xs font-semibold text-center ${getSentimentColor(
+                        className={`inline-block text-xs font-semibold text-center ${getSentimentColor(
                           rec.sentiment
                         )}`}
                       >
                         {rec.sentiment?.replace("_", " ") || "N/A"}
                       </span>
                     </td>
-                    <td className="p-3 text-to-purple">{formatPrice(rec.base?.price)}</td>
+                    <td className="p-2 text-to-purple text-xs">{formatPrice(rec.base?.price)}</td>
                     <td
-                      className={`p-3 font-semibold ${oneHourROI > 0
+                      className={`p-2 font-semibold text-xs ${oneHourROI > 0
                         ? "text-to-purple-400"
                         : oneHourROI < 0
                           ? "text-to-red-recomendations"
@@ -816,7 +825,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                         : "N/A"}
                     </td>
                     <td
-                      className={`p-3 font-semibold ${oneDayROI > 0
+                      className={`p-2 font-semibold text-xs ${oneDayROI > 0
                         ? "text-to-purple-400"
                         : oneDayROI < 0
                           ? "text-to-red-recomendations"
@@ -830,7 +839,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                         : "N/A"}
                     </td>
                     <td
-                      className={`p-3 font-semibold ${sevenDayROI > 0
+                      className={`p-2 font-semibold text-xs ${sevenDayROI > 0
                         ? "text-to-purple-400"
                         : sevenDayROI < 0
                           ? "text-to-red-recomendations"
@@ -843,7 +852,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                         : "N/A"}
                     </td>
                     <td
-                      className={`p-3 font-semibold ${thirtyDayROI > 0
+                      className={`p-2 font-semibold text-xs ${thirtyDayROI > 0
                         ? "text-to-purple-400"
                         : thirtyDayROI < 0
                           ? "text-to-red-recomendations"
@@ -856,7 +865,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                         : "N/A"}
                     </td>
                     <td
-                      className={`p-3 font-semibold ${sixtyDayROI > 0
+                      className={`p-2 font-semibold text-xs ${sixtyDayROI > 0
                         ? "text-to-purple-400"
                         : sixtyDayROI < 0
                           ? "text-to-red-recomendations"
@@ -869,7 +878,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                         : "N/A"}
                     </td>
                     <td
-                      className={`p-3 font-semibold ${ninetyDayROI > 0
+                      className={`p-2 font-semibold text-xs ${ninetyDayROI > 0
                         ? "text-to-purple-400"
                         : ninetyDayROI < 0
                           ? "text-to-red-recomendations"
@@ -882,7 +891,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                         : "N/A"}
                     </td>
                     <td
-                      className={`p-3 font-semibold ${oneEightyDayROI > 0
+                      className={`p-2 font-semibold text-xs ${oneEightyDayROI > 0
                         ? "text-to-purple-400"
                         : oneEightyDayROI < 0
                           ? "text-to-red-recomendations"
@@ -895,7 +904,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                         : "N/A"}
                     </td>
                     <td
-                      className={`p-3 font-semibold ${oneYearROI > 0
+                      className={`p-2 font-semibold text-xs ${oneYearROI > 0
                         ? "text-to-purple-400"
                         : oneYearROI < 0
                           ? "text-to-red-recomendations"
@@ -908,17 +917,19 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                         )}%`
                         : "N/A"}
                     </td>
-                    <td className="p-3">
-                      {rec.title}
+                    <td className="p-2">
+                      <div className="text-xs truncate" style={{ maxWidth: '140px' }} title={rec.title}>
+                        {rec.title}
+                      </div>
                     </td>
-                    <td className="p-3">
+                    <td className="p-2">
                       <a
                         href={`https://www.youtube.com/watch?v=${rec.videoID}`}
                         className="text-blue-400 hover:underline text-xs"
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        View Video
+                        View
                       </a>
                     </td>
                   </tr>
@@ -926,6 +937,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
               })}
             </tbody>
           </table>
+          </div>
 
           {/* Pagination */}
           {totalPages > 1 && (

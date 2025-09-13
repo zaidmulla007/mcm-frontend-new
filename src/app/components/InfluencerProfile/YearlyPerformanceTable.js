@@ -184,9 +184,6 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData, chan
             return null;
         }
 
-        const hyperactiveData = hyperactiveYearly[yearKey];
-        if (!hyperactiveData) return null;
-
         const timeframeKey =
             selectedTimeframe === "1"
                 ? "1_hour"
@@ -204,8 +201,45 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData, chan
                                         ? "1_year"
                                         : "30_days";
 
-        const timeframeData = hyperactiveData[timeframeKey];
-        if (!timeframeData) return null;
+        let baseData;
+
+        // If period is selected, use quarterly hyperactive data
+        if (selectedPeriod && channelData?.hyperactive?.Quarterly) {
+            const quarterlyKey = `${yearKey}${selectedPeriod}`;
+            const quarterlyHyperData = channelData.hyperactive.Quarterly[quarterlyKey];
+            if (quarterlyHyperData) {
+                baseData = quarterlyHyperData[timeframeKey];
+            }
+        } else {
+            // Otherwise use yearly hyperactive data
+            baseData = hyperactiveYearly[yearKey]?.[timeframeKey];
+        }
+
+        if (!baseData) return null;
+
+        // If sentiment is selected, filter hyperactive data to only include sentiment-specific fields
+        let timeframeData = baseData;
+        if (selectedSentiment && baseData) {
+            const sentimentPrefix = {
+                strong_bullish: "Strong_Bullish_",
+                mild_bullish: "Mild_Bullish_",
+                mild_bearish: "Mild_Bearish_",
+                strong_bearish: "Strong_Bearish_",
+            }[selectedSentiment];
+
+            if (sentimentPrefix) {
+                const filteredData = {};
+                Object.keys(baseData).forEach((key) => {
+                    if (key.startsWith(sentimentPrefix)) {
+                        const newKey = key.replace(sentimentPrefix, "");
+                        filteredData[newKey] = baseData[key];
+                    }
+                });
+                // Return null if no sentiment-specific data was found
+                if (Object.keys(filteredData).length === 0) return null;
+                timeframeData = filteredData;
+            }
+        }
 
         // Calculate hyperactivity as price_true_count + price_false_count
         const hyperactivity = (timeframeData.price_true_count || 0) + (timeframeData.price_false_count || 0);
@@ -223,9 +257,6 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData, chan
             return null;
         }
 
-        const normalData = normalYearly[yearKey];
-        if (!normalData) return null;
-
         const timeframeKey =
             selectedTimeframe === "1"
                 ? "1_hour"
@@ -243,8 +274,45 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData, chan
                                         ? "1_year"
                                         : "30_days";
 
-        const timeframeData = normalData[timeframeKey];
-        if (!timeframeData) return null;
+        let baseData;
+
+        // If period is selected, use quarterly normal data
+        if (selectedPeriod && channelData?.normal?.Quarterly) {
+            const quarterlyKey = `${yearKey}${selectedPeriod}`;
+            const quarterlyNormalData = channelData.normal.Quarterly[quarterlyKey];
+            if (quarterlyNormalData) {
+                baseData = quarterlyNormalData[timeframeKey];
+            }
+        } else {
+            // Otherwise use yearly normal data
+            baseData = normalYearly[yearKey]?.[timeframeKey];
+        }
+
+        if (!baseData) return null;
+
+        // If sentiment is selected, filter normal data to only include sentiment-specific fields
+        let timeframeData = baseData;
+        if (selectedSentiment && baseData) {
+            const sentimentPrefix = {
+                strong_bullish: "Strong_Bullish_",
+                mild_bullish: "Mild_Bullish_",
+                mild_bearish: "Mild_Bearish_",
+                strong_bearish: "Strong_Bearish_",
+            }[selectedSentiment];
+
+            if (sentimentPrefix) {
+                const filteredData = {};
+                Object.keys(baseData).forEach((key) => {
+                    if (key.startsWith(sentimentPrefix)) {
+                        const newKey = key.replace(sentimentPrefix, "");
+                        filteredData[newKey] = baseData[key];
+                    }
+                });
+                // Return null if no sentiment-specific data was found
+                if (Object.keys(filteredData).length === 0) return null;
+                timeframeData = filteredData;
+            }
+        }
 
         // Calculate normal activity as price_true_count + price_false_count
         const normalActivity = (timeframeData.price_true_count || 0) + (timeframeData.price_false_count || 0);

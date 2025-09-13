@@ -324,7 +324,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { getYearOptions, getQuarterOptions } from "../../../utils/dateFilterUtils";
+import { getYearOptions, getQuarterOptions, getDynamicTimeframeOptions } from "../../../utils/dateFilterUtils";
 
 const platforms = [
   {
@@ -421,17 +421,8 @@ export default function InfluencersPage() {
     { value: "strong_sentiment", label: "Strong Sentiment" },
   ];
 
-  const timeframeOptions = [
-    { value: "all", label: "All Time" },
-    { value: "1_hour", label: "1 Hour" },
-    { value: "24_hours", label: "24 Hours" },
-    { value: "7_days", label: "7 Days" },
-    { value: "30_days", label: "30 Days" },
-    { value: "60_days", label: "60 Days" },
-    { value: "90_days", label: "90 Days" },
-    { value: "180_days", label: "180 Days" },
-    { value: "1_year", label: "1 Year" },
-  ];
+  // Generate dynamic timeframe options based on selected year
+  const timeframeOptions = getDynamicTimeframeOptions(selectedYear);
 
   const typeOptions = [
     { value: "overall", label: "Overall" },
@@ -512,7 +503,7 @@ export default function InfluencersPage() {
     return pages;
   };
 
-  // Handle quarter selection - reset quarter when year changes if current quarter is not available
+  // Handle year selection - reset quarter and timeframe when year changes if current selections are not available
   const handleYearChange = (year) => {
     setSelectedYear(year);
 
@@ -528,6 +519,15 @@ export default function InfluencersPage() {
 
     if (!isCurrentQuarterValid) {
       setSelectedQuarter("all");
+    }
+
+    // Check if current timeframe is valid for the new year
+    const newTimeframeOptions = getDynamicTimeframeOptions(year);
+    const isCurrentTimeframeValid = newTimeframeOptions.some(t => t.value === selectedTimeframe);
+
+    if (!isCurrentTimeframeValid) {
+      // Reset to a safe default - "30_days" is always available
+      setSelectedTimeframe("30_days");
     }
   };
 

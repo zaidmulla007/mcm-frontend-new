@@ -31,8 +31,8 @@ export const getAvailableYears = (startYear = 2022, includeNextYear = false) => 
 export const getAvailableQuarters = (year) => {
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth();
-  const currentQuarter = getCurrentQuarter(currentMonth);
+  const currentMonth = currentDate.getMonth(); // 0-based (0=Jan, 11=Dec)
+  const currentDay = currentDate.getDate();
 
   const allQuarters = [
     { value: 1, label: 'Q1' },
@@ -41,9 +41,23 @@ export const getAvailableQuarters = (year) => {
     { value: 4, label: 'Q4' }
   ];
 
-  // If it's the current year, only show quarters up to current quarter
+  // If it's the current year, only show completed quarters
   if (year === currentYear) {
-    return allQuarters.filter(q => q.value <= currentQuarter);
+    let completedQuarters = 0;
+    
+    // Q1 (Jan-Mar): Complete if we're past March or in April+
+    if (currentMonth >= 3) completedQuarters = 1;
+    
+    // Q2 (Apr-Jun): Complete if we're past June or in July+  
+    if (currentMonth >= 6) completedQuarters = 2;
+    
+    // Q3 (Jul-Sep): Complete if we're past September or in October+
+    if (currentMonth >= 9) completedQuarters = 3;
+    
+    // Q4 (Oct-Dec): Complete if we're past December (next year)
+    if (currentMonth >= 12) completedQuarters = 4; // This won't happen in same year
+    
+    return allQuarters.filter(q => q.value <= completedQuarters);
   }
   
   // If it's a future year, don't show any quarters (or show all for planning)
@@ -110,6 +124,92 @@ export const getQuarterMonths = (quarter) => {
     4: "Oct-Dec"
   };
   return quarterMonths[quarter] || "";
+};
+
+/**
+ * Get the maximum timeframe days available for a specific year based on completed quarters
+ * @param {number} year - The year to check
+ * @returns {number} Maximum days available (90, 180, 270, or 365)
+ */
+export const getMaxTimeframeDaysForYear = (year) => {
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth(); // 0-based (0=Jan, 11=Dec)
+
+  // For past years (before current year), all quarters are complete so show 1 year
+  if (year < currentYear) {
+    return 365;
+  }
+
+  // For future years, no quarters are complete
+  if (year > currentYear) {
+    return 0;
+  }
+
+  // For current year, calculate based on completed quarters
+  let completedQuarters = 0;
+  
+  // Q1 (Jan-Mar): Complete if we're in April or later (month >= 3)
+  if (currentMonth >= 3) completedQuarters = 1;
+  
+  // Q2 (Apr-Jun): Complete if we're in July or later (month >= 6)  
+  if (currentMonth >= 6) completedQuarters = 2;
+  
+  // Q3 (Jul-Sep): Complete if we're in October or later (month >= 9)
+  if (currentMonth >= 9) completedQuarters = 3;
+  
+  // Q4 (Oct-Dec): Complete if we're in next year (month >= 12) - but this won't happen in same year
+  if (currentMonth >= 12) completedQuarters = 4;
+
+  // Return days based on completed quarters
+  return completedQuarters * 90; // 90 days per quarter
+};
+
+/**
+ * Generate dynamic timeframe options based on selected year
+ * @param {string|number} selectedYear - The selected year (can be "all" or a year number)
+ * @returns {Array} Array of timeframe options
+ */
+export const getDynamicTimeframeOptions = (selectedYear) => {
+  const baseOptions = [
+    { value: "all", label: "All Time" },
+    { value: "1_hour", label: "1 Hour" },
+    { value: "24_hours", label: "24 Hours" },
+    { value: "7_days", label: "7 Days" },
+    { value: "30_days", label: "30 Days" },
+    { value: "60_days", label: "60 Days" }
+  ];
+
+  // If "all" years selected, show all timeframe options
+  if (!selectedYear || selectedYear === "all") {
+    return [
+      ...baseOptions,
+      { value: "90_days", label: "90 Days" },
+      { value: "180_days", label: "180 Days" },
+      { value: "1_year", label: "1 Year" }
+    ];
+  }
+
+  const year = parseInt(selectedYear);
+  const maxDays = getMaxTimeframeDaysForYear(year);
+  
+  // Always include base short-term options
+  const options = [...baseOptions];
+  
+  // Add longer timeframe options based on what's available for the year
+  if (maxDays >= 90) {
+    options.push({ value: "90_days", label: "90 Days" });
+  }
+  
+  if (maxDays >= 180) {
+    options.push({ value: "180_days", label: "180 Days" });
+  }
+  
+  if (maxDays >= 365) {
+    options.push({ value: "1_year", label: "1 Year" });
+  }
+
+  return options;
 };
 
 // Example usage in your component:
