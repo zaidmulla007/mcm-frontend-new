@@ -533,13 +533,19 @@ export default function Login() {
             throw new Error(data.message || 'Signup failed');
           }
         } else {
-          throw new Error('Signup failed');
+          // Parse error response
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Signup failed');
         }
       } catch (error) {
         console.error('Signup error:', error);
+        
+        // Try to parse additional error details if available
+        let errorMessage = error.message || 'Please try again';
+        
         Swal.fire({
           title: 'Signup Failed!',
-          text: error.message || 'Please try again',
+          text: errorMessage,
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',

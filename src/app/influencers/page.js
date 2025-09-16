@@ -357,6 +357,7 @@ const influencerList = [
 export default function InfluencersPage() {
   const [selectedPlatform, setSelectedPlatform] = useState("youtube");
   const [youtubeInfluencers, setYoutubeInfluencers] = useState([]);
+  const [telegramInfluencers, setTelegramInfluencers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -401,8 +402,38 @@ export default function InfluencersPage() {
       }
     }
 
+    async function fetchTelegramData() {
+      setLoading(true);
+      setError(null);
+      try {
+        // Build query parameters according to API specification
+        const params = new URLSearchParams({
+          sentiment: selectedSentiment,
+          timeframe: selectedTimeframe,
+          type: selectedType,
+          year: selectedYear,
+          quarter: selectedQuarter
+        });
+
+        const res = await fetch(`/api/telegram-data?${params.toString()}`);
+        const data = await res.json();
+        if (data.success && Array.isArray(data.results)) {
+          setTelegramInfluencers(data.results);
+        } else {
+          setTelegramInfluencers([]);
+        }
+      } catch (err) {
+        setError("Failed to fetch Telegram data");
+        setTelegramInfluencers([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
     if (selectedPlatform === "youtube") {
       fetchYouTubeData();
+    } else if (selectedPlatform === "telegram") {
+      fetchTelegramData();
     }
   }, [selectedSentiment, selectedTimeframe, selectedType, selectedYear, selectedQuarter, selectedPlatform]);
 
@@ -437,8 +468,10 @@ export default function InfluencersPage() {
 
   // Filter influencers by platform
   const getFilteredInfluencers = () => {
-    let influencers = selectedPlatform === "youtube"
-      ? youtubeInfluencers.map((ch) => ({
+    let influencers;
+    
+    if (selectedPlatform === "youtube") {
+      influencers = youtubeInfluencers.map((ch) => ({
         id: ch.channel_id,
         name: ch.influencer_name,
         platform: "YouTube",
@@ -448,8 +481,22 @@ export default function InfluencersPage() {
         channel_thumbnails: ch.channel_thumbnails,
         prob_weighted_returns: ch.prob_weighted_returns || 0, // Add ROI data
         win_percentage: ch.win_percentage || 0, // Add Win Percentage data
-      }))
-      : influencerList.filter((inf) => inf.platform === "Telegram");
+      }));
+    } else if (selectedPlatform === "telegram") {
+      influencers = telegramInfluencers.map((tg) => ({
+        id: tg.channel_id || tg.id,
+        name: tg.influencer_name && tg.influencer_name !== "N/A" ? tg.influencer_name : (tg.channel_id || "Unknown Channel"),
+        platform: "Telegram",
+        subs: tg.subscribers || tg.subs || 0,
+        score: tg.ai_overall_score || tg.score || 0,
+        rank: tg.rank,
+        channel_thumbnails: tg.channel_thumbnails,
+        prob_weighted_returns: tg.prob_weighted_returns || 0,
+        win_percentage: tg.win_percentage || 0,
+      }));
+    } else {
+      influencers = [];
+    }
 
     return influencers;
   };
@@ -562,8 +609,8 @@ export default function InfluencersPage() {
           ))}
         </div>
 
-        {/* Filter Controls - Only show for YouTube */}
-        {selectedPlatform === "youtube" && (
+        {/* Filter Controls - Show for both YouTube and Telegram */}
+        {(selectedPlatform === "youtube" || selectedPlatform === "telegram") && (
           <div className="max-w-5xl mx-auto px-4 mb-6 w-full">
             <div className="bg-[#232042] rounded-2xl p-6 border border-[#35315a]">
               <h3 className="text-lg font-semibold text-purple-300 mb-4">Filters & Rankings</h3>
@@ -667,11 +714,11 @@ export default function InfluencersPage() {
 
       {/* Influencer Cards */}
       <section className="max-w-5xl mx-auto px-4">
-        {loading && selectedPlatform === "youtube" ? (
+        {loading ? (
           <div className="text-center text-gray-400 py-8">
-            Loading YouTube influencers...
+            Loading {selectedPlatform === "youtube" ? "YouTube" : "Telegram"} influencers...
           </div>
-        ) : error && selectedPlatform === "youtube" ? (
+        ) : error ? (
           <div className="text-center text-red-400 py-8">{error}</div>
         ) : (
           <>
@@ -685,13 +732,13 @@ export default function InfluencersPage() {
                         ? `/influencers/${inf.id}`
                         : `/influencers/${inf.id}`
                     }
-                    className={`rounded-2xl p-8 flex flex-col items-center shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer group relative min-h-[200px] ${selectedPlatform === "youtube" && inf.rank && inf.rank <= 3
+                    className={`rounded-2xl p-8 flex flex-col items-center shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer group relative min-h-[200px] ${(selectedPlatform === "youtube" || selectedPlatform === "telegram") && inf.rank && inf.rank <= 3
                         ? "bg-gradient-to-br from-yellow-900/20 via-[#232042] to-orange-900/20 border-2 border-yellow-400 shadow-2xl shadow-yellow-500/30"
                         : "bg-[#232042]"
                       }`}
                   >
                     {/* Rank Badge - Top Right Corner */}
-                    {selectedPlatform === "youtube" && inf.rank && (
+                    {(selectedPlatform === "youtube" || selectedPlatform === "telegram") && inf.rank && (
                       <div className={`absolute top-4 right-4 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg ${inf.rank === 1
                           ? "bg-gradient-to-r from-yellow-400 to-yellow-600 animate-pulse shadow-yellow-400/50"
                           : inf.rank === 2
@@ -732,7 +779,7 @@ export default function InfluencersPage() {
                     <div className="text-base text-gray-200 font-semibold text-center mb-4 px-2 leading-tight">
                       {inf.name ? inf.name.replace(/_/g, " ") : "Unknown"}
                     </div>
-                    {selectedPlatform === "youtube" && (
+                    {(selectedPlatform === "youtube" || selectedPlatform === "telegram") && (
                       <div className="grid grid-cols-3 gap-3 w-full text-center mt-auto">
                         <Link
                           href={`/influencers/${inf.id}`}
@@ -775,7 +822,7 @@ export default function InfluencersPage() {
                   </Link>
                 ))
                 : Array.from({
-                  length: selectedPlatform === "youtube" ? 6 : 3,
+                  length: selectedPlatform === "youtube" ? 6 : selectedPlatform === "telegram" ? 6 : 3,
                 }).map((_, i) => (
                   <div
                     key={i}

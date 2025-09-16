@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import DragDropCards from "../components/DragDropCards";
+import MarketHeatmap from "./components/MarketHeatmap";
 
 // Top 5 mentioned coins data based on the image
 const topMentionedCoins = [
@@ -1943,8 +1944,11 @@ export default function Home() {
         </motion.div>
       </section>
 
+      {/* Market Heatmap Section */}
+      <MarketHeatmap />
+
       {/* Footer */}
-      <footer className="max-w-7xl mx-auto px-4 pt-8 border-t border-purple-500/20 text-center text-gray-500 text-sm">
+      <footer className="max-w-7xl mx-auto px-4 pt-8  border-purple-500/20 text-center text-gray-500 text-sm">
         <p>© 2025 MCM. All rights reserved.</p>
         <div className="flex justify-center gap-6 mt-4">
           <a href="#" className="hover:text-purple-400 transition-colors">Privacy Policy</a>
