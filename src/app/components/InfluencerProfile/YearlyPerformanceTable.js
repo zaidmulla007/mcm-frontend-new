@@ -817,8 +817,6 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData, chan
                             })}
                         </tr>
 
-
-
                         {/* Expanded Hyper Activity Average Return Row */}
                         {expandedAverageReturn && (
                             <tr className="border-b border-gray-100 light-dropdown ">

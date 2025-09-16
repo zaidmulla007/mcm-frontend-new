@@ -58,7 +58,7 @@ const topMentionedCoins = [
 const staticYouTubeProfiles = [
   {
     name: "CryptoKingdom",
-    platform: "YouTube", 
+    platform: "YouTube",
     rank: 1,
     mcmScore: 94,
     timePeriod: "1 hour",
@@ -147,7 +147,7 @@ const staticYouTubeProfiles = [
   {
     name: "BlockchainBeast",
     platform: "YouTube",
-    rank: 2, 
+    rank: 2,
     mcmScore: 91,
     timePeriod: "24 hours",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face",
@@ -233,7 +233,7 @@ const staticYouTubeProfiles = [
     }
   },
   {
-    name: "CoinSensei", 
+    name: "CoinSensei",
     platform: "YouTube",
     rank: 3,
     mcmScore: 89,
@@ -1340,7 +1340,7 @@ export default function Home() {
                   contain: 'layout style paint',
                 }}
               >
-                <DragDropCards cards={staticYouTubeProfiles} />
+                <DragDropCards cards={[staticYouTubeProfiles[0]]} />
               </div>
             </motion.div>
           </div>
@@ -1519,12 +1519,12 @@ export default function Home() {
           <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-purple-900/60 to-transparent"></div>
         </div> */}
         {/* Top Mentioned Coins - Redesigned UI */}
-       
+
         {/* Influencer Flash News Text */}
         <h2 className="text-center text-white text-2xl font-bold mb-3 mt-4">
           Influencer Flash News Update
         </h2>
-        
+
 
         {/* Influencer News Scroller Container */}
         <div className="relative h-24 bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-2xl border border-purple-500/30 overflow-hidden shadow-2xl mb-4">
@@ -1592,7 +1592,7 @@ export default function Home() {
           <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-purple-900/60 to-transparent"></div>
         </div>
 
- <div className="space-y-6 mt-4">
+        <div className="space-y-6 mt-4">
           {/* Top 3 Coins (3rd, 4th, 5th) - Horizontal Row with Drag & Drop */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -1601,8 +1601,8 @@ export default function Home() {
             transition={{ duration: 0.6 }}
           >
             <div className="text-center mb-4">
-              <h3 className="text-3xl font-bold text-white mb-2">Preview Available Data</h3>
-              <p className="text-gray-300 text-lg">Get full insights with your free trial</p>
+              <h3 className="text-3xl font-bold text-white mb-2">Trending Top Mentioned Coins</h3>
+              <p className="text-gray-300 text-lg">7 days most mentioned coins(for 24 hours start free trial)</p>
             </div>
 
             {/* Static Cards Row - No Scrolling */}

@@ -27,17 +27,44 @@ export default function ProfilePage() {
       return;
     }
 
-    // Get user info from localStorage - check both possible key formats
-    const userData = {
-      firstName: localStorage.getItem('fname') || localStorage.getItem('userFirstName') || '',
-      lastName: localStorage.getItem('lname') || localStorage.getItem('userLastName') || '',
-      email: localStorage.getItem('email') || localStorage.getItem('userEmail') || '',
-      mobile: localStorage.getItem('mobile') || localStorage.getItem('userMobile') || '',
-      dateStart: localStorage.getItem('dateStart') || '',
-      dateEnd: localStorage.getItem('dateEnd') || ''
-    };
-
-    setUserInfo(userData);
+    // Get user info from localStorage userData object
+    try {
+      const userDataString = localStorage.getItem('userData');
+      if (userDataString) {
+        const userData = JSON.parse(userDataString);
+        setUserInfo({
+          firstName: userData.fname || '',
+          lastName: userData.lname || '',
+          email: userData.email || '',
+          mobile: userData.name || '',
+          dateStart: userData.dateStart || '',
+          dateEnd: userData.dateEnd || ''
+        });
+      } else {
+        // Fallback to individual keys if userData object doesn't exist
+        const userData = {
+          firstName: localStorage.getItem('fname') || localStorage.getItem('userFirstName') || '',
+          lastName: localStorage.getItem('lname') || localStorage.getItem('userLastName') || '',
+          email: localStorage.getItem('email') || localStorage.getItem('userEmail') || '',
+          mobile: localStorage.getItem('mobile') || localStorage.getItem('userMobile') || '',
+          dateStart: localStorage.getItem('dateStart') || '',
+          dateEnd: localStorage.getItem('dateEnd') || ''
+        };
+        setUserInfo(userData);
+      }
+    } catch (error) {
+      console.error('Error parsing userData from localStorage:', error);
+      // Fallback to individual keys if parsing fails
+      const userData = {
+        firstName: localStorage.getItem('fname') || localStorage.getItem('userFirstName') || '',
+        lastName: localStorage.getItem('lname') || localStorage.getItem('userLastName') || '',
+        email: localStorage.getItem('email') || localStorage.getItem('userEmail') || '',
+        mobile: localStorage.getItem('mobile') || localStorage.getItem('userMobile') || '',
+        dateStart: localStorage.getItem('dateStart') || '',
+        dateEnd: localStorage.getItem('dateEnd') || ''
+      };
+      setUserInfo(userData);
+    }
   }, [router]);
 
   const formatDate = (dateString) => {

@@ -430,8 +430,9 @@ export default function Login() {
   };
 
   const handleSendOtp = async () => {
-    // Validate all fields for signup
+    // For signup, validate form and show OTP input
     if (!isLogin) {
+      // Validate all required fields
       if (!formData.firstName || !formData.lastName || !formData.phoneNumber) {
         Swal.fire({
           title: 'Error!',
@@ -445,34 +446,116 @@ export default function Login() {
         return;
       }
 
+      // Validate email if provided
       if (formData.email && !validateEmail(formData.email)) {
-        let errorMessage = 'Please enter a valid email address';
+        Swal.fire({
+          title: 'Invalid Email!',
+          text: 'Please enter a valid email address',
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#8b5cf6',
+          background: '#232042',
+          color: '#ffffff'
+        });
+        return;
+      }
 
-        if (!formData.email.includes('@')) {
-          errorMessage = 'Email address must contain @ symbol';
-        } else if (!formData.email.includes('.')) {
-          errorMessage = 'Email must include a domain extension (e.g., .com, .org)';
-        } else if (formData.email.startsWith('@')) {
-          errorMessage = 'Email cannot start with @ symbol';
-        } else if (formData.email.endsWith('@')) {
-          errorMessage = 'Please complete the email address after @';
-        } else if (formData.email.startsWith('.') || formData.email.endsWith('.')) {
-          errorMessage = 'Email cannot start or end with a dot';
-        } else if (formData.email.includes('..')) {
-          errorMessage = 'Email cannot contain consecutive dots';
-        } else if (formData.email.includes('@.')) {
-          errorMessage = 'Email cannot have a dot immediately after @';
-        } else if ((formData.email.match(/@/g) || []).length > 1) {
-          errorMessage = 'Email can only contain one @ symbol';
-        } else if (formData.email.split('@')[0].length > 64) {
-          errorMessage = 'Email username part is too long (max 64 characters)';
-        } else if (formData.email.length > 254) {
-          errorMessage = 'Email address is too long (max 254 characters)';
+      // Validate phone number
+      if (!validatePhoneNumber(formData.phoneNumber, selectedCountry.code)) {
+        const lengths = getPhoneNumberLength(selectedCountry.code);
+        const phoneLength = formData.phoneNumber.length;
+        let errorMessage = `Please enter a valid ${selectedCountry.name} phone number.`;
+        
+        if (phoneLength < lengths.min) {
+          errorMessage = `Phone number should have at least ${lengths.min} digits for ${selectedCountry.name}.`;
+        } else if (phoneLength > lengths.max) {
+          errorMessage = `Phone number should have maximum ${lengths.max} digits for ${selectedCountry.name}.`;
         }
 
         Swal.fire({
-          title: 'Invalid Email!',
+          title: 'Invalid Phone Number!',
           text: errorMessage,
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#8b5cf6',
+          background: '#232042',
+          color: '#ffffff'
+        });
+        return;
+      }
+
+      // All validations passed, call signup API
+      const fullPhoneNumber = `${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}`;
+      
+      try {
+        const response = await fetch('http://37.27.120.45:5000/api/auth/signup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            fname: formData.firstName,
+            lname: formData.lastName,
+            phonenumber: fullPhoneNumber,
+            email: formData.email,
+            username: fullPhoneNumber
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+
+          if (data.success) {
+            // Store user data in localStorage after signup
+            localStorage.setItem('accessToken', data.accessToken);
+            localStorage.setItem('userId', data._id);
+            localStorage.setItem('username', data.user.username);
+            localStorage.setItem('email', data.user.email);
+            localStorage.setItem('roles', JSON.stringify(data.roles));
+            localStorage.setItem('user', JSON.stringify(data.user));
+            localStorage.setItem('dbRole', JSON.stringify(data.dbRole));
+            localStorage.setItem('message', data.message);
+
+            // Show OTP input after successful signup
+            setIsOtpSent(true);
+            setTimer(60);
+            
+            Swal.fire({
+              title: '🎉 Registration Successful!',
+              text: `Welcome ${formData.firstName}! Please enter the OTP sent to your WhatsApp.`,
+              icon: 'success',
+              confirmButtonText: 'OK',
+              confirmButtonColor: '#8b5cf6',
+              background: '#232042',
+              color: '#ffffff'
+            });
+          } else {
+            throw new Error(data.message || 'Signup failed');
+          }
+        } else {
+          throw new Error('Signup failed');
+        }
+      } catch (error) {
+        console.error('Signup error:', error);
+        Swal.fire({
+          title: 'Signup Failed!',
+          text: error.message || 'Please try again',
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#8b5cf6',
+          background: '#232042',
+          color: '#ffffff'
+        });
+      }
+      return;
+    }
+
+    // For login, validate phone number and send OTP if needed
+    if (isLogin) {
+      if (!formData.phoneNumber) {
+        Swal.fire({
+          title: 'Phone Number Required!',
+          text: 'Please enter your phone number to proceed with login.',
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
@@ -485,28 +568,16 @@ export default function Login() {
       if (!validatePhoneNumber(formData.phoneNumber, selectedCountry.code)) {
         const lengths = getPhoneNumberLength(selectedCountry.code);
         const phoneLength = formData.phoneNumber.length;
-        let errorMessage = '';
-        let errorTitle = 'Invalid Phone Number!';
-
-        if (phoneLength === 0) {
-          errorTitle = 'Phone Number Required!';
-          errorMessage = `Please enter your ${selectedCountry.name} phone number to get OTP.`;
-        } else if (phoneLength < lengths.min) {
-          errorTitle = 'Phone Number Too Short!';
-          if (lengths.min === lengths.max) {
-            // For countries with exact digit requirement
-            errorMessage = `You have entered ${phoneLength} digits. To get OTP, enter ${lengths.min} digits phone number for ${selectedCountry.name}.`;
-          } else {
-            // For countries with range
-            errorMessage = `You have entered ${phoneLength} digits. To get OTP, enter at least ${lengths.min} digits phone number for ${selectedCountry.name}.`;
-          }
+        let errorMessage = `Please enter a valid ${selectedCountry.name} phone number.`;
+        
+        if (phoneLength < lengths.min) {
+          errorMessage = `Phone number should have at least ${lengths.min} digits for ${selectedCountry.name}.`;
         } else if (phoneLength > lengths.max) {
-          errorTitle = 'Phone Number Too Long!';
-          errorMessage = `${selectedCountry.name} takes only ${lengths.max} digits maximum. You entered ${phoneLength} digits.`;
+          errorMessage = `Phone number should have maximum ${lengths.max} digits for ${selectedCountry.name}.`;
         }
 
         Swal.fire({
-          title: errorTitle,
+          title: 'Invalid Phone Number!',
           text: errorMessage,
           icon: 'error',
           confirmButtonText: 'OK',
@@ -517,133 +588,9 @@ export default function Login() {
         return;
       }
     }
-
-    const fullPhoneNumber = `${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}`;
-
-    try {
-      // Send OTP to both email and phone for signup
-      const otpRequests = [];
-
-      // Send OTP to phone
-      otpRequests.push(
-        fetch('/api/auth/send-otp', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            phoneNumber: fullPhoneNumber,
-            countryCode: selectedCountry.code,
-            type: 'phone'
-          })
-        })
-      );
-
-      // Send OTP to email for signup only if email is provided
-      if (!isLogin && formData.email) {
-        otpRequests.push(
-          fetch('/api/auth/send-otp', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              email: formData.email,
-              type: 'email'
-            })
-          })
-        );
-      }
-
-      const responses = await Promise.all(otpRequests);
-
-      if (responses.every(r => r.ok)) {
-        setIsOtpSent(true);
-        setTimer(60);
-        Swal.fire({
-          title: 'OTP Sent!',
-          html: !isLogin ?
-            (formData.email ?
-              `<div style="text-align: center;">OTP has been sent to both:<br><br>
-              <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;">
-                <svg style="width: 20px; height: 20px; fill: #10b981;" viewBox="0 0 24 24">
-                  <path d="M17.472,14.382c-0.297-0.149-1.758-0.867-2.03-0.967c-0.273-0.099-0.471-0.148-0.67,0.15c-0.197,0.297-0.767,0.966-0.94,1.164c-0.173,0.199-0.347,0.223-0.644,0.075c-0.297-0.15-1.255-0.463-2.39-1.475c-0.883-0.788-1.48-1.761-1.653-2.059c-0.173-0.297-0.018-0.458,0.13-0.606c0.134-0.133,0.297-0.347,0.446-0.521C9.87,9.97,9.919,9.846,10.019,9.65c0.099-0.198,0.05-0.371-0.025-0.52C9.919,8.981,9.325,7.515,9.078,6.92c-0.241-0.58-0.487-0.5-0.669-0.51c-0.173-0.008-0.371-0.01-0.57-0.01c-0.198,0-0.52,0.074-0.792,0.372c-0.272,0.297-1.04,1.016-1.04,2.479c0,1.462,1.065,2.875,1.213,3.074c0.149,0.198,2.096,3.2,5.077,4.487c0.709,0.306,1.262,0.489,1.694,0.625c0.712,0.227,1.36,0.195,1.871,0.118c0.571-0.085,1.758-0.719,2.006-1.413c0.248-0.694,0.248-1.289,0.173-1.413C17.884,14.651,17.769,14.431,17.472,14.382z M12.057,21.785h-0.008c-1.784,0-3.525-0.481-5.052-1.389l-0.362-0.215l-3.754,0.984l1.005-3.671l-0.236-0.375c-0.99-1.575-1.511-3.393-1.511-5.26c0-5.445,4.43-9.875,9.88-9.875c2.64,0,5.124,1.03,6.988,2.898c1.865,1.867,2.893,4.352,2.892,6.993C21.899,17.354,17.469,21.785,12.057,21.785z M20.5,3.488C18.24,1.24,15.24,0.013,12.058,0C5.507,0,0.17,5.335,0.172,11.892c0,2.096,0.547,4.142,1.588,5.945L0,24l6.305-1.654c1.746,0.943,3.71,1.444,5.71,1.447h0.006c6.551,0,11.89-5.335,11.89-11.893C23.91,8.724,22.759,5.746,20.5,3.488z" />
-                </svg>
-                <span>WhatsApp: ${fullPhoneNumber}</span>
-              </div>
-              <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <svg style="width: 20px; height: 20px; fill: #a78bfa;" viewBox="0 0 24 24">
-                  <path d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z" />
-                </svg>
-                <span>Email: ${formData.email}</span>
-              </div>
-              <br>You can enter the OTP from either WhatsApp or Email</div>` :
-              `<div style="text-align: center;">OTP has been sent to your WhatsApp<br><br>
-              <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <svg style="width: 20px; height: 20px; fill: #10b981;" viewBox="0 0 24 24">
-                  <path d="M17.472,14.382c-0.297-0.149-1.758-0.867-2.03-0.967c-0.273-0.099-0.471-0.148-0.67,0.15c-0.197,0.297-0.767,0.966-0.94,1.164c-0.173,0.199-0.347,0.223-0.644,0.075c-0.297-0.15-1.255-0.463-2.39-1.475c-0.883-0.788-1.48-1.761-1.653-2.059c-0.173-0.297-0.018-0.458,0.13-0.606c0.134-0.133,0.297-0.347,0.446-0.521C9.87,9.97,9.919,9.846,10.019,9.65c0.099-0.198,0.05-0.371-0.025-0.52C9.919,8.981,9.325,7.515,9.078,6.92c-0.241-0.58-0.487-0.5-0.669-0.51c-0.173-0.008-0.371-0.01-0.57-0.01c-0.198,0-0.52,0.074-0.792,0.372c-0.272,0.297-1.04,1.016-1.04,2.479c0,1.462,1.065,2.875,1.213,3.074c0.149,0.198,2.096,3.2,5.077,4.487c0.709,0.306,1.262,0.489,1.694,0.625c0.712,0.227,1.36,0.195,1.871,0.118c0.571-0.085,1.758-0.719,2.006-1.413c0.248-0.694,0.248-1.289,0.173-1.413C17.884,14.651,17.769,14.431,17.472,14.382z M12.057,21.785h-0.008c-1.784,0-3.525-0.481-5.052-1.389l-0.362-0.215l-3.754,0.984l1.005-3.671l-0.236-0.375c-0.99-1.575-1.511-3.393-1.511-5.26c0-5.445,4.43-9.875,9.88-9.875c2.64,0,5.124,1.03,6.988,2.898c1.865,1.867,2.893,4.352,2.892,6.993C21.899,17.354,17.469,21.785,12.057,21.785z M20.5,3.488C18.24,1.24,15.24,0.013,12.058,0C5.507,0,0.17,5.335,0.172,11.892c0,2.096,0.547,4.142,1.588,5.945L0,24l6.305-1.654c1.746,0.943,3.71,1.444,5.71,1.447h0.006c6.551,0,11.89-5.335,11.89-11.893C23.91,8.724,22.759,5.746,20.5,3.488z" />
-                </svg>
-                <span>${fullPhoneNumber}</span>
-              </div></div>`) :
-            `<div style="text-align: center;">OTP has been sent to your WhatsApp<br><br>
-            <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-              <svg style="width: 20px; height: 20px; fill: #10b981;" viewBox="0 0 24 24">
-                <path d="M17.472,14.382c-0.297-0.149-1.758-0.867-2.03-0.967c-0.273-0.099-0.471-0.148-0.67,0.15c-0.197,0.297-0.767,0.966-0.94,1.164c-0.173,0.199-0.347,0.223-0.644,0.075c-0.297-0.15-1.255-0.463-2.39-1.475c-0.883-0.788-1.48-1.761-1.653-2.059c-0.173-0.297-0.018-0.458,0.13-0.606c0.134-0.133,0.297-0.347,0.446-0.521C9.87,9.97,9.919,9.846,10.019,9.65c0.099-0.198,0.05-0.371-0.025-0.52C9.919,8.981,9.325,7.515,9.078,6.92c-0.241-0.58-0.487-0.5-0.669-0.51c-0.173-0.008-0.371-0.01-0.57-0.01c-0.198,0-0.52,0.074-0.792,0.372c-0.272,0.297-1.04,1.016-1.04,2.479c0,1.462,1.065,2.875,1.213,3.074c0.149,0.198,2.096,3.2,5.077,4.487c0.709,0.306,1.262,0.489,1.694,0.625c0.712,0.227,1.36,0.195,1.871,0.118c0.571-0.085,1.758-0.719,2.006-1.413c0.248-0.694,0.248-1.289,0.173-1.413C17.884,14.651,17.769,14.431,17.472,14.382z M12.057,21.785h-0.008c-1.784,0-3.525-0.481-5.052-1.389l-0.362-0.215l-3.754,0.984l1.005-3.671l-0.236-0.375c-0.99-1.575-1.511-3.393-1.511-5.26c0-5.445,4.43-9.875,9.88-9.875c2.64,0,5.124,1.03,6.988,2.898c1.865,1.867,2.893,4.352,2.892,6.993C21.899,17.354,17.469,21.785,12.057,21.785z M20.5,3.488C18.24,1.24,15.24,0.013,12.058,0C5.507,0,0.17,5.335,0.172,11.892c0,2.096,0.547,4.142,1.588,5.945L0,24l6.305-1.654c1.746,0.943,3.71,1.444,5.71,1.447h0.006c6.551,0,11.89-5.335,11.89-11.893C23.91,8.724,22.759,5.746,20.5,3.488z" />
-              </svg>
-              <span>${fullPhoneNumber}</span>
-            </div></div>`,
-          icon: 'success',
-          confirmButtonText: 'OK',
-          confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff'
-        });
-      } else {
-        throw new Error('Failed to send OTP');
-      }
-    } catch (error) {
-      console.error('Error sending OTP:', error);
-      setIsOtpSent(true);
-      setTimer(60);
-      Swal.fire({
-        title: 'OTP Sent!',
-        html: !isLogin ?
-          (formData.email ?
-            `<div style="text-align: center;">OTP sent to both:<br><br>
-            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;">
-              <svg style="width: 20px; height: 20px; fill: #a78bfa;" viewBox="0 0 24 24">
-                <path d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z" />
-              </svg>
-              <span>Email: ${formData.email}</span>
-            </div>
-            <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-              <svg style="width: 20px; height: 20px; fill: #10b981;" viewBox="0 0 24 24">
-                <path d="M17.472,14.382c-0.297-0.149-1.758-0.867-2.03-0.967c-0.273-0.099-0.471-0.148-0.67,0.15c-0.197,0.297-0.767,0.966-0.94,1.164c-0.173,0.199-0.347,0.223-0.644,0.075c-0.297-0.15-1.255-0.463-2.39-1.475c-0.883-0.788-1.48-1.761-1.653-2.059c-0.173-0.297-0.018-0.458,0.13-0.606c0.134-0.133,0.297-0.347,0.446-0.521C9.87,9.97,9.919,9.846,10.019,9.65c0.099-0.198,0.05-0.371-0.025-0.52C9.919,8.981,9.325,7.515,9.078,6.92c-0.241-0.58-0.487-0.5-0.669-0.51c-0.173-0.008-0.371-0.01-0.57-0.01c-0.198,0-0.52,0.074-0.792,0.372c-0.272,0.297-1.04,1.016-1.04,2.479c0,1.462,1.065,2.875,1.213,3.074c0.149,0.198,2.096,3.2,5.077,4.487c0.709,0.306,1.262,0.489,1.694,0.625c0.712,0.227,1.36,0.195,1.871,0.118c0.571-0.085,1.758-0.719,2.006-1.413c0.248-0.694,0.248-1.289,0.173-1.413C17.884,14.651,17.769,14.431,17.472,14.382z M12.057,21.785h-0.008c-1.784,0-3.525-0.481-5.052-1.389l-0.362-0.215l-3.754,0.984l1.005-3.671l-0.236-0.375c-0.99-1.575-1.511-3.393-1.511-5.26c0-5.445,4.43-9.875,9.88-9.875c2.64,0,5.124,1.03,6.988,2.898c1.865,1.867,2.893,4.352,2.892,6.993C21.899,17.354,17.469,21.785,12.057,21.785z M20.5,3.488C18.24,1.24,15.24,0.013,12.058,0C5.507,0,0.17,5.335,0.172,11.892c0,2.096,0.547,4.142,1.588,5.945L0,24l6.305-1.654c1.746,0.943,3.71,1.444,5.71,1.447h0.006c6.551,0,11.89-5.335,11.89-11.893C23.91,8.724,22.759,5.746,20.5,3.488z" />
-              </svg>
-              <span>WhatsApp: ${fullPhoneNumber}</span>
-            </div></div>` :
-            `<div style="text-align: center;">OTP sent to<br><br>
-            <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-              <svg style="width: 20px; height: 20px; fill: #10b981;" viewBox="0 0 24 24">
-                <path d="M17.472,14.382c-0.297-0.149-1.758-0.867-2.03-0.967c-0.273-0.099-0.471-0.148-0.67,0.15c-0.197,0.297-0.767,0.966-0.94,1.164c-0.173,0.199-0.347,0.223-0.644,0.075c-0.297-0.15-1.255-0.463-2.39-1.475c-0.883-0.788-1.48-1.761-1.653-2.059c-0.173-0.297-0.018-0.458,0.13-0.606c0.134-0.133,0.297-0.347,0.446-0.521C9.87,9.97,9.919,9.846,10.019,9.65c0.099-0.198,0.05-0.371-0.025-0.52C9.919,8.981,9.325,7.515,9.078,6.92c-0.241-0.58-0.487-0.5-0.669-0.51c-0.173-0.008-0.371-0.01-0.57-0.01c-0.198,0-0.52,0.074-0.792,0.372c-0.272,0.297-1.04,1.016-1.04,2.479c0,1.462,1.065,2.875,1.213,3.074c0.149,0.198,2.096,3.2,5.077,4.487c0.709,0.306,1.262,0.489,1.694,0.625c0.712,0.227,1.36,0.195,1.871,0.118c0.571-0.085,1.758-0.719,2.006-1.413c0.248-0.694,0.248-1.289,0.173-1.413C17.884,14.651,17.769,14.431,17.472,14.382z M12.057,21.785h-0.008c-1.784,0-3.525-0.481-5.052-1.389l-0.362-0.215l-3.754,0.984l1.005-3.671l-0.236-0.375c-0.99-1.575-1.511-3.393-1.511-5.26c0-5.445,4.43-9.875,9.88-9.875c2.64,0,5.124,1.03,6.988,2.898c1.865,1.867,2.893,4.352,2.892,6.993C21.899,17.354,17.469,21.785,12.057,21.785z M20.5,3.488C18.24,1.24,15.24,0.013,12.058,0C5.507,0,0.17,5.335,0.172,11.892c0,2.096,0.547,4.142,1.588,5.945L0,24l6.305-1.654c1.746,0.943,3.71,1.444,5.71,1.447h0.006c6.551,0,11.89-5.335,11.89-11.893C23.91,8.724,22.759,5.746,20.5,3.488z" />
-              </svg>
-              <span>${fullPhoneNumber}</span>
-            </div></div>`) :
-          `<div style="text-align: center;">OTP sent to<br><br>
-          <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <svg style="width: 20px; height: 20px; fill: #10b981;" viewBox="0 0 24 24">
-              <path d="M17.472,14.382c-0.297-0.149-1.758-0.867-2.03-0.967c-0.273-0.099-0.471-0.148-0.67,0.15c-0.197,0.297-0.767,0.966-0.94,1.164c-0.173,0.199-0.347,0.223-0.644,0.075c-0.297-0.15-1.255-0.463-2.39-1.475c-0.883-0.788-1.48-1.761-1.653-2.059c-0.173-0.297-0.018-0.458,0.13-0.606c0.134-0.133,0.297-0.347,0.446-0.521C9.87,9.97,9.919,9.846,10.019,9.65c0.099-0.198,0.05-0.371-0.025-0.52C9.919,8.981,9.325,7.515,9.078,6.92c-0.241-0.58-0.487-0.5-0.669-0.51c-0.173-0.008-0.371-0.01-0.57-0.01c-0.198,0-0.52,0.074-0.792,0.372c-0.272,0.297-1.04,1.016-1.04,2.479c0,1.462,1.065,2.875,1.213,3.074c0.149,0.198,2.096,3.2,5.077,4.487c0.709,0.306,1.262,0.489,1.694,0.625c0.712,0.227,1.36,0.195,1.871,0.118c0.571-0.085,1.758-0.719,2.006-1.413c0.248-0.694,0.248-1.289,0.173-1.413C17.884,14.651,17.769,14.431,17.472,14.382z M12.057,21.785h-0.008c-1.784,0-3.525-0.481-5.052-1.389l-0.362-0.215l-3.754,0.984l1.005-3.671l-0.236-0.375c-0.99-1.575-1.511-3.393-1.511-5.26c0-5.445,4.43-9.875,9.88-9.875c2.64,0,5.124,1.03,6.988,2.898c1.865,1.867,2.893,4.352,2.892,6.993C21.899,17.354,17.469,21.785,12.057,21.785z M20.5,3.488C18.24,1.24,15.24,0.013,12.058,0C5.507,0,0.17,5.335,0.172,11.892c0,2.096,0.547,4.142,1.588,5.945L0,24l6.305-1.654c1.746,0.943,3.71,1.444,5.71,1.447h0.006c6.551,0,11.89-5.335,11.89-11.893C23.91,8.724,22.759,5.746,20.5,3.488z" />
-            </svg>
-            <span>${fullPhoneNumber}</span>
-          </div></div>`,
-        icon: 'success',
-        confirmButtonText: 'OK',
-        confirmButtonColor: '#8b5cf6',
-        background: '#232042',
-        color: '#ffffff'
-      });
-    }
   };
+
+
 
   const handleVerifyOtp = async () => {
     if (!otp || otp.length !== 6) {
@@ -664,14 +611,13 @@ export default function Login() {
     try {
       // For login, use the actual API endpoint
       if (isLogin) {
-        const username = fullPhoneNumber || formData.email;
-        const response = await fetch('http://localhost:5000/api/auth/signin', {
+        const response = await fetch('http://37.27.120.45:5000/api/auth/signin', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            username: username,
+            username: fullPhoneNumber,
             password: otp
           })
         });
@@ -686,6 +632,7 @@ export default function Login() {
             localStorage.setItem('username', data.username);
             localStorage.setItem('email', data.email);
             localStorage.setItem('roles', JSON.stringify(data.roles));
+            localStorage.setItem('user', JSON.stringify(data.user));
             localStorage.setItem('dateStart', data.user.dateStart || '');
             localStorage.setItem('dateEnd', data.user.dateEnd || '');
             // Store user object data
@@ -718,46 +665,42 @@ export default function Login() {
           throw new Error('Login failed');
         }
       } else {
-        // For signup, use the backend signup endpoint
-        const endpoint = 'http://localhost:5000/api/auth/signup';
-
-        // Prepare request body according to backend requirements
-        const requestBody = {
-          fname: formData.firstName,
-          lname: formData.lastName,
-          name: formData.phoneNumber ? fullPhoneNumber : formData.email,
-          email: formData.email || `${fullPhoneNumber}@user.com`,
-          phone_number: fullPhoneNumber,
-          otp: otp
-        };
-
-        const response = await fetch(endpoint, {
+        // For signup verification, use signin API with phone + OTP
+        const response = await fetch('http://37.27.120.45:5000/api/auth/signin', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(requestBody)
+          body: JSON.stringify({
+            username: fullPhoneNumber,
+            password: otp
+          })
         });
 
         if (response.ok) {
           const data = await response.json();
 
-          // Store user data in localStorage
+          // Store all user data in localStorage
           if (data.success) {
             localStorage.setItem('accessToken', data.accessToken);
-            localStorage.setItem('userId', data._id);
-            localStorage.setItem('userName', data.user.name || '');
-            localStorage.setItem('userFirstName', data.user.fname || '');
-            localStorage.setItem('userLastName', data.user.lname || '');
-            localStorage.setItem('userEmail', data.user.email || '');
-            localStorage.setItem('userMobile', data.user.mobile || data.user.name || '');
-            localStorage.setItem('dateStart', data.user.dateStart || '');
-            localStorage.setItem('dateEnd', data.user.dateEnd || '');
-            localStorage.setItem('roles', JSON.stringify(data.roles || []));
-            localStorage.setItem('message', data.message || '');
-
-            // Store full user data
-            localStorage.setItem('userData', JSON.stringify(data.user));
+            localStorage.setItem('userId', data.id);
+            localStorage.setItem('username', data.username);
+            localStorage.setItem('email', data.email);
+            localStorage.setItem('roles', JSON.stringify(data.roles));
+            localStorage.setItem('user', JSON.stringify(data.user));
+            
+            // Store additional user details
+            if (data.user) {
+              localStorage.setItem('userName', data.user.name || '');
+              localStorage.setItem('userFirstName', data.user.fname || '');
+              localStorage.setItem('userLastName', data.user.lname || '');
+              localStorage.setItem('userStatus', data.user.status || '');
+              localStorage.setItem('userMobile', data.user.mobile || '');
+              localStorage.setItem('userEmail', data.user.email || '');
+              localStorage.setItem('userData', JSON.stringify(data.user));
+              localStorage.setItem('dateStart', data.user.dateStart || '');
+              localStorage.setItem('dateEnd', data.user.dateEnd || '');
+            }
           }
 
           // Special thank you message for new registrations
@@ -770,10 +713,10 @@ export default function Login() {
           });
 
           Swal.fire({
-            title: '🎉 Thank You!',
+            title: '🎉 Registration Successful!',
             html: `
               <div style="text-align: center; padding: 20px;">
-                <h2 style="color: #8b5cf6; margin-bottom: 20px;">Welcome to Our Platform!</h2>
+                <h2 style="color: #8b5cf6; margin-bottom: 20px;">Welcome to MCM!</h2>
                 <p style="font-size: 18px; margin-bottom: 15px;">
                   Thank you for joining us, <strong>${formData.firstName} ${formData.lastName}</strong>!
                 </p>
@@ -889,98 +832,6 @@ export default function Login() {
     }
   };
 
-  const handleSendEmailOtp = async () => {
-    if (!validateEmail(formData.email)) {
-      let errorMessage = 'Please enter a valid email address';
-
-      if (!formData.email.includes('@')) {
-        errorMessage = 'Email address must contain @ symbol';
-      } else if (!formData.email.includes('.')) {
-        errorMessage = 'Email must include a domain extension (e.g., .com, .org)';
-      } else if (formData.email.startsWith('@')) {
-        errorMessage = 'Email cannot start with @ symbol';
-      } else if (formData.email.endsWith('@')) {
-        errorMessage = 'Please complete the email address after @';
-      } else if (formData.email.startsWith('.') || formData.email.endsWith('.')) {
-        errorMessage = 'Email cannot start or end with a dot';
-      } else if (formData.email.includes('..')) {
-        errorMessage = 'Email cannot contain consecutive dots';
-      } else if (formData.email.includes('@.')) {
-        errorMessage = 'Email cannot have a dot immediately after @';
-      } else if ((formData.email.match(/@/g) || []).length > 1) {
-        errorMessage = 'Email can only contain one @ symbol';
-      } else if (formData.email.split('@')[0].length > 64) {
-        errorMessage = 'Email username part is too long (max 64 characters)';
-      } else if (formData.email.length > 254) {
-        errorMessage = 'Email address is too long (max 254 characters)';
-      }
-
-      Swal.fire({
-        title: 'Invalid Email!',
-        text: errorMessage,
-        icon: 'error',
-        confirmButtonText: 'OK',
-        confirmButtonColor: '#8b5cf6',
-        background: '#232042',
-        color: '#ffffff'
-      });
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/auth/send-otp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          type: 'email'
-        })
-      });
-
-      if (response.ok) {
-        setIsOtpSent(true);
-        setTimer(60);
-        Swal.fire({
-          title: 'OTP Sent!',
-          html: `<div style="text-align: center;">An OTP has been sent to your email<br><br>
-          <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <svg style="width: 20px; height: 20px; fill: #a78bfa;" viewBox="0 0 24 24">
-              <path d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z" />
-            </svg>
-            <span>${formData.email}</span>
-          </div></div>`,
-          icon: 'success',
-          confirmButtonText: 'OK',
-          confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff'
-        });
-      } else {
-        throw new Error('Failed to send OTP');
-      }
-    } catch (error) {
-      console.error('Error sending OTP:', error);
-      setIsOtpSent(true);
-      setTimer(60);
-      Swal.fire({
-        title: 'OTP Sent!',
-        html: `<div style="text-align: center;">OTP sent to<br><br>
-        <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-          <svg style="width: 20px; height: 20px; fill: #a78bfa;" viewBox="0 0 24 24">
-            <path d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z" />
-          </svg>
-          <span>${formData.email}</span>
-        </div></div>`,
-        icon: 'success',
-        confirmButtonText: 'OK',
-        confirmButtonColor: '#8b5cf6',
-        background: '#232042',
-        color: '#ffffff'
-      });
-    }
-  };
 
   const handleResendOtp = () => {
     if (timer === 0) {
@@ -1045,7 +896,7 @@ export default function Login() {
         if (hasValidPhone) {
           const fullPhoneNumber = `${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}`;
           otpRequests.push(
-            fetch('/api/auth/send-otp', {
+            fetch('http://37.27.120.45:5000/api/sendEmail', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -1059,12 +910,16 @@ export default function Login() {
         }
 
         if (hasValidEmail) {
+          const otpCode = Math.floor(100000 + Math.random() * 900000);
           otpRequests.push(
-            fetch('/api/auth/send-otp', {
+            fetch('http://37.27.120.45:5000/api/sendEmail', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                email: formData.email,
+                to: formData.email,
+                subject: 'Your OTP Code',
+                text: `Your OTP code is: ${otpCode}`,
+                html: `<p>Your OTP code is: <strong>${otpCode}</strong></p>`,
                 type: 'email'
               })
             })
@@ -1611,7 +1466,6 @@ export default function Login() {
                 setIsOtpSent(false);
                 setOtp("");
                 setTimer(0);
-                setAuthMethod("whatsapp");
               }}
               className="text-purple-400 hover:text-purple-300 transition font-semibold"
             >

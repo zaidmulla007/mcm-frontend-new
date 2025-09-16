@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-const DragDropCards = ({ cards = [] }) => {
+const DragDropCards = ({ cards = [], yearlyData = null, quarterlyData = null, channelData = null }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [draggedCard, setDraggedCard] = useState(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -14,6 +14,248 @@ const DragDropCards = ({ cards = [] }) => {
   const [isDragTriggered, setIsDragTriggered] = useState(false);
   const constraintsRef = useRef(null);
 
+  // API data states
+  const [youtubeInfluencers, setYoutubeInfluencers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [selectedSentiment, setSelectedSentiment] = useState("strong_bullish");
+  const [selectedTimeframe, setSelectedTimeframe] = useState("30");
+  const [selectedType, setSelectedType] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
+  const [selectedQuarter, setSelectedQuarter] = useState("");
+  const [selectedPlatform, setSelectedPlatform] = useState("youtube");
+  const [selectedUserId] = useState("UC4c5FPpwCpb6q8J--i8QHtA");
+  const [userPerformanceData, setUserPerformanceData] = useState(null);
+
+  // Fetch YouTube channel data from API
+  useEffect(() => {
+    const getChannelData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        console.log(`Fetching channel data for ID: ${selectedUserId}`);
+
+        // Fetch yearly data with strong_bullish sentiment for all timeframes
+        const params = new URLSearchParams({
+          sentiment: 'strong_bullish',
+          type: 'yearly'
+        });
+
+        const res = await fetch(`/api/youtube-data/channel/${selectedUserId}?${params.toString()}`);
+        const apiRes = await res.json();
+
+        console.log('API response:', apiRes);
+
+        // Handle different response structures
+        let results = apiRes;
+        if (apiRes && apiRes.results) {
+          results = apiRes.results;
+        } else if (apiRes && apiRes.data) {
+          results = apiRes.data;
+        }
+
+        if (!results) {
+          throw new Error('No data found in response');
+        }
+
+        console.log('Channel data structure:', results);
+        console.log('Available keys:', Object.keys(results));
+
+        // Check if yearly data exists in different possible locations
+        if (results.yearlyData) {
+          console.log('Found yearlyData:', Object.keys(results.yearlyData));
+        }
+        if (results.data && results.data.yearlyData) {
+          console.log('Found nested yearlyData:', Object.keys(results.data.yearlyData));
+        }
+
+        setUserPerformanceData(results);
+      } catch (error) {
+        console.error("Error fetching channel data", error);
+        let errorMessage = "Failed to load channel data. Please try again later.";
+
+        if (error.response) {
+          console.error("Error response:", error.response.data);
+          errorMessage = error.response.data?.error || error.response.data?.details || errorMessage;
+        } else if (error.request) {
+          console.error("No response received:", error.request);
+          errorMessage = "No response received from server";
+        } else {
+          console.error("Error setting up request:", error.message);
+          errorMessage = error.message;
+        }
+
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getChannelData();
+  }, [selectedUserId]);
+
+  // Get data for specific year with custom timeframe (similar to YearlyPerformanceTable)
+  const getYearDataWithTimeframe = (yearKey, customTimeframe = null) => {
+    if (!userPerformanceData) return null;
+
+    const timeframeKey = customTimeframe ||
+      (selectedTimeframe === "1" ? "1_hour"
+        : selectedTimeframe === "24" ? "24_hours"
+          : selectedTimeframe === "7" ? "7_days"
+            : selectedTimeframe === "30" ? "30_days"
+              : selectedTimeframe === "60" ? "60_days"
+                : selectedTimeframe === "90" ? "90_days"
+                  : selectedTimeframe === "180" ? "180_days"
+                    : selectedTimeframe === "365" ? "1_year"
+                      : "30_days");
+
+    let baseData;
+
+    // Access the Yearly data from the response structure
+    const yearlyData = userPerformanceData?.Yearly || userPerformanceData?.data?.Yearly;
+
+    console.log(`Checking yearly data structure:`, yearlyData ? Object.keys(yearlyData) : 'No yearly data');
+    console.log(`Looking for year ${yearKey} in yearly data:`, yearlyData?.[yearKey] ? 'Found' : 'Not found');
+
+    if (yearlyData?.[yearKey]) {
+      baseData = yearlyData[yearKey][timeframeKey];
+      console.log(`Available timeframes for ${yearKey}:`, Object.keys(yearlyData[yearKey]));
+    }
+
+    console.log(`Getting data for year ${yearKey}, timeframe ${timeframeKey}:`, baseData);
+
+    if (!baseData) return null;
+
+    // For Strong Bullish sentiment, we want the Strong_Bullish_probablity_weighted_returns_percentage
+    // But we'll return the full baseData so we can access the specific field in calculateROIMetrics
+    return baseData;
+  };
+
+  // Calculate ROI metrics based on timeframe and sentiment
+  const calculateROIMetrics = (timeframe, sentiment = "strong_bullish") => {
+    if (!userPerformanceData) {
+      console.log('No userPerformanceData available');
+      return null;
+    }
+
+    console.log('UserPerformanceData structure:', userPerformanceData);
+
+    const timeframeKey = timeframe === "1" ? "1_hour"
+      : timeframe === "24" ? "24_hours"
+        : timeframe === "7" ? "7_days"
+          : timeframe === "30" ? "30_days"
+            : timeframe === "60" ? "60_days"
+              : timeframe === "90" ? "90_days"
+                : timeframe === "180" ? "180_days"
+                  : timeframe === "365" ? "1_year"
+                    : "30_days";
+
+    const years = ['2025', '2024', '2023', '2022'];
+    const roiData = {};
+
+    years.forEach(year => {
+      const yearData = getYearDataWithTimeframe(year, timeframeKey);
+
+      if (yearData) {
+        // Get Average Return (Strong Bullish probability weighted returns percentage)
+        const averageReturn = yearData.Strong_Bullish_probablity_weighted_returns_percentage || 0;
+        roiData[year] = averageReturn;
+        console.log(`Strong Bullish Average Return for ${year}, timeframe ${timeframeKey}:`, averageReturn);
+      } else {
+        roiData[year] = 0;
+      }
+    });
+
+    console.log('Final ROI Data:', roiData);
+    return roiData;
+  };
+
+  // Calculate Moonshots metrics based on timeframe - using bullish_count and probability weighted returns
+  const calculateMoonshotsMetrics = (timeframe) => {
+    if (!userPerformanceData) {
+      console.log('No userPerformanceData available for moonshots');
+      return null;
+    }
+
+    const timeframeKey = timeframe === "1" ? "1_hour"
+      : timeframe === "24" ? "24_hours"
+        : timeframe === "7" ? "7_days"
+          : timeframe === "30" ? "30_days"
+            : timeframe === "60" ? "60_days"
+              : timeframe === "90" ? "90_days"
+                : timeframe === "180" ? "180_days"
+                  : timeframe === "365" ? "1_year"
+                    : "30_days";
+
+    const years = ['2025', '2024', '2023', '2022'];
+    const moonshotsData = {};
+
+    years.forEach(year => {
+      const yearlyData = userPerformanceData?.Yearly || userPerformanceData?.data?.Yearly;
+
+      if (yearlyData?.[year]) {
+        const yearData = yearlyData[year];
+        const timeframeData = yearData[timeframeKey];
+
+        if (timeframeData) {
+          // Get probability weighted returns percentage for moonshots
+          const probabilityWeightedReturns = timeframeData.probablity_weighted_returns_percentage || 0;
+          moonshotsData[year] = probabilityWeightedReturns;
+        } else {
+          moonshotsData[year] = 0;
+        }
+      } else {
+        moonshotsData[year] = 0;
+      }
+    });
+
+    console.log('Final Moonshots Data:', moonshotsData);
+    return moonshotsData;
+  };
+
+  // Calculate Without Moonshots metrics based on timeframe - using normal yearly data
+  const calculateWithoutMoonshotsMetrics = (timeframe) => {
+    if (!userPerformanceData) {
+      console.log('No userPerformanceData available for without moonshots');
+      return null;
+    }
+
+    const timeframeKey = timeframe === "1" ? "1_hour"
+      : timeframe === "24" ? "24_hours"
+        : timeframe === "7" ? "7_days"
+          : timeframe === "30" ? "30_days"
+            : timeframe === "60" ? "60_days"
+              : timeframe === "90" ? "90_days"
+                : timeframe === "180" ? "180_days"
+                  : timeframe === "365" ? "1_year"
+                    : "30_days";
+
+    const years = ['2025', '2024', '2023', '2022'];
+    const withoutMoonshotsData = {};
+
+    years.forEach(year => {
+      // Access normal yearly data from the structure you provided
+      const normalYearlyData = userPerformanceData?.normal?.Yearly;
+
+      if (normalYearlyData?.[year]) {
+        const yearData = normalYearlyData[year];
+        const timeframeData = yearData[timeframeKey];
+
+        if (timeframeData) {
+          // Get probability weighted returns percentage for without moonshots
+          const probabilityWeightedReturns = timeframeData.probablity_weighted_returns_percentage || 0;
+          withoutMoonshotsData[year] = probabilityWeightedReturns;
+        } else {
+          withoutMoonshotsData[year] = 0;
+        }
+      } else {
+        withoutMoonshotsData[year] = 0;
+      }
+    });
+
+    console.log('Final Without Moonshots Data:', withoutMoonshotsData);
+    return withoutMoonshotsData;
+  };
 
   const handleDragStart = (event, info) => {
     setDraggedCard(currentIndex);
@@ -26,20 +268,20 @@ const DragDropCards = ({ cards = [] }) => {
 
   const handleDragEnd = (event, info) => {
     setDraggedCard(null);
-    
+
     // Calculate drag distance - more sensitive threshold
     const dragDistance = Math.sqrt(info.offset.x ** 2 + info.offset.y ** 2);
-    
+
     // Alternative: check horizontal drag specifically
     const horizontalDrag = Math.abs(info.offset.x);
     const verticalDrag = Math.abs(info.offset.y);
-    
+
     // If dragged far enough in any direction, move to next card
     if (dragDistance > 30 || horizontalDrag > 25 || verticalDrag > 25) {
       setIsDragTriggered(true); // Mark as drag-triggered for fast transition
       setCurrentIndex((prev) => (prev + 1) % cards.length);
       setAnimationKey(prev => prev + 1);
-      
+
       // Reset drag trigger after a short delay
       setTimeout(() => {
         setIsDragTriggered(false);
@@ -47,38 +289,26 @@ const DragDropCards = ({ cards = [] }) => {
     }
   };
 
-  // Auto-rotation every 5 seconds with smooth left-to-right animation
+  // Create internal card types
+  const cardTypes = ['roi', 'moonshots', 'withoutMoonshots'];
+
+  // Auto-rotation every 5 seconds between card types
   useEffect(() => {
-    // Don't pause on hover for now, just check drag state
-    if (draggedCard !== null) {
-      return;
-    }
-    
     const interval = setInterval(() => {
-        setIsDragTriggered(false); // Ensure smooth animation for auto-rotation
-      setCurrentIndex((prev) => {
-        const newIndex = (prev + 1) % cards.length;
-        return newIndex;
-      });
-      setAnimationKey(prev => prev + 1); // Trigger re-animation
-    }, 5000);
-    
-    return () => {
-      clearInterval(interval);
-    };
-  }, [draggedCard, cards.length]); // Removed isHovered dependency temporarily
+      setCurrentIndex((prev) => (prev + 1) % cardTypes.length);
+      setAnimationKey(prev => prev + 1);
+    }, 15000); // 5 seconds
 
-  const currentCard = cards[currentIndex];
+    return () => clearInterval(interval);
+  }, []);
 
-  if (!currentCard) {
-    return null;
-  }
+  const currentCardType = cardTypes[currentIndex];
 
 
   return (
-    <div 
+    <div
       ref={constraintsRef}
-      className="relative w-full max-w-sm mx-auto h-[620px] overflow-visible"
+      className="relative w-full max-w-sm mx-auto h-[650px] overflow-visible"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{
@@ -91,211 +321,343 @@ const DragDropCards = ({ cards = [] }) => {
       <AnimatePresence mode="wait">
         <motion.div
           key={`${currentIndex}-${animationKey}`}
-          className="absolute inset-0 z-20 cursor-grab active:cursor-grabbing"
-          drag
-          dragConstraints={constraintsRef}
-          dragElastic={0.1}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-          initial={{ 
-            x: 400, 
-            opacity: 0,
-            scale: 0.95
-          }}
-          animate={{ 
-            x: 0, 
-            opacity: 1,
-            scale: draggedCard === currentIndex ? 1.05 : 1
-          }}
-          exit={{ 
-            x: -400, 
-            opacity: 0,
-            scale: 0.95
-          }}
-          transition={{
-            x: {
-              type: "tween",
-              duration: isDragTriggered ? 0.3 : 1.2, // Fast for drag, smooth for auto
-              ease: isDragTriggered ? "easeOut" : [0.25, 0.46, 0.45, 0.94]
-            },
-            opacity: {
-              duration: isDragTriggered ? 0.2 : 0.8, // Fast for drag, smooth for auto
-              ease: "easeInOut"
-            },
-            scale: {
-              type: "spring",
-              stiffness: isDragTriggered ? 500 : 300, // Snappier for drag
-              damping: isDragTriggered ? 35 : 30
-            }
-          }}
-          whileDrag={{ 
-            scale: 1.05, 
-            rotate: draggedCard !== null ? 5 : 0,
-            zIndex: 30
-          }}
+          className="absolute inset-0 z-20"
+          initial={{ opacity: 1 }}
+          animate={{ opacity: 1 }}
           style={{
             willChange: 'transform, opacity', // Optimize for animations - exclude background
             contain: 'layout style paint', // Contain layout effects
           }}
         >
-          <div 
-            className="bg-gradient-to-br from-[#3a2f5f] to-[#2a1f4a] rounded-3xl p-6 shadow-2xl border border-purple-400/20 h-full relative overflow-hidden"
+          <div
+            className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-2xl p-4 shadow-2xl border border-purple-500/20 h-full relative overflow-hidden backdrop-blur-sm"
             style={{
               transform: 'translateZ(0)', // Force GPU layer
               backfaceVisibility: 'hidden', // Prevent flickering
+              background: 'linear-gradient(135deg, #0f172a 0, #581c87 50, #0f172a 100)',
+              boxShadow: '0 25px 50px -12px rgba(139, 92, 246, 0.25)'
             }}
           >
-            {/* Time Period - Top Left */}
-            <div className="absolute top-4 left-4 z-10">
-              <div className="bg-gradient-to-br from-purple-500/40 to-blue-600/40 rounded-full px-3 py-1 flex items-center justify-center">
-                <span className="text-white font-bold text-xs">{currentCard.timePeriod || '1 hour'}</span>
-              </div>
-            </div>
 
-            {/* MCM Rank - Top Right */}
-            <div className="absolute top-4 right-4 z-10">
-              <div className="bg-gradient-to-br from-orange-500/40 to-red-600/40 rounded-full px-3 py-1 flex items-center justify-center">
-                <span className="text-white font-bold text-xs">MCM Rank #{currentCard.rank || '1'}</span>
+            {/* MCM Rank - Top Right of Card */}
+            <div className="absolute top-3 right-3 z-20">
+              <div className="bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg px-2 py-1 flex items-center justify-center shadow-lg border border-amber-300/50">
+                <span className="text-white font-bold text-xs">MCM RANK #1</span>
               </div>
             </div>
 
             {/* Redesigned Card Content - Full Height */}
-            <div className="px-3 py-3 h-full flex flex-col relative z-10">
+            <div className="px-2 py-2 h-full flex flex-col relative z-10">
               {/* Header Section - Profile & Info */}
-              <div className="flex flex-col items-center mb-3">
+              <div className="flex flex-col items-center mb-2">
                 {/* Profile Image */}
                 <div className="mb-2">
-                  {currentCard.avatar && currentCard.avatar !== "/window.svg" && currentCard.avatar !== "/next.svg" && currentCard.avatar !== "/file.svg" && currentCard.avatar !== "/globe.svg" ? (
-                    <motion.div 
-                      className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/30 shadow-lg relative"
-                      whileHover={{ scale: 1.05 }}
-                    >
-                      <Image
-                        src={currentCard.channelData?.channel_thumbnails?.high?.url || currentCard.avatar}
-                        alt={currentCard.channelData?.influencer_name || currentCard.channelData?.channel_title || "Channel"}
-                        width={64}
-                        height={64}
-                        className="rounded-full w-full h-full object-cover"
-                      />
-                    </motion.div>
-                  ) : (
-                    <motion.div 
-                      className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/30 shadow-lg relative bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center"
-                      whileHover={{ scale: 1.05 }}
-                    >
-                      <span className="text-white font-bold text-lg">?</span>
-                    </motion.div>
-                  )}
+                  <motion.div
+                    className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center text-2xl font-bold overflow-hidden shadow-lg"
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    <Image
+                      src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
+                      alt="Profile"
+                      width={112}
+                      height={112}
+                      className="rounded-full w-full h-full object-cover blur-md"
+                    />
+                  </motion.div>
                 </div>
 
                 {/* Influencer Info */}
-                <div className="text-center mb-2">
-                  <h3 className="text-lg font-bold text-white mb-1">
-                    {currentCard.name ? currentCard.name.replace(/_/g, " ") : "Unknown"}
+                <div className="text-center mb-1">
+                  <h3 className="text-sm font-bold text-white blur-sm">
+                    {loading ? 'Loading...' :
+                      error ? 'Error Loading' :
+                        userPerformanceData?.influencer_name || ''}
                   </h3>
                 </div>
               </div>
 
-              {/* Performance Data Table - Compact Layout */}
-              <div className="bg-gradient-to-br from-white/10 to-white/5 rounded-xl p-2 backdrop-blur-sm border border-white/20">
-                {/* Table Header */}
-                <div className="grid grid-cols-5 gap-1 mb-2 pb-1 border-b border-white/20">
-                  <div className="text-white font-bold text-xs">Hits & Misses</div>
-                  <div className="text-center text-white font-bold text-xs">2025</div>
-                  <div className="text-center text-white font-bold text-xs">2024</div>
-                  <div className="text-center text-white font-bold text-xs">2023</div>
-                  <div className="text-center text-white font-bold text-xs">2022</div>
-                </div>
+              {/* Conditional Card Rendering based on currentCardType */}
+              {currentCardType === 'roi' && (
+                /* ROI Performance Tables - Modern Design */
+                <div className="bg-slate-800/40 backdrop-blur-sm rounded-xl p-3 border border-purple-500/20 relative">
+                  {/* ROI and Strong Bullish Headers */}
+                  <div className="flex justify-between items-center mb-3">
+                    <div className="text-emerald-400 font-semibold text-sm flex items-center gap-1">
+                      <span className="w-2 h-2 bg-emerald-400 rounded-full"></span>
+                      ROI : Overall
+                    </div>
+                    <div className="text-purple-400 font-semibold text-sm flex items-center gap-1">
+                      Bullish
+                      <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
+                    </div>
+                  </div>
 
-                {/* No. of Recommendations Section */}
-                <div className="mb-2">
-                  <div className="grid grid-cols-5 gap-4 py-1 bg-gradient-to-r from-white/10 to-white/5 rounded mb-1">
-                    <div className="text-white font-semibold text-[10px] leading-tight pr-4">
-                      Recommends</div>
-                    <div className="text-center text-white font-bold text-xs">{currentCard.yearlyPerformance?.[2025]?.recommendations?.total || 523}</div>
-                    <div className="text-center text-white font-bold text-xs">{currentCard.yearlyPerformance?.[2024]?.recommendations?.total || 892}</div>
-                    <div className="text-center text-white font-bold text-xs">{currentCard.yearlyPerformance?.[2023]?.recommendations?.total || 467}</div>
-                    <div className="text-center text-white font-bold text-xs">{currentCard.yearlyPerformance?.[2022]?.recommendations?.total || 189}</div>
-                  </div>
-                  <div className="grid grid-cols-5 gap-4 py-1 bg-orange-500/20 rounded mb-1">
-                    <div className="text-orange-200 text-[10px] pl-4">Moonshots</div>
-                    <div className="text-center text-orange-400 font-bold text-xs">{currentCard.yearlyPerformance?.[2025]?.recommendations?.moonshots || 3}</div>
-                    <div className="text-center text-orange-400 font-bold text-xs">{currentCard.yearlyPerformance?.[2024]?.recommendations?.moonshots || 18}</div>
-                    <div className="text-center text-orange-400 font-bold text-xs">{currentCard.yearlyPerformance?.[2023]?.recommendations?.moonshots || 12}</div>
-                    <div className="text-center text-orange-400 font-bold text-xs">{currentCard.yearlyPerformance?.[2022]?.recommendations?.moonshots || 2}</div>
-                  </div>
-                  <div className="grid grid-cols-5 gap-4 py-1 bg-blue-500/20 rounded">
-                    <div className="text-blue-200 text-[10px] pl-4">Without Moonshots</div>
-                    <div className="text-center text-cyan-400 font-bold text-xs">{currentCard.yearlyPerformance?.[2025]?.recommendations?.withoutMoonshots || 520}</div>
-                    <div className="text-center text-cyan-400 font-bold text-xs">{currentCard.yearlyPerformance?.[2024]?.recommendations?.withoutMoonshots || 874}</div>
-                    <div className="text-center text-cyan-400 font-bold text-xs">{currentCard.yearlyPerformance?.[2023]?.recommendations?.withoutMoonshots || 455}</div>
-                    <div className="text-center text-cyan-400 font-bold text-xs">{currentCard.yearlyPerformance?.[2022]?.recommendations?.withoutMoonshots || 187}</div>
-                  </div>
-                </div>
+                  {/* Modern ROI Table */}
+                  <div className="bg-slate-700/30 rounded-lg border border-slate-600/30 overflow-hidden">
+                    {/* Year Headers */}
+                    <div className="grid grid-cols-5 gap-px bg-slate-600/50">
+                      <div className="bg-slate-700/50 p-2 text-center">
+                        <span className="text-slate-400 font-medium text-xs">Time</span>
+                      </div>
+                      <div className="bg-slate-700/50 p-2 text-center">
+                        <span className="text-slate-300 font-semibold text-xs">2025</span>
+                      </div>
+                      <div className="bg-slate-700/50 p-2 text-center">
+                        <span className="text-slate-300 font-semibold text-xs">2024</span>
+                      </div>
+                      <div className="bg-slate-700/50 p-2 text-center">
+                        <span className="text-slate-300 font-semibold text-xs">2023</span>
+                      </div>
+                      <div className="bg-slate-700/50 p-2 text-center">
+                        <span className="text-slate-300 font-semibold text-xs">2022</span>
+                      </div>
+                    </div>
 
-                {/* Win/Loss Ratio Section */}
-                <div className="mb-2">
-                  <div className="grid grid-cols-5 gap-4 py-1 bg-gradient-to-r from-white/10 to-white/5 rounded mb-1">
-                    <div className="text-white font-semibold text-[10px] leading-tight pr-4">Win/Loss Ratio</div>
-                    <div className="text-center text-white font-bold text-xs">{currentCard.yearlyPerformance?.[2025]?.winLossRatio?.overall || 45}%</div>
-                    <div className="text-center text-white font-bold text-xs">{currentCard.yearlyPerformance?.[2024]?.winLossRatio?.overall || 56}%</div>
-                    <div className="text-center text-white font-bold text-xs">{currentCard.yearlyPerformance?.[2023]?.winLossRatio?.overall || 42}%</div>
-                    <div className="text-center text-white font-bold text-xs">{currentCard.yearlyPerformance?.[2022]?.winLossRatio?.overall || 31}%</div>
-                  </div>
-                  <div className="grid grid-cols-5 gap-4 py-1 bg-orange-500/20 rounded mb-1">
-                    <div className="text-orange-200 text-[10px] pl-4">Moonshots</div>
-                    <div className="text-center text-orange-400 font-bold text-xs">{currentCard.yearlyPerformance?.[2025]?.winLossRatio?.moonshots || 100}%</div>
-                    <div className="text-center text-orange-400 font-bold text-xs">{currentCard.yearlyPerformance?.[2024]?.winLossRatio?.moonshots || 89}%</div>
-                    <div className="text-center text-orange-400 font-bold text-xs">{currentCard.yearlyPerformance?.[2023]?.winLossRatio?.moonshots || 92}%</div>
-                    <div className="text-center text-orange-400 font-bold text-xs">{currentCard.yearlyPerformance?.[2022]?.winLossRatio?.moonshots || 50}%</div>
-                  </div>
-                  <div className="grid grid-cols-5 gap-4 py-1 bg-blue-500/20 rounded">
-                    <div className="text-blue-200 text-[10px] pl-4">Without Moonshots</div>
-                    <div className="text-center text-cyan-400 font-bold text-xs">{currentCard.yearlyPerformance?.[2025]?.winLossRatio?.withoutMoonshots || 44}%</div>
-                    <div className="text-center text-cyan-400 font-bold text-xs">{currentCard.yearlyPerformance?.[2024]?.winLossRatio?.withoutMoonshots || 55}%</div>
-                    <div className="text-center text-cyan-400 font-bold text-xs">{currentCard.yearlyPerformance?.[2023]?.winLossRatio?.withoutMoonshots || 40}%</div>
-                    <div className="text-center text-cyan-400 font-bold text-xs">{currentCard.yearlyPerformance?.[2022]?.winLossRatio?.withoutMoonshots || 30}%</div>
-                  </div>
-                </div>
+                    {/* Dynamic ROI Rows */}
+                    {[
+                      { timeframe: "1", label: "1h", color: "text-green-400" },
+                      { timeframe: "24", label: "24h", color: "text-violet-400" },
+                      { timeframe: "7", label: "7d", color: "text-cyan-400" },
+                      { timeframe: "30", label: "30d", color: "text-green-400" },
+                      { timeframe: "60", label: "60d", color: "text-violet-400" },
+                      { timeframe: "90", label: "90d", color: "text-cyan-400" },
+                      { timeframe: "180", label: "180d", color: "text-green-400" },
+                      { timeframe: "365", label: "1 year", color: "text-violet-400" }
+                    ].map(({ timeframe, label, color }) => {
+                      const roiData = calculateROIMetrics(timeframe, "strong_bullish");
 
-                {/* Average Return Section - Fully Visible */}
-                <div className="mb-2">
-                  <div className="grid grid-cols-5 gap-4 py-1 bg-gradient-to-r from-white/10 to-white/5 rounded mb-1">
-                    <div className="text-white font-semibold text-[10px] leading-tight pr-4">Average Return</div>
-                    <div className="text-center text-white font-bold text-xs">{currentCard.yearlyPerformance?.[2025]?.averageReturn?.overall >= 0 ? '+' : ''}{currentCard.yearlyPerformance?.[2025]?.averageReturn?.overall || 12.3}%</div>
-                    <div className="text-center text-white font-bold text-xs">{currentCard.yearlyPerformance?.[2024]?.averageReturn?.overall >= 0 ? '+' : ''}{currentCard.yearlyPerformance?.[2024]?.averageReturn?.overall || 15.2}%</div>
-                    <div className="text-center text-white font-bold text-xs">{currentCard.yearlyPerformance?.[2023]?.averageReturn?.overall >= 0 ? '+' : ''}{currentCard.yearlyPerformance?.[2023]?.averageReturn?.overall || 3.8}%</div>
-                    <div className="text-center text-white font-bold text-xs">{currentCard.yearlyPerformance?.[2022]?.averageReturn?.overall || -5.4}%</div>
+                      return (
+                        <div key={timeframe} className="grid grid-cols-5 gap-px bg-slate-600/50">
+                          <div className="bg-slate-800/50 p-2 flex items-center justify-center">
+                            <span className={`${color} font-medium text-xs`}>
+                              {label}
+                            </span>
+                          </div>
+                          {['2025', '2024', '2023', '2022'].map(year => (
+                            <div key={year} className="bg-slate-800/50 p-2 text-center">
+                              <span className="text-emerald-400 font-semibold text-xs">
+                                {loading ? '...' :
+                                  roiData?.[year] !== undefined && roiData[year] !== 0 ?
+                                    `${roiData[year] > 0 ? '+' : ''}${roiData[year].toFixed(1)}%` :
+                                    userPerformanceData ? 'N/A' : '-'
+                                }
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })}
                   </div>
-                  <div className="grid grid-cols-5 gap-4 py-1 bg-orange-500/20 rounded mb-1">
-                    <div className="text-orange-200 text-[10px] pl-4">Moonshots</div>
-                    <div className="text-center text-orange-400 font-bold text-xs">+{currentCard.yearlyPerformance?.[2025]?.averageReturn?.moonshots || 324.7}%</div>
-                    <div className="text-center text-orange-400 font-bold text-xs">+{currentCard.yearlyPerformance?.[2024]?.averageReturn?.moonshots || 189.4}%</div>
-                    <div className="text-center text-orange-400 font-bold text-xs">+{currentCard.yearlyPerformance?.[2023]?.averageReturn?.moonshots || 276.3}%</div>
-                    <div className="text-center text-orange-400 font-bold text-xs">+{currentCard.yearlyPerformance?.[2022]?.averageReturn?.moonshots || 78.5}%</div>
-                  </div>
-                  <div className="grid grid-cols-5 gap-1 py-1 bg-blue-500/20 rounded mb-1">
-                    <div className="text-blue-200 text-[10px] pl-2">Without Moonshots</div>
-                    <div className="text-center text-cyan-400 font-bold text-xs">{currentCard.yearlyPerformance?.[2025]?.averageReturn?.withoutMoonshots >= 0 ? '+' : ''}{currentCard.yearlyPerformance?.[2025]?.averageReturn?.withoutMoonshots || 8.9}%</div>
-                    <div className="text-center text-cyan-400 font-bold text-xs">{currentCard.yearlyPerformance?.[2024]?.averageReturn?.withoutMoonshots >= 0 ? '+' : ''}{currentCard.yearlyPerformance?.[2024]?.averageReturn?.withoutMoonshots || 12.1}%</div>
-                    <div className="text-center text-cyan-400 font-bold text-xs">{currentCard.yearlyPerformance?.[2023]?.averageReturn?.withoutMoonshots || -2.1}%</div>
-                    <div className="text-center text-cyan-400 font-bold text-xs">{currentCard.yearlyPerformance?.[2022]?.averageReturn?.withoutMoonshots || -6.2}%</div>
-                  </div>
-                </div>
 
-                {/* Start Free Trial Button - Directly After Data */}
-                <div className="mt-0">
-                  <Link href="/login">
-                    <motion.button
-                      className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-3 py-2 rounded-lg font-bold text-white shadow-lg transition-all duration-200 text-xs"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      Start Free Trial
-                    </motion.button>
-                  </Link>
+                  {/* View Profile Button */}
+                  <div className="mt-4">
+                    <Link href={`/login`}>
+                      <motion.button
+                        className="w-full bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 px-4 py-3 rounded-lg font-semibold text-white shadow-lg transition-all duration-300 text-sm border border-purple-500/30"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        Start Free Trial
+                      </motion.button>
+                    </Link>
+                  </div>
+
+                  {/* Error Display */}
+                  {error && (
+                    <div className="mt-2 text-center">
+                      <p className="text-red-400 text-xs">{error}</p>
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
+
+              {currentCardType === 'moonshots' && (
+                /* Moonshots Performance Tables - New Card */
+                <div className="bg-slate-800/40 backdrop-blur-sm rounded-xl p-3 border border-cyan-500/20 relative">
+                  {/* Moonshots and Bullish Headers */}
+                  <div className="flex justify-between items-center mb-3">
+                    <div className="text-cyan-400 font-semibold text-sm flex items-center gap-1">
+                      <span className="w-2 h-2 bg-cyan-400 rounded-full"></span>
+                      ROI : With Moonshots
+                    </div>
+                    <div className="text-green-400 font-semibold text-sm flex items-center gap-1">
+                      Bullish
+                      <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                    </div>
+                  </div>
+
+                  {/* Modern Moonshots Table */}
+                  <div className="bg-slate-700/30 rounded-lg border border-slate-600/30 overflow-hidden">
+                    {/* Year Headers */}
+                    <div className="grid grid-cols-5 gap-px bg-slate-600/50">
+                      <div className="bg-slate-700/50 p-2 text-center">
+                        <span className="text-slate-400 font-medium text-xs">Time</span>
+                      </div>
+                      <div className="bg-slate-700/50 p-2 text-center">
+                        <span className="text-slate-300 font-semibold text-xs">2025</span>
+                      </div>
+                      <div className="bg-slate-700/50 p-2 text-center">
+                        <span className="text-slate-300 font-semibold text-xs">2024</span>
+                      </div>
+                      <div className="bg-slate-700/50 p-2 text-center">
+                        <span className="text-slate-300 font-semibold text-xs">2023</span>
+                      </div>
+                      <div className="bg-slate-700/50 p-2 text-center">
+                        <span className="text-slate-300 font-semibold text-xs">2022</span>
+                      </div>
+                    </div>
+
+                    {/* Dynamic Moonshots Rows */}
+                    {[
+                      { timeframe: "1", label: "1h", color: "text-green-400" },
+                      { timeframe: "24", label: "24h", color: "text-violet-400" },
+                      { timeframe: "7", label: "7d", color: "text-cyan-400" },
+                      { timeframe: "30", label: "30d", color: "text-green-400" },
+                      { timeframe: "60", label: "60d", color: "text-violet-400" },
+                      { timeframe: "90", label: "90d", color: "text-cyan-400" },
+                      { timeframe: "180", label: "180d", color: "text-green-400" },
+                      { timeframe: "365", label: "1 year", color: "text-violet-400" }
+                    ].map(({ timeframe, label, color }) => {
+                      const moonshotsData = calculateMoonshotsMetrics(timeframe);
+
+                      return (
+                        <div key={timeframe} className="grid grid-cols-5 gap-px bg-slate-600/50">
+                          <div className="bg-slate-800/50 p-2 flex items-center justify-center">
+                            <span className={`${color} font-medium text-xs`}>
+                              {label}
+                            </span>
+                          </div>
+                          {['2025', '2024', '2023', '2022'].map(year => (
+                            <div key={year} className="bg-slate-800/50 p-2 text-center">
+                              <span className="text-cyan-400 font-semibold text-xs">
+                                {loading ? '...' :
+                                  moonshotsData?.[year] !== undefined && moonshotsData[year] !== 0 ?
+                                    `${moonshotsData[year] > 0 ? '+' : ''}${moonshotsData[year].toFixed(1)}%` :
+                                    userPerformanceData ? 'N/A' : '-'
+                                }
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* View Profile Button */}
+                  <div className="mt-4">
+                    <Link href={`/login`}>
+                      <motion.button
+                        className="w-full bg-gradient-to-r from-cyan-600 to-cyan-800 hover:from-cyan-700 hover:to-cyan-900 px-4 py-3 rounded-lg font-semibold text-white shadow-lg transition-all duration-300 text-sm border border-cyan-500/30"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        Start Free Trial
+                      </motion.button>
+                    </Link>
+                  </div>
+
+                  {/* Error Display */}
+                  {error && (
+                    <div className="mt-2 text-center">
+                      <p className="text-red-400 text-xs">{error}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {currentCardType === 'withoutMoonshots' && (
+                /* Without Moonshots Performance Tables - Third Card */
+                <div className="bg-slate-800/40 backdrop-blur-sm rounded-xl p-3 border border-violet-500/20 relative">
+                  {/* Without Moonshots and Bullish Headers */}
+                  <div className="flex justify-between items-center mb-3">
+                    <div className="text-violet-400 font-semibold text-sm flex items-center gap-1">
+                      <span className="w-2 h-2 bg-violet-400 rounded-full"></span>
+                      ROI : Without Moonshots
+                    </div>
+                    <div className="text-indigo-400 font-semibold text-sm flex items-center gap-1">
+                      Bullish
+                      <span className="w-2 h-2 bg-indigo-400 rounded-full"></span>
+                    </div>
+                  </div>
+
+                  {/* Modern Without Moonshots Table */}
+                  <div className="bg-slate-700/30 rounded-lg border border-slate-600/30 overflow-hidden">
+                    {/* Year Headers */}
+                    <div className="grid grid-cols-5 gap-px bg-slate-600/50">
+                      <div className="bg-slate-700/50 p-2 text-center">
+                        <span className="text-slate-400 font-medium text-xs">Time</span>
+                      </div>
+                      <div className="bg-slate-700/50 p-2 text-center">
+                        <span className="text-slate-300 font-semibold text-xs">2025</span>
+                      </div>
+                      <div className="bg-slate-700/50 p-2 text-center">
+                        <span className="text-slate-300 font-semibold text-xs">2024</span>
+                      </div>
+                      <div className="bg-slate-700/50 p-2 text-center">
+                        <span className="text-slate-300 font-semibold text-xs">2023</span>
+                      </div>
+                      <div className="bg-slate-700/50 p-2 text-center">
+                        <span className="text-slate-300 font-semibold text-xs">2022</span>
+                      </div>
+                    </div>
+
+                    {/* Dynamic Without Moonshots Rows */}
+                    {[
+                      { timeframe: "1", label: "1h", color: "text-green-400" },
+                      { timeframe: "24", label: "24h", color: "text-violet-400" },
+                      { timeframe: "7", label: "7d", color: "text-cyan-400" },
+                      { timeframe: "30", label: "30d", color: "text-green-400" },
+                      { timeframe: "60", label: "60d", color: "text-violet-400" },
+                      { timeframe: "90", label: "90d", color: "text-cyan-400" },
+                      { timeframe: "180", label: "180d", color: "text-green-400" },
+                      { timeframe: "365", label: "1 year", color: "text-violet-400" }
+                    ].map(({ timeframe, label, color }) => {
+                      const withoutMoonshotsData = calculateWithoutMoonshotsMetrics(timeframe);
+
+                      return (
+                        <div key={timeframe} className="grid grid-cols-5 gap-px bg-slate-600/50">
+                          <div className="bg-slate-800/50 p-2 flex items-center justify-center">
+                            <span className={`${color} font-medium text-xs`}>
+                              {label}
+                            </span>
+                          </div>
+                          {['2025', '2024', '2023', '2022'].map(year => (
+                            <div key={year} className="bg-slate-800/50 p-2 text-center">
+                              <span className="text-violet-400 font-semibold text-xs">
+                                {loading ? '...' :
+                                  withoutMoonshotsData?.[year] !== undefined && withoutMoonshotsData[year] !== 0 ?
+                                    `${withoutMoonshotsData[year] > 0 ? '+' : ''}${withoutMoonshotsData[year].toFixed(1)}%` :
+                                    userPerformanceData ? 'N/A' : '-'
+                                }
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* View Profile Button */}
+                  <div className="mt-4">
+                    <Link href={`/login`}>
+                      <motion.button
+                        className="w-full bg-gradient-to-r from-violet-600 to-violet-800 hover:from-violet-700 hover:to-violet-900 px-4 py-3 rounded-lg font-semibold text-white shadow-lg transition-all duration-300 text-sm border border-violet-500/30"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        Start Free Trial
+                      </motion.button>
+                    </Link>
+                  </div>
+
+                  {/* Error Display */}
+                  {error && (
+                    <div className="mt-2 text-center">
+                      <p className="text-red-400 text-xs">{error}</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </motion.div>
