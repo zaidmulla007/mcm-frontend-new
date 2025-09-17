@@ -77,7 +77,7 @@ export default function ClientHeader() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           {/* <Image src="/images/MCMLOGO.png" alt="Logo" width={70} height={70} /> */}
-          <Image src="/images/my_crypto-removebg-preview.png" alt="Logo" width={50} height={50} className="logo-img" />
+          <Image src="/images/my_crypto-removebg-preview.png" alt="Logo" width={80} height={80} className="logo-img" />
           {/* <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent hidden sm:inline">
             MCM
           </span> */}
@@ -86,7 +86,8 @@ export default function ClientHeader() {
         <nav className="hidden md:flex gap-6 ml-8">
           {navLinks.map((link) => {
             const isActive = pathname === link.href ||
-              (link.href !== "/" && pathname.startsWith(link.href));
+              (link.href !== "/" && pathname.startsWith(link.href)) ||
+              (link.href === "/influencers" && pathname.startsWith("/telegram-influencer"));
             return (
               <Link
                 key={link.name}

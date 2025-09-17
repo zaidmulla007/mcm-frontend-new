@@ -636,7 +636,7 @@ export default function InfluencersPage() {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm text-gray-300 font-medium">Timeframe:</label>
+                  <label className="text-sm text-gray-300 font-medium">Holding Period:</label>
                   <select
                     value={selectedTimeframe}
                     onChange={(e) => setSelectedTimeframe(e.target.value)}
@@ -730,7 +730,7 @@ export default function InfluencersPage() {
                     href={
                       selectedPlatform === "youtube"
                         ? `/influencers/${inf.id}`
-                        : `/influencers/${inf.id}`
+                        : `/telegram-influencer/${inf.id}`
                     }
                     className={`rounded-2xl p-8 flex flex-col items-center shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer group relative min-h-[200px] ${(selectedPlatform === "youtube" || selectedPlatform === "telegram") && inf.rank && inf.rank <= 3
                         ? "bg-gradient-to-br from-yellow-900/20 via-[#232042] to-orange-900/20 border-2 border-yellow-400 shadow-2xl shadow-yellow-500/30"
@@ -782,7 +782,11 @@ export default function InfluencersPage() {
                     {(selectedPlatform === "youtube" || selectedPlatform === "telegram") && (
                       <div className="grid grid-cols-3 gap-3 w-full text-center mt-auto">
                         <Link
-                          href={`/influencers/${inf.id}`}
+                          href={
+                            selectedPlatform === "youtube"
+                              ? `/influencers/${inf.id}`
+                              : `/telegram-influencer/${inf.id}`
+                          }
                           className="text-xs text-gray-400 bg-[#35315a]/30 rounded-lg p-3 hover:bg-[#35315a]/50 hover:scale-105 transition-all duration-200"
                           onClick={(e) => e.stopPropagation()}
                         >
@@ -794,7 +798,11 @@ export default function InfluencersPage() {
                           </div>
                         </Link>
                         <Link
-                          href={`/influencers/${inf.id}`}
+                          href={
+                            selectedPlatform === "youtube"
+                              ? `/influencers/${inf.id}`
+                              : `/telegram-influencer/${inf.id}`
+                          }
                           className="text-xs text-gray-400 bg-[#35315a]/30 rounded-lg p-3 hover:bg-[#35315a]/50 hover:scale-105 transition-all duration-200"
                           onClick={(e) => e.stopPropagation()}
                         >
@@ -806,7 +814,11 @@ export default function InfluencersPage() {
                           </div>
                         </Link>
                         <Link
-                          href={`/influencers/${inf.id}`}
+                          href={
+                            selectedPlatform === "youtube"
+                              ? `/influencers/${inf.id}`
+                              : `/telegram-influencer/${inf.id}`
+                          }
                           className="text-xs text-gray-400 bg-[#35315a]/30 rounded-lg p-3 hover:bg-[#35315a]/50 hover:scale-105 transition-all duration-200"
                           onClick={(e) => e.stopPropagation()}
                         >

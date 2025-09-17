@@ -172,7 +172,6 @@ export const getMaxTimeframeDaysForYear = (year) => {
  */
 export const getDynamicTimeframeOptions = (selectedYear) => {
   const baseOptions = [
-    { value: "all", label: "All Time" },
     { value: "1_hour", label: "1 Hour" },
     { value: "24_hours", label: "24 Hours" },
     { value: "7_days", label: "7 Days" },
