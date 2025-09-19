@@ -9,6 +9,8 @@ const MarketHeatmap = () => {
   const [youtubeLoading, setYoutubeLoading] = useState(true);
   const [telegramCoinType, setTelegramCoinType] = useState("topcoins");
   const [telegramTimeFilter, setTelegramTimeFilter] = useState("24hrs");
+  const [telegramData, setTelegramData] = useState(null);
+  const [telegramLoading, setTelegramLoading] = useState(true);
 
   // Dummy telegram data for development
   const dummyTelegramData = {
@@ -87,8 +89,23 @@ const MarketHeatmap = () => {
     }
   };
 
+  // Fetch Telegram data from API
+  const fetchTelegramData = async () => {
+    try {
+      setTelegramLoading(true);
+      const response = await fetch('https://mcmapi.showmyui.com:3035/api/admin/telegramdata/topcoins');
+      const data = await response.json();
+      setTelegramData(data);
+    } catch (error) {
+      console.error('Error fetching Telegram data:', error);
+    } finally {
+      setTelegramLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchYoutubeData();
+    fetchTelegramData();
   }, []);
 
   // Get color based on bullish vs bearish count (matching heatmap screenshot)
@@ -144,17 +161,19 @@ const MarketHeatmap = () => {
 
           <div className="relative z-10 mt-2">
             <div className="text-xs">
-              <div className="flex justify-between items-center">
-                <span>No.of Influencers</span>
-                <span>{coin.total_mentions}</span>
-              </div>
+              {coin.unique_influencers_count && (
+                <div className="flex justify-between items-center">
+                  <span>Influencers</span>
+                  <span>{coin.unique_influencers_count}</span>
+                </div>
+              )}
               <div className="flex justify-between items-center">
                 <span>Bullish</span>
-                <span>{coin.bullish_count}</span>
+                <span className="text-to-green-recomendations1">{coin.bullish_count}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span>Bearish</span>
-                <span>{coin.bearish_count}</span>
+                <span className="text-to-red-recomendations">{coin.bearish_count}</span>
               </div>
             </div>
           </div>
@@ -185,10 +204,13 @@ const MarketHeatmap = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Market Heatmaps
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              Market Heatmaps
+            </span>
           </h2>
-          <p className="text-gray-300 max-w-2xl mx-auto text-lg">
+          <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-blue-500 mx-auto rounded-full mb-6"></div>
+          <p className="text-white max-w-2xl mx-auto text-lg">
             Real-time visualization of cryptocurrency sentiment and mentions from top influencers
           </p>
         </motion.div>
@@ -212,7 +234,7 @@ const MarketHeatmap = () => {
             >
               <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
             </svg>
-            <h3 className="text-3xl font-bold text-white-400">YouTube Influencers</h3>
+            <h3 className="text-3xl font-bold text-white">YouTube Influencers</h3>
           </div>
 
           {/* Coin Type Selection, Last Updated, and Time Filter */}
@@ -222,12 +244,12 @@ const MarketHeatmap = () => {
               <select
                 value={selectedCoinType}
                 onChange={(e) => setSelectedCoinType(e.target.value)}
-                className="px-4 py-2 bg-gray-800 rounded-xl border border-purple-500/20 text-white appearance-none focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10"
+                className="px-4 py-2 bg-white rounded-xl border border-purple-300 text-black appearance-none focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10 shadow-sm"
               >
                 <option value="topcoins">Top Coins</option>
                 <option value="memecoins">Mem Coins</option>
               </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-600">
                 <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                   <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
                 </svg>
@@ -238,10 +260,10 @@ const MarketHeatmap = () => {
             {youtubeData && youtubeData.resultsByTimeframe && youtubeData.resultsByTimeframe[timeFilter] && timeFilter === "24hrs" && (
               <div className="flex flex-col gap-2">
                 {/* Last Updated */}
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-full border border-purple-500/20 backdrop-blur-sm">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-purple-300 shadow-sm">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <div className="text-xs text-gray-300">
-                    <span className="text-white font-medium">Last Updated (UTC): </span>
+                  <div className="text-xs text-black">
+                    <span className="text-black font-medium">Last Updated (UTC): </span>
                     {new Date(youtubeData.resultsByTimeframe[timeFilter].dateRange.to).toLocaleString('en-US', {
                       month: 'short',
                       day: 'numeric',
@@ -254,10 +276,10 @@ const MarketHeatmap = () => {
                 </div>
 
                 {/* Next Update */}
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-900/30 to-cyan-900/30 rounded-full border border-blue-500/20 backdrop-blur-sm">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-blue-300 shadow-sm">
                   <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                  <div className="text-xs text-gray-300">
-                    <span className="text-white font-medium">Next Update (UTC): </span>
+                  <div className="text-xs text-black">
+                    <span className="text-black font-medium">Next Update (UTC): </span>
                      {new Date(youtubeData.resultsByTimeframe[timeFilter].next_update_at).toLocaleString('en-US', {
                       month: 'short',
                       day: 'numeric',
@@ -273,10 +295,10 @@ const MarketHeatmap = () => {
 
             {/* Update Date Display - Only for 7days and 30days */}
             {youtubeData && youtubeData.resultsByTimeframe && youtubeData.resultsByTimeframe[timeFilter] && (timeFilter === "7days" || timeFilter === "30days") && (
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-full border border-purple-500/20 backdrop-blur-sm">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-purple-300 shadow-sm">
                 <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                <div className="text-xs text-gray-300">
-                  <span className="text-white font-medium">Update Date: </span>
+                <div className="text-xs text-black">
+                  <span className="text-black font-medium">Update Date: </span>
                  {new Date(youtubeData.resultsByTimeframe[timeFilter].dateRange.from).toLocaleString('en-US', {
                       month: 'short',
                       day: 'numeric',
@@ -290,14 +312,14 @@ const MarketHeatmap = () => {
             )}
 
             {/* Time Filter */}
-            <div className="flex bg-gray-900/50 rounded-xl p-1 border border-purple-500/20">
+            <div className="flex bg-gray-100 rounded-xl p-1 border border-blue-300 shadow-sm">
               {["24hrs", "7days", "30days"].map((period) => (
                 <button
                   key={period}
                   onClick={() => setTimeFilter(period)}
                   className={`px-3 py-2 rounded-lg transition-all duration-300 text-sm ${timeFilter === period
                     ? "bg-purple-600 text-white shadow-lg"
-                    : "text-gray-300 hover:text-white"
+                    : "text-black hover:text-purple-600"
                     }`}
                 >
                   {period === "24hrs" ? "24H" : period === "7days" ? "7D" : "30D"}
@@ -307,7 +329,7 @@ const MarketHeatmap = () => {
           </div>
 
           {/* YouTube Heatmap Grid */}
-          <div className="rounded-2xl p-6 bg-gray-900/50 backdrop-blur-sm border border-red-500/20">
+          <div className="rounded-2xl p-6 bg-white border border-purple-300 shadow-sm">
             <div className="grid grid-cols-3 md:grid-cols-4 gap-3 min-h-96">
               {renderHeatmapTiles(youtubeData, selectedCoinType, timeFilter)}
             </div>
@@ -332,7 +354,7 @@ const MarketHeatmap = () => {
             >
               <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
             </svg>
-            <h3 className="text-3xl font-bold text-white-400">Telegram Influencers</h3>
+            <h3 className="text-3xl font-bold text-white">Telegram Influencers</h3>
           </div>
 
           {/* Telegram Controls */}
@@ -342,36 +364,83 @@ const MarketHeatmap = () => {
               <select
                 value={telegramCoinType}
                 onChange={(e) => setTelegramCoinType(e.target.value)}
-                className="px-4 py-2 bg-gray-800 rounded-xl border border-blue-500/20 text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                className="px-4 py-2 bg-white rounded-xl border border-purple-300 text-black appearance-none focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10 shadow-sm"
               >
                 <option value="topcoins">Top Coins</option>
                 <option value="memecoins">Mem Coins</option>
               </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-600">
+
                 <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                   <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
                 </svg>
               </div>
             </div>
 
-            {/* Demo Data Notice */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-900/30 to-cyan-900/30 rounded-full border border-blue-500/20 backdrop-blur-sm">
-              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-              <div className="text-xs text-gray-300">
-                <span className="text-white font-medium">Status: </span>
-                Demo data for development
+            {/* Last Updated and Next Update Display - Only for 24hrs */}
+            {telegramData && telegramData.resultsByTimeframe && telegramData.resultsByTimeframe[telegramTimeFilter] && telegramTimeFilter === "24hrs" && (
+              <div className="flex flex-col gap-2">
+                {/* Last Updated */}
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-blue-300 shadow-sm">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <div className="text-xs text-black">
+                    <span className="text-black font-medium">Last Updated (UTC): </span>
+                    {new Date(telegramData.resultsByTimeframe[telegramTimeFilter].dateRange.to).toLocaleString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: true
+                    })}
+                  </div>
+                </div>
+
+                {/* Next Update */}
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-blue-300 shadow-sm">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                  <div className="text-xs text-black">
+                    <span className="text-black font-medium">Next Update (UTC): </span>
+                     {new Date(telegramData.resultsByTimeframe[telegramTimeFilter].next_update_at).toLocaleString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: true
+                    })}
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Update Date Display - Only for 7days and 30days */}
+            {telegramData && telegramData.resultsByTimeframe && telegramData.resultsByTimeframe[telegramTimeFilter] && (telegramTimeFilter === "7days" || telegramTimeFilter === "30days") && (
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-blue-300 shadow-sm">
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                <div className="text-xs text-black">
+                  <span className="text-black font-medium">Update Date: </span>
+                 {new Date(telegramData.resultsByTimeframe[telegramTimeFilter].dateRange.from).toLocaleString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: true
+                    })}
+                </div>
+              </div>
+            )}
 
             {/* Time Filter */}
-            <div className="flex bg-gray-900/50 rounded-xl p-1 border border-blue-500/20">
+            <div className="flex bg-gray-100 rounded-xl p-1 border border-blue-300 shadow-sm">
               {["24hrs", "7days", "30days"].map((period) => (
                 <button
                   key={period}
                   onClick={() => setTelegramTimeFilter(period)}
                   className={`px-3 py-2 rounded-lg transition-all duration-300 text-sm ${telegramTimeFilter === period
                     ? "bg-blue-600 text-white shadow-lg"
-                    : "text-gray-300 hover:text-white"
+                    : "text-black hover:text-blue-600"
                     }`}
                 >
                   {period === "24hrs" ? "24H" : period === "7days" ? "7D" : "30D"}
@@ -381,9 +450,15 @@ const MarketHeatmap = () => {
           </div>
 
           {/* Telegram Heatmap Grid */}
-          <div className="rounded-2xl p-6 bg-gray-900/50 backdrop-blur-sm border border-blue-500/20">
+          <div className="rounded-2xl p-6 bg-white border border-blue-300 shadow-sm">
             <div className="grid grid-cols-3 md:grid-cols-4 gap-3 min-h-96">
-              {renderHeatmapTiles(dummyTelegramData, telegramCoinType, telegramTimeFilter)}
+              {telegramLoading ? (
+                <div className="col-span-full flex justify-center items-center py-20">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                </div>
+              ) : (
+                renderHeatmapTiles(telegramData, telegramCoinType, telegramTimeFilter)
+              )}
             </div>
           </div>
         </motion.div>

@@ -463,7 +463,10 @@ export default function InfluencersPage() {
   ];
 
   // Generate dynamic year and quarter options using utility functions
-  const yearOptions = getYearOptions(2022); // Start from 2022
+  // For Telegram, show only 2024 to current year; for YouTube, show from 2022
+  const yearOptions = selectedPlatform === "telegram" 
+    ? getYearOptions(2024, false) // Start from 2024 up to current year only
+    : getYearOptions(2022); // Start from 2022 for YouTube
   const quarterOptions = getQuarterOptions(selectedYear);
 
   // Filter influencers by platform
@@ -620,7 +623,6 @@ export default function InfluencersPage() {
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
                     <label className="text-sm text-gray-300 font-medium">Sentiment:</label>
-                    <p className="text-red-400 text-sm">need to discuss</p>
                   </div>
                   <select
                     value={selectedSentiment}
@@ -739,13 +741,9 @@ export default function InfluencersPage() {
                   >
                     {/* Rank Badge - Top Right Corner */}
                     {(selectedPlatform === "youtube" || selectedPlatform === "telegram") && inf.rank && (
-                      <div className={`absolute top-4 right-4 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg ${inf.rank === 1
+                      <div className={`absolute top-4 right-4 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg ${inf.rank <= 3
                           ? "bg-gradient-to-r from-yellow-400 to-yellow-600 animate-pulse shadow-yellow-400/50"
-                          : inf.rank === 2
-                            ? "bg-gradient-to-r from-gray-300 to-gray-500 animate-pulse shadow-gray-400/50"
-                            : inf.rank === 3
-                              ? "bg-gradient-to-r from-orange-400 to-orange-600 animate-pulse shadow-orange-400/50"
-                              : "bg-gradient-to-r from-purple-500 to-blue-500"
+                          : "bg-gradient-to-r from-purple-500 to-blue-500"
                         }`}>
                         {inf.rank <= 3 && (
                           <span className="mr-1">

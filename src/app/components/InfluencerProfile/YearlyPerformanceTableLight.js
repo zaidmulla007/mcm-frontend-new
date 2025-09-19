@@ -128,7 +128,7 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                                 {columns.map((col) => {
                                     const value = sentimentData[row.id][col.id];
                                     // Determine text color - only red or green
-                                    const textColor = col.type === 'bearish' ? '#ef4444' : '#10b981';
+                                    const textColor = col.type === 'bearish' ? '#13c636' : '#00ff15';
                                     return (
                                         <td key={col.id} className="py-4 px-4 text-center">
                                             <div className="flex flex-col items-center gap-2">
@@ -159,7 +159,7 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData }) {
                                                     }}
                                                     value={value}
                                                 />
-                                                <div className={`font-bold text-xl ${col.type === 'bearish' ? 'text-red-500' : 'text-to-purple'}`}>
+                                                <div className={`font-bold text-xl ${col.type === 'bearish' ? 'text-bearish' : 'text-bullish'}`}>
                                                     {value}
                                                 </div>
                                             </div>

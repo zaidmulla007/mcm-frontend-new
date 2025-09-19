@@ -4,6 +4,8 @@ import TelegramInfluencerProfileHeader from "./TelegramInfluencerProfileHeader";
 import GaugeComponent from "react-gauge-component";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, ResponsiveContainer } from 'recharts';
 import { FaEye } from "react-icons/fa";
+import { useLivePrice } from "./useLivePrice";
+
 // Use global CSS class .text-to-purple from globals.css
 
 export default function TelegramInfluencerProfile({ channelId }) {
@@ -2217,7 +2219,8 @@ function RecommendationsTab({ channelData }) {
   const [endDate, setEndDate] = useState('2024-03-31');
   const [selectedSentiment, setSelectedSentiment] = useState('');
   const [selectedSymbol, setSelectedSymbol] = useState('');
-
+  const symbolsToTrack = [...new Set((recommendationsData?.results || []).map(rec => rec.symbol).filter(Boolean))];
+  const { formatPrice: formatLivePrice, getPriceData, isSymbolLive, getPriceSource, getPriceTimestamp } = useLivePrice(symbolsToTrack);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   // Fetch recommendations data
@@ -2649,7 +2652,7 @@ function RecommendationsTab({ channelData }) {
                   const ninetyDayROI = rec["90_days_price_returns"];
                   const oneYearROI = rec["1_year_price_returns"];
                   const oneEightyDayROI = rec["180_days_price_returns"];
-                  
+
                   return (
                     <tr key={rec._id} className="hover:bg-gray-100 group">
                       <td className="p-2 text-to-purple sticky left-0 bg-white group-hover:bg-gray-100 z-10" style={{ minWidth: '120px' }}>
@@ -2679,10 +2682,49 @@ function RecommendationsTab({ channelData }) {
                           </div>
                         </div>
                       </td>
-                      <td className="p-2 text-center">
+                      {/* <td className="p-2 text-center">
                         <span className="font-semibold text-xs text-to-purple">
                           {formatPrice(rec.price)}
                         </span>
+                      </td> */}
+                      <td className="p-2 text-center">
+                        {(() => {
+                          const priceText = formatLivePrice(rec.symbol);
+                          const isLive = isSymbolLive(rec.symbol);
+                          const source = getPriceSource(rec.symbol);
+                          const timestamp = getPriceTimestamp(rec.symbol);
+
+                          if (priceText === "-" || priceText === "" || priceText === null || priceText === undefined) {
+                            return <span className="text-red-400 font-semibold text-xs">-</span>;
+                          }
+
+                          return (
+                            <div className="flex flex-col items-center">
+                              <div className="flex items-center gap-1">
+                                <span
+                                  className={`font-semibold text-xs ${isLive ? 'text-to-purple' : ''}`}
+                                  style={{ color: isLive ? undefined : '#2b7fff' }}
+                                >
+                                  ${priceText}
+                                </span>
+                                {!isLive && timestamp && (
+                                  <div className="relative group">
+                                    <button
+                                      className="text-xs cursor-pointer"
+                                      style={{ color: "#2b7fff" }}
+                                    // title={`Last updated: ${new Date(timestamp).toUTCString().replace(" GMT", " UTC")}`}
+                                    >
+                                      ⓘ
+                                    </button>
+                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+                                      Last updated: {new Date(timestamp).toUTCString().replace(" GMT", " UTC")}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td className="p-2 text-center">
                         <span

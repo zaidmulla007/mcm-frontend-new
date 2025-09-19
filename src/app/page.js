@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import DragDropCards from "../components/DragDropCards";
 import MarketHeatmap from "./components/MarketHeatmap";
-
+import YouTubeTelegramDataTable from "./components/YouTubeTelegramDataTable";
 // Top 5 mentioned coins data based on the image
 const topMentionedCoins = [
   {
@@ -1122,31 +1122,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0f0c1d] via-[#19162b] to-[#1a1731] text-white font-sans pb-16 overflow-x-hidden">
-      {/* Animated Background Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        {[...Array(10)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute rounded-full bg-purple-500/10"
-            style={{
-              width: `${Math.random() * 100 + 50}px`,
-              height: `${Math.random() * 100 + 50}px`,
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              x: [0, Math.random() * 100 - 50],
-              y: [0, Math.random() * 100 - 50],
-              scale: [1, 1.2, 1],
-            }}
-            transition={{
-              duration: Math.random() * 20 + 10,
-              repeat: Infinity,
-              repeatType: "reverse",
-            }}
-          />
-        ))}
-      </div>
 
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto pt-8 pb-4 px-4 relative z-10">
@@ -1361,7 +1336,9 @@ export default function Home() {
             <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
               What&apos;s Trending
             </span>
+            <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-blue-500 mx-auto rounded-full mt-5"></div>
           </h2>
+          <YouTubeTelegramDataTable />
           {/* <h2 className="text-white-300 text-2xl font-bold mb-3">Top 5 Mentioned Coins in 24H</h2> */}
         </motion.div>
 
@@ -1945,7 +1922,9 @@ export default function Home() {
       </section>
 
       {/* Market Heatmap Section */}
-      <MarketHeatmap />
+      {/* <MarketHeatmap /> */}
+
+      {/* <YouTubeTelegramDataTable /> */}
 
       {/* Footer */}
       <footer className="max-w-7xl mx-auto px-4 pt-8  border-purple-500/20 text-center text-gray-500 text-sm">
