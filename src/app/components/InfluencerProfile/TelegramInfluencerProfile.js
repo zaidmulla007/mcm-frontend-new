@@ -658,6 +658,7 @@ function OverviewTab({ channelData }) {
                                   dataKey="bullish"
                                   position="top"
                                   style={{ fontSize: '10px', fill: '#333' }}
+                                  formatter={(value) => value.toLocaleString()}
                                 />
                               </Bar>
                               <Bar
@@ -671,6 +672,7 @@ function OverviewTab({ channelData }) {
                                   dataKey="bearish"
                                   position="top"
                                   style={{ fontSize: '10px', fill: '#333' }}
+                                  formatter={(value) => value.toLocaleString()}
                                 />
                               </Bar>
                             </BarChart>
@@ -714,6 +716,7 @@ function OverviewTab({ channelData }) {
                                   dataKey="bullish"
                                   position="top"
                                   style={{ fontSize: '10px', fill: '#333' }}
+                                  formatter={(value) => value.toLocaleString()}
                                 />
                               </Bar>
                               <Bar
@@ -727,6 +730,7 @@ function OverviewTab({ channelData }) {
                                   dataKey="bearish"
                                   position="top"
                                   style={{ fontSize: '10px', fill: '#333' }}
+                                  formatter={(value) => value.toLocaleString()}
                                 />
                               </Bar>
                             </BarChart>
@@ -1780,7 +1784,7 @@ function PerformanceTab({ channelData }) {
                 return (
                   <td key={column.key} className="py-4 px-4 text-center">
                     <div className="font-bold text-xl text-to-purple">
-                      {metrics ? metrics.totalRecommendations : "-"}
+                      {metrics ? metrics.totalRecommendations.toLocaleString() : "-"}
                     </div>
                   </td>
                 );
@@ -1800,7 +1804,7 @@ function PerformanceTab({ channelData }) {
                   return (
                     <td key={column.key} className="py-3 px-4 text-center">
                       <div className="font-bold text-xl text-to-purple">
-                        {metrics ? moonshotCount : "-"}
+                        {metrics ? moonshotCount.toLocaleString() : "-"}
                       </div>
                     </td>
                   );
@@ -1821,7 +1825,7 @@ function PerformanceTab({ channelData }) {
                   return (
                     <td key={column.key} className="py-3 px-4 text-center">
                       <div className="font-bold text-xl text-to-purple">
-                        {metrics ? withoutMoonshotCount : "-"}
+                        {metrics ? withoutMoonshotCount.toLocaleString() : "-"}
                       </div>
                     </td>
                   );
@@ -2392,7 +2396,7 @@ function RecommendationsTab({ channelData }) {
           </span>{" "}
           sentiment (
           <span className="font-bold text-to-purple">
-            {recommendationsData?.totalItems || 0}
+            {(recommendationsData?.totalItems || 0).toLocaleString()}
           </span>
           )
         </h3>

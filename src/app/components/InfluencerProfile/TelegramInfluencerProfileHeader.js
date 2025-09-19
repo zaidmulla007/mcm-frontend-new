@@ -131,21 +131,21 @@ export default function TelegramInfluencerProfileHeader({ channelData }) {
               {/* Message Counts */}
               <div className="flex flex-col sm:flex-row gap-4 text-sm text-gray-400 mt-3">
                 <div className="flex items-center gap-2">
-                  <span>📊 Total Videos:</span>
+                  <span>📊 Total Posts:</span>
                   <span className="text-white font-semibold">
-                    {channelData.results?.total_records || 0}
+                    {(channelData.results?.total_records || 0).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span>₿ Crypto Related Videos:</span>
+                  <span>₿ Crypto Related Posts:</span>
                   <span className="text-white font-semibold">
-                    {channelData.results?.crypto_related || 0}
+                    {(channelData.results?.crypto_related || 0).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span>🪙 Total Coins Analyzed:</span>
                   <span className="text-white font-semibold">
-                    {channelData.results?.Overall?.total_coins || 0}
+                    {(channelData.results?.Overall?.total_coins || 0).toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -155,19 +155,19 @@ export default function TelegramInfluencerProfileHeader({ channelData }) {
                 <div className="flex items-center gap-2">
                   <span>📈 Bullish Calls:</span>
                   <span className="text-green-400 font-semibold">
-                    {channelData.results?.Overall?.bullish_count || 0}
+                    {(channelData.results?.Overall?.bullish_count || 0).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span>📉 Bearish Calls:</span>
                   <span className="text-red-400 font-semibold">
-                    {channelData.results?.Overall?.bearish_count || 0}
+                    {(channelData.results?.Overall?.bearish_count || 0).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span>➖ Neutral Calls:</span>
                   <span className="text-gray-400 font-semibold">
-                    {channelData.results?.Overall?.neutral_count || 0}
+                    {(channelData.results?.Overall?.neutral_count || 0).toLocaleString()}
                   </span>
                 </div>
               </div>
