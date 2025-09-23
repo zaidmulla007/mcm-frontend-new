@@ -5,6 +5,7 @@ import GaugeComponent from "react-gauge-component";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, ResponsiveContainer } from 'recharts';
 import { FaEye } from "react-icons/fa";
 import { useLivePrice } from "./useLivePrice";
+import RecentActivityTab from "@/app/components/InfluencerProfile/Recentactivties";
 
 // Use global CSS class .text-to-purple from globals.css
 
@@ -21,7 +22,7 @@ export default function TelegramInfluencerProfile({ channelId }) {
     const fetchTelegramData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`https://mcmapi.showmyui.com:3031/api/admin/telegramdata/channel/${channelId}`);
+        const response = await fetch(`http://37.27.120.45:5000/api/admin/influencertelegramdata/channel/${channelId}`);
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -43,7 +44,8 @@ export default function TelegramInfluencerProfile({ channelId }) {
   const tabs = [
     { id: "overview", label: "Overview" },
     { id: "performance", label: "Performance Summary" },
-    { id: "recommendations", label: "Recommendations" }
+    { id: "recommendations", label: "Recommendations" },
+    { id: "recentActivities", label: "Recent Activities" }
   ];
 
   if (loading) {
@@ -112,6 +114,9 @@ export default function TelegramInfluencerProfile({ channelId }) {
         )}
         {activeTab === "recommendations" && (
           <RecommendationsTab channelData={channelData} />
+        )}
+        {activeTab === "recentActivities" && (
+          <RecentActivityTab/>
         )}
       </div>
     </div>
@@ -636,10 +641,10 @@ function OverviewTab({ channelData }) {
                       {chartsData.map((category) => (
                         <div key={category.key} className="border border-gray-200 rounded-lg p-4">
                           <h4 className="text-center font-medium text-gray-700 mb-3">{category.label}</h4>
-                          <ResponsiveContainer width="100%" height={180}>
+                          <ResponsiveContainer width="100%" height={220}>
                             <BarChart
                               data={category.data}
-                              margin={{ top: 10, right: 10, left: 0, bottom: 30 }}
+                              margin={{ top: 40, right: 10, left: 0, bottom: 30 }}
                             >
                               <XAxis
                                 dataKey="year"
@@ -694,10 +699,10 @@ function OverviewTab({ channelData }) {
                       {chartsData.map((category) => (
                         <div key={category.key} className="space-y-2">
                           <h4 className="text-sm font-semibold text-[#0c0023] text-center mb-2">{category.label}</h4>
-                          <ResponsiveContainer width="100%" height={150}>
+                          <ResponsiveContainer width="100%" height={190}>
                             <BarChart
                               data={category.data}
-                              margin={{ top: 5, right: 5, left: 0, bottom: 25 }}
+                              margin={{ top: 40, right: 5, left: 0, bottom: 25 }}
                             >
                               <XAxis
                                 dataKey="year"
@@ -1695,13 +1700,13 @@ function PerformanceTab({ channelData }) {
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-200">
-              <th className="text-left py-3 px-4 text-to-purple font-bold text-xl">
+              <th className="text-left py-3 px-4 text-to-purple font-semibold text-sm">
                 Hits & Misses
               </th>
               {dynamicColumns.map((column) => (
                 <th
                   key={column.key}
-                  className="text-center py-3 px-4 text-to-purple font-bold text-xl"
+                  className="text-center py-3 px-4 text-to-purple font-semibold text-sm"
                 >
                   <div className="flex items-center justify-center gap-1">
                     <span>{column.label}</span>
@@ -1755,7 +1760,7 @@ function PerformanceTab({ channelData }) {
             <tr className="border-b border-gray-200">
               <td className="py-4 px-4 text-to-purple font-medium">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-xl">No. of Recommendations during period</span>
+                  <span className="font-semibold text-sm">No. of Recommendations during period</span>
                   <button
                     onClick={() =>
                       setExpandedRecommendations(!expandedRecommendations)
@@ -1783,7 +1788,7 @@ function PerformanceTab({ channelData }) {
                 const metrics = calculateYearMetrics(column.key);
                 return (
                   <td key={column.key} className="py-4 px-4 text-center">
-                    <div className="font-bold text-xl text-to-purple">
+                    <div className="font-semibold text-sm text-to-purple">
                       {metrics ? metrics.totalRecommendations.toLocaleString() : "-"}
                     </div>
                   </td>
@@ -1794,7 +1799,7 @@ function PerformanceTab({ channelData }) {
             {/* Expanded Moonshots Row */}
             {expandedRecommendations && (
               <tr className="border-b border-gray-100 light-dropdown">
-                <td className="py-3 px-4 text-to-purple font-medium pl-8">
+                <td className="py-3 px-4 text-to-purple font-semibold text-sm pl-8">
                   Moonshots
                 </td>
                 {dynamicColumns.map((column) => {
@@ -1803,7 +1808,7 @@ function PerformanceTab({ channelData }) {
                   const moonshotCount = metrics ? Math.floor(metrics.totalRecommendations * 0.7) : 0;
                   return (
                     <td key={column.key} className="py-3 px-4 text-center">
-                      <div className="font-bold text-xl text-to-purple">
+                      <div className="font-semibold text-sm text-to-purple">
                         {metrics ? moonshotCount.toLocaleString() : "-"}
                       </div>
                     </td>
@@ -1815,7 +1820,7 @@ function PerformanceTab({ channelData }) {
             {/* Expanded Without Moonshots Row */}
             {expandedRecommendations && (
               <tr className="border-b border-gray-100 light-dropdown">
-                <td className="py-3 px-4 text-to-purple font-medium pl-8">
+                <td className="py-3 px-4 text-to-purple font-semibold text-sm pl-8">
                   Without Moonshots
                 </td>
                 {dynamicColumns.map((column) => {
@@ -1824,7 +1829,7 @@ function PerformanceTab({ channelData }) {
                   const withoutMoonshotCount = metrics ? Math.floor(metrics.totalRecommendations * 0.3) : 0;
                   return (
                     <td key={column.key} className="py-3 px-4 text-center">
-                      <div className="font-bold text-xl text-to-purple">
+                      <div className="font-semibold text-sm text-to-purple">
                         {metrics ? withoutMoonshotCount.toLocaleString() : "-"}
                       </div>
                     </td>
@@ -1837,7 +1842,7 @@ function PerformanceTab({ channelData }) {
             <tr className="light-win-loss-row">
               <td className="light-win-loss-header">
                 <div className="header-content">
-                  <span className="font-bold text-xl">Win/Loss Ratio (Cumulative)</span>
+                  <span className="font-semibold text-sm">Win/Loss Ratio (Cumulative)</span>
                   <button
                     onClick={() => setExpandedWinLoss(!expandedWinLoss)}
                     className="light-expand-button"
@@ -1894,7 +1899,7 @@ function PerformanceTab({ channelData }) {
                           }}
                           value={winPercentage}
                         />
-                        <div className="font-bold text-xl text-to-purple">
+                        <div className="font-semibold text-sm text-to-purple">
                           {Math.round(winPercentage)}% Win
                         </div>
                       </div>
@@ -1908,8 +1913,8 @@ function PerformanceTab({ channelData }) {
 
             {/* Expanded Moonshots Win/Loss Row */}
             {expandedWinLoss && (
-              <tr className="light-hyper-activity-row light-dropdown">
-                <td className="light-hyper-activity-header">
+              <tr className="border-b border-gray-100 light-dropdown">
+                <td className="py-3 px-4 text-to-purple font-semibold text-sm pl-8">
                   Moonshots
                 </td>
                 {dynamicColumns.map((column) => {
@@ -1948,7 +1953,7 @@ function PerformanceTab({ channelData }) {
                             }}
                             value={adjustedWin}
                           />
-                          <div className="font-bold text-xl text-to-purple">
+                          <div className="font-semibold text-sm text-to-purple">
                             {Math.round(adjustedWin)}% Win
                           </div>
                         </div>
@@ -1963,8 +1968,8 @@ function PerformanceTab({ channelData }) {
 
             {/* Expanded Without Moonshots Win/Loss Row */}
             {expandedWinLoss && (
-              <tr className="light-without-hyper-row light-dropdown">
-                <td className="light-without-hyper-header">
+              <tr className="border-b border-gray-100 light-dropdown">
+                <td className="py-3 px-4 text-to-purple font-semibold text-sm pl-8">
                   Without Moonshots
                 </td>
                 {dynamicColumns.map((column) => {
@@ -2003,7 +2008,7 @@ function PerformanceTab({ channelData }) {
                             }}
                             value={adjustedWin}
                           />
-                          <div className="font-bold text-xl text-to-purple">
+                          <div className="font-semibold text-sm text-to-purple">
                             {Math.round(adjustedWin)}% Win
                           </div>
                         </div>
@@ -2020,7 +2025,7 @@ function PerformanceTab({ channelData }) {
             <tr className="light-win-loss-row">
               <td className="light-win-loss-header">
                 <div className="header-content">
-                  <span className="font-bold text-xl">Average Return (Cumulative)</span>
+                  <span className="font-semibold text-sm">Average Return (Cumulative)</span>
                   <button
                     onClick={() => setExpandedAverageReturn(!expandedAverageReturn)}
                     className="light-expand-button"
@@ -2082,7 +2087,7 @@ function PerformanceTab({ channelData }) {
                       </div>
 
                       {/* Value Text */}
-                      <div className="font-bold text-xl text-to-purple">
+                      <div className="font-semibold text-sm text-to-purple">
                         {returnValue > 0 ? "+" : ""}
                         {returnValue.toFixed(1)}%
                       </div>
@@ -2095,7 +2100,7 @@ function PerformanceTab({ channelData }) {
             {/* Expanded Moonshots Average Return Row */}
             {expandedAverageReturn && (
               <tr className="border-b border-gray-100 light-dropdown">
-                <td className="py-3 px-4 text-to-purple font-medium pl-8">
+                <td className="py-3 px-4 text-to-purple font-semibold text-sm pl-8">
                   Moonshots
                 </td>
                 {dynamicColumns.map((column) => {
@@ -2139,7 +2144,7 @@ function PerformanceTab({ channelData }) {
                         </div>
 
                         {/* Value Text */}
-                        <div className="font-bold text-xl text-to-purple">
+                        <div className="font-semibold text-sm text-to-purple">
                           {returnValue > 0 ? "+" : ""}
                           {returnValue.toFixed(1)}%
                         </div>
@@ -2153,7 +2158,7 @@ function PerformanceTab({ channelData }) {
             {/* Expanded Without Moonshots Average Return Row */}
             {expandedAverageReturn && (
               <tr className="border-b border-gray-100 light-dropdown">
-                <td className="py-3 px-4 text-to-purple font-medium pl-8">
+                <td className="py-3 px-4 text-to-purple font-semibold text-sm pl-8">
                   Without Moonshots
                 </td>
                 {dynamicColumns.map((column) => {
@@ -2197,7 +2202,7 @@ function PerformanceTab({ channelData }) {
                         </div>
 
                         {/* Value Text */}
-                        <div className="font-bold text-xl text-to-purple">
+                        <div className="font-semibold text-sm text-to-purple">
                           {returnValue > 0 ? "+" : ""}
                           {returnValue.toFixed(1)}%
                         </div>
@@ -2228,8 +2233,10 @@ function RecommendationsTab({ channelData }) {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   // Fetch recommendations data
-  const fetchRecommendations = async () => {
-    setLoading(true);
+  const fetchRecommendations = async (showLoading = true) => {
+    if (showLoading) {
+      setLoading(true);
+    }
     try {
       const url = new URL('https://mcmapi.showmyui.com:3035/api/admin/telegramdata/page/' + currentPage);
 
@@ -2260,10 +2267,17 @@ function RecommendationsTab({ channelData }) {
     }
   };
 
-  // Initial load
+  // Initial load - only load on mount and when page changes
   useEffect(() => {
     fetchRecommendations();
   }, [currentPage]);
+
+  // Only auto-reload when start or end date changes
+  useEffect(() => {
+    if (startDate || endDate) {
+      fetchRecommendations(false); // Don't show loading for date changes
+    }
+  }, [startDate, endDate]);
 
   const getSentimentColor = (sentiment) => {
     switch (sentiment) {
@@ -2351,7 +2365,7 @@ function RecommendationsTab({ channelData }) {
 
   const handleApplyFilters = () => {
     setCurrentPage(0); // Reset to first page when applying filters
-    fetchRecommendations();
+    fetchRecommendations(false); // Don't show loading for advanced filters
   };
 
   const handleClearFilters = () => {
@@ -2360,10 +2374,17 @@ function RecommendationsTab({ channelData }) {
     setStartDate('2024-01-01');
     setEndDate('2024-03-31');
     setCurrentPage(0);
-    // Fetch with default values
-    fetchRecommendations();
+    // Fetch with default values - no loading popup
+    fetchRecommendations(false);
   };
-
+  const formatDate = (dateStr) => {
+    if (!dateStr) return null;
+    const d = new Date(dateStr);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -2382,12 +2403,12 @@ function RecommendationsTab({ channelData }) {
           <span className="font-bold text-to-purple">
             {startDate && endDate
               ? startDate === endDate
-                ? `on ${startDate}`
-                : `${startDate} to ${endDate}`
+                ? `on ${formatDate(startDate)}`
+                : `${formatDate(startDate)} to ${formatDate(endDate)}`
               : startDate
-                ? `from ${startDate}`
+                ? `from ${formatDate(startDate)}`
                 : endDate
-                  ? `until ${endDate}`
+                  ? `until ${formatDate(endDate)}`
                   : "all time"}
           </span>{" "}
           for{" "}
@@ -2400,6 +2421,7 @@ function RecommendationsTab({ channelData }) {
           </span>
           )
         </h3>
+
         <div id="telegram-filters-section" className="flex flex-col gap-3 items-end">
           {/* Main Filters Row */}
           <div className="w-full md:w-auto overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
@@ -2483,6 +2505,7 @@ function RecommendationsTab({ channelData }) {
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     className="bg-[#c4c5e14d] border border-gray-300 rounded px-3 py-2 text-sm text-to-purple"
+                    max={new Date().toISOString().split('T')[0]}
                   />
                 </div>
               </div>
@@ -2548,16 +2571,16 @@ function RecommendationsTab({ channelData }) {
                     <tr className="hover:bg-gray-100">
                       <td className="p-3 font-medium text-to-purple">Sentiment Distribution</td>
                       <td className="p-3 text-center text-green-600 font-semibold">
-                        {recommendationsData.analytics.sentiment_analysis.sentiment_breakdown["Strong_Bullish"] || 0}
+                        {(recommendationsData.analytics.sentiment_analysis.sentiment_breakdown["Strong_Bullish"] || 0).toLocaleString()}
                       </td>
                       <td className="p-3 text-center text-green-500 font-semibold">
-                        {recommendationsData.analytics.sentiment_analysis.sentiment_breakdown["Mild_Bullish"] || 0}
+                        {(recommendationsData.analytics.sentiment_analysis.sentiment_breakdown["Mild_Bullish"] || 0).toLocaleString()}
                       </td>
                       <td className="p-3 text-center text-red-500 font-semibold">
-                        {recommendationsData.analytics.sentiment_analysis.sentiment_breakdown["Mild_Bearish"] || 0}
+                        {(recommendationsData.analytics.sentiment_analysis.sentiment_breakdown["Mild_Bearish"] || 0).toLocaleString()}
                       </td>
                       <td className="p-3 text-center text-red-600 font-semibold">
-                        {recommendationsData.analytics.sentiment_analysis.sentiment_breakdown["Strong_Bearish"] || 0}
+                        {(recommendationsData.analytics.sentiment_analysis.sentiment_breakdown["Strong_Bearish"] || 0).toLocaleString()}
                       </td>
                     </tr>
                   </tbody>
@@ -2568,12 +2591,7 @@ function RecommendationsTab({ channelData }) {
         </div>
       )}
 
-      {loading ? (
-        <div className="p-8 text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto mb-4"></div>
-          <p className="text-to-purple">Loading recommendations...</p>
-        </div>
-      ) : recommendationsData?.results && recommendationsData.results.length > 0 ? (
+      {recommendationsData?.results && recommendationsData.results.length > 0 ? (
         <>
           <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
             <table className="min-w-full text-sm" style={{ minWidth: '1200px' }}>
@@ -2907,5 +2925,6 @@ function RecommendationsTab({ channelData }) {
         </div>
       )}
     </div>
+    
   );
 }

@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import DragDropCards from "../components/DragDropCards";
 import MarketHeatmap from "./components/MarketHeatmap";
 import YouTubeTelegramDataTable from "./components/YouTubeTelegramDataTable";
+import YoutubeTelegramDataTableLight from "./components/YoutubeTelegramDataTableLight";
 // Top 5 mentioned coins data based on the image
 const topMentionedCoins = [
   {
@@ -1339,6 +1340,7 @@ export default function Home() {
             <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-blue-500 mx-auto rounded-full mt-5"></div>
           </h2>
           <YouTubeTelegramDataTable />
+          {/* <YoutubeTelegramDataTableLight /> */}
           {/* <h2 className="text-white-300 text-2xl font-bold mb-3">Top 5 Mentioned Coins in 24H</h2> */}
         </motion.div>
 

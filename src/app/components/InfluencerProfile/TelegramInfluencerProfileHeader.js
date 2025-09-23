@@ -10,7 +10,7 @@ export default function TelegramInfluencerProfileHeader({ channelData }) {
   const handleFavoriteClick = () => {
     const newFavoriteState = !isFavorite;
     setIsFavorite(newFavoriteState);
-    
+
     // Show SweetAlert with layout colors based on action
     Swal.fire({
       title: newFavoriteState ? 'Added to favourites' : 'Removed from favourite list',
@@ -44,7 +44,7 @@ export default function TelegramInfluencerProfileHeader({ channelData }) {
                     {channelData.results?.channel_id || "Unknown Channel"}
                   </h1>
                   {/* Heart Icon Button - Mobile View Only */}
-                  <button 
+                  <button
                     onClick={handleFavoriteClick}
                     className="md:hidden focus:outline-none transition-all duration-300 hover:scale-110 flex-shrink-0"
                     aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
@@ -57,7 +57,7 @@ export default function TelegramInfluencerProfileHeader({ channelData }) {
                   </button>
                 </div>
               </div>
-              
+
               <a
                 href={`https://t.me/${channelData.results?.channel_id}`}
                 className="text-blue-400 hover:underline text-base mb-2 flex items-center gap-2"
@@ -76,12 +76,12 @@ export default function TelegramInfluencerProfileHeader({ channelData }) {
                     <span className="text-white">
                       {channelData.results?.Overall?.start_date
                         ? new Date(
-                            channelData.results.Overall.start_date
-                          ).toLocaleDateString("en-GB", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          })
+                          channelData.results.Overall.start_date
+                        ).toLocaleDateString("en-GB", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        })
                         : "Not available"}
                     </span>
                   </div>
@@ -95,12 +95,12 @@ export default function TelegramInfluencerProfileHeader({ channelData }) {
                     <span className="text-white">
                       {channelData.results?.Overall?.end_date
                         ? new Date(
-                            channelData.results.Overall.end_date
-                          ).toLocaleDateString("en-GB", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          })
+                          channelData.results.Overall.end_date
+                        ).toLocaleDateString("en-GB", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        })
                         : "Not available"}
                     </span>
                   </div>
@@ -114,11 +114,11 @@ export default function TelegramInfluencerProfileHeader({ channelData }) {
                     <span className="text-white">
                       {channelData.results?.last_updated
                         ? new Date(channelData.results.last_updated).toLocaleDateString("en-GB", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                            timeZone: "UTC",
-                          })
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          timeZone: "UTC",
+                        })
                         : "Not available"}
                     </span>
                   </div>
@@ -171,15 +171,13 @@ export default function TelegramInfluencerProfileHeader({ channelData }) {
                   </span>
                 </div>
               </div>
-
-
             </div>
 
             {/* Heart Icon for Desktop View */}
             <div className="hidden md:flex flex-col items-center md:items-end relative">
               <div className="flex flex-col items-center gap-2">
                 {/* Heart Icon Button - Desktop View Only */}
-                <button 
+                <button
                   onClick={handleFavoriteClick}
                   className="focus:outline-none transition-all duration-300 hover:scale-110 flex-shrink-0 p-3 rounded-full bg-white/5 border border-gray-600 hover:bg-white/10"
                   aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}

@@ -140,8 +140,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
   ) => {
     try {
       setLoading(true);
-      let url = `/api/youtube-data/recommendations?page=${page}&channelID=${channelID}&limit=${limit}`;
-
+      let url = `http://37.27.120.45:5000/api/admin/strategyyoutubedata/page/${page}&channelID=${channelID}&limit=${limit}`;
       // Only add symbol parameter if it's not empty
       if (symbol && symbol.trim() !== "") {
         url += `&symbol=${symbol}`;
@@ -175,11 +174,19 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
     }
   };
 
+  // Initial load - only load on mount and channelID change
   useEffect(() => {
     if (channelID) {
       getRecommendations(0, 100, selectedSymbol, selectedSentiment);
     }
-  }, [channelID, selectedSymbol, selectedSentiment]);
+  }, [channelID]);
+
+  // Only auto-reload when start or end date changes
+  useEffect(() => {
+    if (channelID && (startDate || endDate)) {
+      getRecommendations(0, 100, selectedSymbol, selectedSentiment);
+    }
+  }, [startDate, endDate]);
 
   // Helper function to calculate ROI
   const calculateROI = (basePrice, currentPrice) => {
@@ -246,7 +253,15 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
     // Call API with only channelID and limit parameters
     getRecommendations(0, 100);
   };
-
+  // helper function
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
   const scrollToFilters = () => {
     // First, show advanced filters to ensure all filters are visible
     setShowAdvancedFilters(true);
@@ -292,12 +307,12 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
           <span className="font-bold text-to-purple">
             {startDate && endDate
               ? startDate === endDate
-                ? `on ${startDate}`
-                : `${startDate} to ${endDate}`
+                ? `on ${formatDate(startDate)}`
+                : `${formatDate(startDate)} to ${formatDate(endDate)}`
               : startDate
-                ? `from ${startDate}`
+                ? `from ${formatDate(startDate)}`
                 : endDate
-                  ? `until ${endDate}`
+                  ? `until ${formatDate(endDate)}`
                   : "all time"}
           </span>{" "}
           for{" "}
@@ -310,6 +325,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
           </span>
           )
         </h3>
+
         <div id="influencer-filters-section" className="flex flex-col gap-3 items-end">
           {/* Main Filters Row */}
           <div className="w-full md:w-auto overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
@@ -607,30 +623,22 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                       </td>
                       <td className="p-3 text-center text-to-purple-400 font-semibold">
                         {formatNumberWithCommas(
-                          analytics.sentiment_analysis.sentiment_breakdown[
-                          "Strong_Bullish"
-                          ] || 0
+                          analytics.sentiment_analysis.sentiment_breakdown["Strong_Bullish"] || 0
                         )}
                       </td>
                       <td className="p-3 text-center text-to-purple-400 font-semibold">
                         {formatNumberWithCommas(
-                          analytics.sentiment_analysis.sentiment_breakdown[
-                          "Mild_Bullish"
-                          ] || 0
+                          analytics.sentiment_analysis.sentiment_breakdown["Mild_Bullish"] || 0
                         )}
                       </td>
                       <td className="p-3 text-center text-to-red-recomendations font-semibold">
                         {formatNumberWithCommas(
-                          analytics.sentiment_analysis.sentiment_breakdown[
-                          "Mild_Bearish"
-                          ] || 0
+                          analytics.sentiment_analysis.sentiment_breakdown["Mild_Bearish"] || 0
                         )}
                       </td>
                       <td className="p-3 text-center text-to-red-recomendations font-semibold">
                         {formatNumberWithCommas(
-                          analytics.sentiment_analysis.sentiment_breakdown[
-                          "Strong_Bearish"
-                          ] || 0
+                          analytics.sentiment_analysis.sentiment_breakdown["Strong_Bearish"] || 0
                         )}
                       </td>
                     </tr>
@@ -720,223 +728,223 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
                   </th>
                 </tr>
               </thead>
-            <tbody>
-              {recommendations.map((rec) => {
-                // Use the new ROI calculation keys directly from the response
-                const oneHourROI = rec["1_hour_price_returns"];
-                const oneDayROI = rec["24_hours_price_returns"];
-                const sevenDayROI = rec["7_days_price_returns"];
-                const thirtyDayROI = rec["30_days_price_returns"];
-                const sixtyDayROI = rec["60_days_price_returns"];
-                const ninetyDayROI = rec["90_days_price_returns"];
-                const oneYearROI = rec["1_year_price_returns"];
-                const oneEightyDayROI = rec["180_days_price_returns"];
-                return (
-                  <tr key={rec._id} className="hover:bg-gray-100 group">
-                    <td className="p-2 text-to-purple sticky left-0 bg-white group-hover:bg-gray-100 z-10" style={{ minWidth: '120px' }}>
-                      <div className="text-xs">
-                        {new Date(rec.publishedAt).toLocaleDateString(undefined, {
-                          year: "numeric",
-                          month: "2-digit",
-                          day: "2-digit",
-                          timeZone: "UTC",
-                        })}
-                        <br />
-                        {new Date(rec.publishedAt).toLocaleTimeString(undefined, {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          timeZone: "UTC",
-                        })}
-                      </div>
-                    </td>
-                    <td className="p-2 flex items-center gap-1 sticky left-[120px] bg-white group-hover:bg-gray-100 z-10" style={{ minWidth: '100px' }}>
-                      <span className="w-5 h-5 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center text-xs font-bold">
-                        {rec.symbol?.charAt(0) || "?"}
-                      </span>
-                      <div>
-                        <div className="font-semibold text-to-purple text-xs">{rec.symbol}</div>
-                        <div className="text-xs text-to-purple-400 truncate" style={{ maxWidth: '60px' }}>
-                          {rec.coin_name}
+              <tbody>
+                {recommendations.map((rec) => {
+                  // Use the new ROI calculation keys directly from the response
+                  const oneHourROI = rec["1_hour_price_returns"];
+                  const oneDayROI = rec["24_hours_price_returns"];
+                  const sevenDayROI = rec["7_days_price_returns"];
+                  const thirtyDayROI = rec["30_days_price_returns"];
+                  const sixtyDayROI = rec["60_days_price_returns"];
+                  const ninetyDayROI = rec["90_days_price_returns"];
+                  const oneYearROI = rec["1_year_price_returns"];
+                  const oneEightyDayROI = rec["180_days_price_returns"];
+                  return (
+                    <tr key={rec._id} className="hover:bg-gray-100 group">
+                      <td className="p-2 text-to-purple sticky left-0 bg-white group-hover:bg-gray-100 z-10" style={{ minWidth: '120px' }}>
+                        <div className="text-xs">
+                          {new Date(rec.publishedAt).toLocaleDateString(undefined, {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                            timeZone: "UTC",
+                          })}
+                          <br />
+                          {new Date(rec.publishedAt).toLocaleTimeString(undefined, {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            timeZone: "UTC",
+                          })}
                         </div>
-                      </div>
-                    </td>
-                    <td className="p-2 text-center">
-                      {(() => {
-                        const priceText = formatLivePrice(rec.symbol);
-                        const isLive = isSymbolLive(rec.symbol);
-                        const source = getPriceSource(rec.symbol);
-                        const timestamp = getPriceTimestamp(rec.symbol);
-
-                        if (priceText === "-" || priceText === "" || priceText === null || priceText === undefined) {
-                          return <span className="text-red-400 font-semibold text-xs">-</span>;
-                        }
-
-                        return (
-                          <div className="flex flex-col items-center">
-                            <div className="flex items-center gap-1">
-                              <span
-                                className={`font-semibold text-xs ${isLive ? 'text-to-purple' : ''}`}
-                                style={{ color: isLive ? undefined : '#2b7fff' }}
-                              >
-                                ${priceText}
-                              </span>
-                              {!isLive && timestamp && (
-                                <div className="relative group">
-                                  <button
-                                    className="text-xs cursor-pointer"
-                                    style={{ color: "#2b7fff" }}
-                                    // title={`Last updated: ${new Date(timestamp).toUTCString().replace(" GMT", " UTC")}`}
-                                  >
-                                    ⓘ
-                                  </button>
-                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
-                                    Last updated: {new Date(timestamp).toUTCString().replace(" GMT", " UTC")}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
+                      </td>
+                      <td className="p-2 flex items-center gap-1 sticky left-[120px] bg-white group-hover:bg-gray-100 z-10" style={{ minWidth: '100px' }}>
+                        <span className="w-5 h-5 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center text-xs font-bold">
+                          {rec.symbol?.charAt(0) || "?"}
+                        </span>
+                        <div>
+                          <div className="font-semibold text-to-purple text-xs">{rec.symbol}</div>
+                          <div className="text-xs text-to-purple-400 truncate" style={{ maxWidth: '60px' }}>
+                            {rec.coin_name}
                           </div>
-                        );
-                      })()}
-                    </td>
-                    {/* <td className="p-3 text-to-purple">-</td> */}
-                    <td className="p-2 text-center">
-                      <span
-                        className={`inline-block text-xs font-semibold text-center ${getSentimentColor(
-                          rec.sentiment
-                        )}`}
+                        </div>
+                      </td>
+                      <td className="p-2 text-center">
+                        {(() => {
+                          const priceText = formatLivePrice(rec.symbol);
+                          const isLive = isSymbolLive(rec.symbol);
+                          const source = getPriceSource(rec.symbol);
+                          const timestamp = getPriceTimestamp(rec.symbol);
+
+                          if (priceText === "-" || priceText === "" || priceText === null || priceText === undefined) {
+                            return <span className="text-red-400 font-semibold text-xs">-</span>;
+                          }
+
+                          return (
+                            <div className="flex flex-col items-center">
+                              <div className="flex items-center gap-1">
+                                <span
+                                  className={`font-semibold text-xs ${isLive ? 'text-to-purple' : ''}`}
+                                  style={{ color: isLive ? undefined : '#2b7fff' }}
+                                >
+                                  ${priceText}
+                                </span>
+                                {!isLive && timestamp && (
+                                  <div className="relative group">
+                                    <button
+                                      className="text-xs cursor-pointer"
+                                      style={{ color: "#2b7fff" }}
+                                    // title={`Last updated: ${new Date(timestamp).toUTCString().replace(" GMT", " UTC")}`}
+                                    >
+                                      ⓘ
+                                    </button>
+                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+                                      Last updated: {new Date(timestamp).toUTCString().replace(" GMT", " UTC")}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </td>
+                      {/* <td className="p-3 text-to-purple">-</td> */}
+                      <td className="p-2 text-center">
+                        <span
+                          className={`inline-block text-xs font-semibold text-center ${getSentimentColor(
+                            rec.sentiment
+                          )}`}
+                        >
+                          {rec.sentiment?.replace("_", " ") || "N/A"}
+                        </span>
+                      </td>
+                      <td className="p-2 text-to-purple text-xs">{formatPrice(rec.base?.price)}</td>
+                      <td
+                        className={`p-2 font-semibold text-xs ${oneHourROI > 0
+                          ? "text-to-purple-400"
+                          : oneHourROI < 0
+                            ? "text-to-red-recomendations"
+                            : "text-to-purple-400"
+                          }`}
                       >
-                        {rec.sentiment?.replace("_", " ") || "N/A"}
-                      </span>
-                    </td>
-                    <td className="p-2 text-to-purple text-xs">{formatPrice(rec.base?.price)}</td>
-                    <td
-                      className={`p-2 font-semibold text-xs ${oneHourROI > 0
-                        ? "text-to-purple-400"
-                        : oneHourROI < 0
-                          ? "text-to-red-recomendations"
-                          : "text-to-purple-400"
-                        }`}
-                    >
-                      {oneHourROI !== null && oneHourROI !== undefined
-                        ? `${oneHourROI > 0 ? "+" : ""}${formatNumberWithCommas(
-                          oneHourROI
-                        )}%`
-                        : "N/A"}
-                    </td>
-                    <td
-                      className={`p-2 font-semibold text-xs ${oneDayROI > 0
-                        ? "text-to-purple-400"
-                        : oneDayROI < 0
-                          ? "text-to-red-recomendations"
-                          : "text-to-purple-400"
-                        }`}
-                    >
-                      {oneDayROI !== null && oneDayROI !== undefined
-                        ? `${oneDayROI > 0 ? "+" : ""}${formatNumberWithCommas(
-                          oneDayROI
-                        )}%`
-                        : "N/A"}
-                    </td>
-                    <td
-                      className={`p-2 font-semibold text-xs ${sevenDayROI > 0
-                        ? "text-to-purple-400"
-                        : sevenDayROI < 0
-                          ? "text-to-red-recomendations"
-                          : "text-to-purple-400"
-                        }`}
-                    >
-                      {sevenDayROI !== null && sevenDayROI !== undefined
-                        ? `${sevenDayROI > 0 ? "+" : ""
-                        }${formatNumberWithCommas(sevenDayROI)}%`
-                        : "N/A"}
-                    </td>
-                    <td
-                      className={`p-2 font-semibold text-xs ${thirtyDayROI > 0
-                        ? "text-to-purple-400"
-                        : thirtyDayROI < 0
-                          ? "text-to-red-recomendations"
-                          : "text-to-purple-400"
-                        }`}
-                    >
-                      {thirtyDayROI !== null && thirtyDayROI !== undefined
-                        ? `${thirtyDayROI > 0 ? "+" : ""
-                        }${formatNumberWithCommas(thirtyDayROI)}%`
-                        : "N/A"}
-                    </td>
-                    <td
-                      className={`p-2 font-semibold text-xs ${sixtyDayROI > 0
-                        ? "text-to-purple-400"
-                        : sixtyDayROI < 0
-                          ? "text-to-red-recomendations"
-                          : "text-to-purple-400"
-                        }`}
-                    >
-                      {sixtyDayROI !== null && sixtyDayROI !== undefined
-                        ? `${sixtyDayROI > 0 ? "+" : ""
-                        }${formatNumberWithCommas(sixtyDayROI)}%`
-                        : "N/A"}
-                    </td>
-                    <td
-                      className={`p-2 font-semibold text-xs ${ninetyDayROI > 0
-                        ? "text-to-purple-400"
-                        : ninetyDayROI < 0
-                          ? "text-to-red-recomendations"
-                          : "text-to-purple-400"
-                        }`}
-                    >
-                      {ninetyDayROI !== null && ninetyDayROI !== undefined
-                        ? `${ninetyDayROI > 0 ? "+" : ""
-                        }${formatNumberWithCommas(ninetyDayROI)}%`
-                        : "N/A"}
-                    </td>
-                    <td
-                      className={`p-2 font-semibold text-xs ${oneEightyDayROI > 0
-                        ? "text-to-purple-400"
-                        : oneEightyDayROI < 0
-                          ? "text-to-red-recomendations"
-                          : "text-to-purple-400"
-                        }`}
-                    >
-                      {oneEightyDayROI !== null && oneEightyDayROI !== undefined
-                        ? `${oneEightyDayROI > 0 ? "+" : ""
-                        }${formatNumberWithCommas(oneEightyDayROI)}%`
-                        : "N/A"}
-                    </td>
-                    <td
-                      className={`p-2 font-semibold text-xs ${oneYearROI > 0
-                        ? "text-to-purple-400"
-                        : oneYearROI < 0
-                          ? "text-to-red-recomendations"
-                          : "text-to-purple-400"
-                        }`}
-                    >
-                      {oneYearROI !== null && oneYearROI !== undefined
-                        ? `${oneYearROI > 0 ? "+" : ""}${formatNumberWithCommas(
-                          oneYearROI
-                        )}%`
-                        : "N/A"}
-                    </td>
-                    <td className="p-2">
-                      <div className="text-xs truncate" style={{ maxWidth: '140px' }} title={rec.title}>
-                        {rec.title}
-                      </div>
-                    </td>
-                    <td className="p-2">
-                      <a
-                        href={`https://www.youtube.com/watch?v=${rec.videoID}`}
-                        className="text-blue-400 hover:underline text-xs"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        {oneHourROI !== null && oneHourROI !== undefined
+                          ? `${oneHourROI > 0 ? "+" : ""}${formatNumberWithCommas(
+                            oneHourROI
+                          )}%`
+                          : "N/A"}
+                      </td>
+                      <td
+                        className={`p-2 font-semibold text-xs ${oneDayROI > 0
+                          ? "text-to-purple-400"
+                          : oneDayROI < 0
+                            ? "text-to-red-recomendations"
+                            : "text-to-purple-400"
+                          }`}
                       >
-                        View
-                      </a>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                        {oneDayROI !== null && oneDayROI !== undefined
+                          ? `${oneDayROI > 0 ? "+" : ""}${formatNumberWithCommas(
+                            oneDayROI
+                          )}%`
+                          : "N/A"}
+                      </td>
+                      <td
+                        className={`p-2 font-semibold text-xs ${sevenDayROI > 0
+                          ? "text-to-purple-400"
+                          : sevenDayROI < 0
+                            ? "text-to-red-recomendations"
+                            : "text-to-purple-400"
+                          }`}
+                      >
+                        {sevenDayROI !== null && sevenDayROI !== undefined
+                          ? `${sevenDayROI > 0 ? "+" : ""
+                          }${formatNumberWithCommas(sevenDayROI)}%`
+                          : "N/A"}
+                      </td>
+                      <td
+                        className={`p-2 font-semibold text-xs ${thirtyDayROI > 0
+                          ? "text-to-purple-400"
+                          : thirtyDayROI < 0
+                            ? "text-to-red-recomendations"
+                            : "text-to-purple-400"
+                          }`}
+                      >
+                        {thirtyDayROI !== null && thirtyDayROI !== undefined
+                          ? `${thirtyDayROI > 0 ? "+" : ""
+                          }${formatNumberWithCommas(thirtyDayROI)}%`
+                          : "N/A"}
+                      </td>
+                      <td
+                        className={`p-2 font-semibold text-xs ${sixtyDayROI > 0
+                          ? "text-to-purple-400"
+                          : sixtyDayROI < 0
+                            ? "text-to-red-recomendations"
+                            : "text-to-purple-400"
+                          }`}
+                      >
+                        {sixtyDayROI !== null && sixtyDayROI !== undefined
+                          ? `${sixtyDayROI > 0 ? "+" : ""
+                          }${formatNumberWithCommas(sixtyDayROI)}%`
+                          : "N/A"}
+                      </td>
+                      <td
+                        className={`p-2 font-semibold text-xs ${ninetyDayROI > 0
+                          ? "text-to-purple-400"
+                          : ninetyDayROI < 0
+                            ? "text-to-red-recomendations"
+                            : "text-to-purple-400"
+                          }`}
+                      >
+                        {ninetyDayROI !== null && ninetyDayROI !== undefined
+                          ? `${ninetyDayROI > 0 ? "+" : ""
+                          }${formatNumberWithCommas(ninetyDayROI)}%`
+                          : "N/A"}
+                      </td>
+                      <td
+                        className={`p-2 font-semibold text-xs ${oneEightyDayROI > 0
+                          ? "text-to-purple-400"
+                          : oneEightyDayROI < 0
+                            ? "text-to-red-recomendations"
+                            : "text-to-purple-400"
+                          }`}
+                      >
+                        {oneEightyDayROI !== null && oneEightyDayROI !== undefined
+                          ? `${oneEightyDayROI > 0 ? "+" : ""
+                          }${formatNumberWithCommas(oneEightyDayROI)}%`
+                          : "N/A"}
+                      </td>
+                      <td
+                        className={`p-2 font-semibold text-xs ${oneYearROI > 0
+                          ? "text-to-purple-400"
+                          : oneYearROI < 0
+                            ? "text-to-red-recomendations"
+                            : "text-to-purple-400"
+                          }`}
+                      >
+                        {oneYearROI !== null && oneYearROI !== undefined
+                          ? `${oneYearROI > 0 ? "+" : ""}${formatNumberWithCommas(
+                            oneYearROI
+                          )}%`
+                          : "N/A"}
+                      </td>
+                      <td className="p-2">
+                        <div className="text-xs truncate" style={{ maxWidth: '140px' }} title={rec.title}>
+                          {rec.title}
+                        </div>
+                      </td>
+                      <td className="p-2">
+                        <a
+                          href={`https://www.youtube.com/watch?v=${rec.videoID}`}
+                          className="text-blue-400 hover:underline text-xs"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          View
+                        </a>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
 
           {/* Pagination */}

@@ -169,11 +169,11 @@ const MarketHeatmap = () => {
               )}
               <div className="flex justify-between items-center">
                 <span>Bullish</span>
-                <span className="text-to-green-recomendations1">{coin.bullish_count}</span>
+                <span>{coin.bullish_count}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span>Bearish</span>
-                <span className="text-to-red-recomendations">{coin.bearish_count}</span>
+                <span>{coin.bearish_count}</span>
               </div>
             </div>
           </div>

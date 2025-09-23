@@ -6,7 +6,9 @@ import { useState, useEffect, useRef } from "react";
 import { FaUserCircle, FaUser, FaCreditCard, FaSignOutAlt } from "react-icons/fa";
 
 const navLinks = [
-  { name: "Home", href: "/" },
+  { name: "LandingPage", href: "/" },
+  { name: "Homepage", href: "/home" },
+  { name: "Recent Activities", href: "/enhanced" },
   { name: "Influencers", href: "/influencers" },
   { name: "Leaderboard", href: "/leaderboard" },
   { name: "About", href: "/about" },
@@ -93,8 +95,8 @@ export default function ClientHeader() {
                 key={link.name}
                 href={link.href}
                 className={`text-sm font-medium transition relative ${isActive
-                    ? 'text-purple-400'
-                    : 'text-gray-200 hover:text-purple-400'
+                  ? 'text-purple-400'
+                  : 'text-gray-200 hover:text-purple-400'
                   } ${isActive
                     ? 'after:absolute after:bottom-[-8px] after:left-0 after:w-full after:h-0.5 after:bg-purple-400'
                     : ''

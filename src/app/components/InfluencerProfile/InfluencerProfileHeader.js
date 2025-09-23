@@ -10,7 +10,7 @@ export default function InfluencerProfileHeader({ channelData }) {
   const handleFavoriteClick = () => {
     const newFavoriteState = !isFavorite;
     setIsFavorite(newFavoriteState);
-    
+
     // Show SweetAlert with layout colors based on action
     Swal.fire({
       title: newFavoriteState ? 'Added to favourites' : 'Removed from favourite list',
@@ -61,7 +61,7 @@ export default function InfluencerProfileHeader({ channelData }) {
                       "Unknown Channel"}
                   </h1>
                   {/* Heart Icon Button - Mobile View Only */}
-                  <button 
+                  <button
                     onClick={handleFavoriteClick}
                     className="md:hidden focus:outline-none transition-all duration-300 hover:scale-110 flex-shrink-0"
                     aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
@@ -74,7 +74,7 @@ export default function InfluencerProfileHeader({ channelData }) {
                   </button>
                 </div>
               </div>
-              
+
               <a
                 href={`https://www.youtube.com/channel/${channelData.channel_id}`}
                 className="text-blue-400 hover:underline text-base mb-2 flex items-center gap-2"
@@ -101,12 +101,12 @@ export default function InfluencerProfileHeader({ channelData }) {
                     <span className="text-white">
                       {channelData.Overall?.start_date
                         ? new Date(
-                            channelData.Overall.start_date
-                          ).toLocaleDateString("en-GB", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          })
+                          channelData.Overall.start_date
+                        ).toLocaleDateString("en-GB", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        })
                         : "Not available"}
                     </span>
                   </div>
@@ -120,12 +120,12 @@ export default function InfluencerProfileHeader({ channelData }) {
                     <span className="text-white">
                       {channelData.Overall?.end_date
                         ? new Date(
-                            channelData.Overall.end_date
-                          ).toLocaleDateString("en-GB", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          })
+                          channelData.Overall.end_date
+                        ).toLocaleDateString("en-GB", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        })
                         : "Not available"}
                     </span>
                   </div>
@@ -156,13 +156,13 @@ export default function InfluencerProfileHeader({ channelData }) {
                 <div className="flex items-center gap-2">
                   <span>📊 Total No of Videos:</span>
                   <span className="text-white font-semibold">
-                    {channelData.total_records || 0}
+                    {(channelData.total_records || 0).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span>₿ Crypto Related Videos:</span>
                   <span className="text-white font-semibold">
-                    {channelData.crypto_related || 0}
+                    {(channelData.crypto_related || 0).toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -171,7 +171,7 @@ export default function InfluencerProfileHeader({ channelData }) {
             <div className="hidden md:flex flex-col items-center md:items-end relative">
               <div className="flex flex-col items-center gap-2">
                 {/* Heart Icon Button - Desktop View Only */}
-                <button 
+                <button
                   onClick={handleFavoriteClick}
                   className="focus:outline-none transition-all duration-300 hover:scale-110 flex-shrink-0 p-3 rounded-full bg-white/5 border border-gray-600 hover:bg-white/10"
                   aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}

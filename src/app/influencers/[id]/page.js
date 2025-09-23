@@ -8,6 +8,7 @@ import YearlyPerformanceTable from "../../components/InfluencerProfile/YearlyPer
 import YearlyPerformanceTableDark from "@/app/components/InfluencerProfile/YearlyPerformanceTableDark";
 import YearlyPerformanceTableLight from "@/app/components/InfluencerProfile/YearlyPerformanceTableLight";
 import InfluencerRecommendationsLight from "../../components/InfluencerProfile/InfluencerRecommendationsLight";
+import RecentActivityTab from "@/app/components/InfluencerProfile/Recentactivties";
 import YearlyStatsRow from "../../components/InfluencerProfile/YearlyStatsRow";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 
@@ -24,6 +25,7 @@ const TABS = [
   // { label: "Correlation Summary V2 Dark", value: "correlationSummaryV2Dark" },
   // { label: "Correlation Summary V2 Light", value: "correlationSummaryV2Light" },
   { label: "Recommendations", value: "recommendations" },
+  { label: "Recent Activities", value: "recentActivities" },
   // { label: "Recommendations-Light", value: "recommendations-light" },
   // { label: "Performance Charts", value: "charts" },
   // { label: "Portfolio Simulator", value: "simulator" },
@@ -79,7 +81,7 @@ export default function InfluencerProfilePage() {
       console.log(`Fetching channel data for ID: ${channelID}`);
 
       const apiRes = await axios.get(
-        `/api/youtube-data/channel/${channelID}`
+        `http://37.27.120.45:5000/api/admin/influenceryoutubedata/channel/${channelID}`
       );
 
       console.log('API response:', apiRes.data);
@@ -4903,6 +4905,9 @@ export default function InfluencerProfilePage() {
             channelID={channelID}
             channelData={channelData}
           />
+        )}
+          {tab === "recentActivities" && (
+          <RecentActivityTab/>
         )}
         {tab === "recommendations-light" && (
           <InfluencerRecommendationsLight

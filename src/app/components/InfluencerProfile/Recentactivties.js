@@ -123,7 +123,7 @@ export default function RecentActivityTab() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+    <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto text-to-purple">
       <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
         {/* Header with update info */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-gray-100 shadow-lg">

@@ -6,7 +6,7 @@ export async function GET(request, { params }) {
   try {
     console.log(`Fetching Telegram ranking data for ID: ${id}`);
 
-    const externalUrl = `https://mcmapi.showmyui.com:3034/api/admin/telegramdata/ranking?timeframe=1_hour&type=overall&year=all&quarter=all`;
+    const externalUrl = `http://37.27.120.45:5000/api/admin/rankingstelegramdata/ranking?timeframe=1_hour&type=overall&year=all&quarter=all`;
     console.log(`Making request to: ${externalUrl}`);
 
     // Test if the external API is accessible

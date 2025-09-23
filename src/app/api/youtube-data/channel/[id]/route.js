@@ -6,7 +6,7 @@ export async function GET(request, { params }) {
   try {
     console.log(`Fetching channel data for ID: ${id}`);
 
-    const externalUrl = `https://mcmapi.showmyui.com:3031/api/admin/youtubedata/channel/${id}`;
+    const externalUrl = `http://37.27.120.45:5000/api/admin/youtubedata/channel/${id}`;
     console.log(`Making request to: ${externalUrl}`);
 
     // Test if the external API is accessible
