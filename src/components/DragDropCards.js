@@ -41,7 +41,7 @@ const DragDropCards = ({ cards = [], yearlyData = null, quarterlyData = null, ch
           type: 'yearly'
         });
 
-        const res = await fetch(`http://37.27.120.45:5901/api/admin/influenceryoutubedata/channel/${selectedUserId}?${params.toString()}`);
+        const res = await fetch(`https://37.27.120.45:5000/api/admin/influenceryoutubedata/channel/${selectedUserId}?${params.toString()}`);
         const apiRes = await res.json();
 
         console.log('API response:', apiRes);

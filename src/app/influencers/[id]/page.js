@@ -81,7 +81,7 @@ export default function InfluencerProfilePage() {
       console.log(`Fetching channel data for ID: ${channelID}`);
 
       const apiRes = await axios.get(
-        `http://37.27.120.45:5901/api/admin/influenceryoutubedata/channel/${channelID}`
+        `https://37.27.120.45:5000/api/admin/influenceryoutubedata/channel/${channelID}`
       );
 
       console.log('API response:', apiRes.data);

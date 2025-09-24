@@ -140,7 +140,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
   ) => {
     try {
       setLoading(true);
-      let url = `http://37.27.120.45:5901/api/admin/strategyyoutubedata/page/${page}?&channelID=${channelID}&limit=${limit}`;
+      let url = `https://37.27.120.45:5000/api/admin/strategyyoutubedata/page/${page}?&channelID=${channelID}&limit=${limit}`;
       // Only add symbol parameter if it's not empty
       if (symbol && symbol.trim() !== "") {
         url += `&symbol=${symbol}`;

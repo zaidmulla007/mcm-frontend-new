@@ -11,7 +11,7 @@ export async function GET(request) {
   const quarter = searchParams.get('quarter') || 'all';
 
   try {
-    const response = await fetch(`http://37.27.120.45:5901/api/admin/rankingsyoutubedata/ranking?timeframe=${timeframe}&type=${type}&year=${year}&quarter=${quarter}`,
+    const response = await fetch(`https://37.27.120.45:5000/api/admin/rankingsyoutubedata/ranking?timeframe=${timeframe}&type=${type}&year=${year}&quarter=${quarter}`,
       {
         headers: {
           'Content-Type': 'application/json',

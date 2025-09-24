@@ -25,7 +25,7 @@ export default function YouTubeTelegramInfluencers() {
     // Fetch data from API
     const fetchData = () => {
         setLoading(true);
-        fetch('http://37.27.120.45:5901/api/admin/strategyyoutubedata/getlast5ytandtg')
+        fetch('https://37.27.120.45:5000/api/admin/strategyyoutubedata/getlast5ytandtg')
             .then(response => response.json())
             .then(data => {
                 setApiData(data);

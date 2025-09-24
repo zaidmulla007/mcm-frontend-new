@@ -22,7 +22,7 @@ export default function TelegramInfluencerProfile({ channelId }) {
     const fetchTelegramData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://37.27.120.45:5901/api/admin/influencertelegramdata/channel/${channelId}`);
+        const response = await fetch(`https://37.27.120.45:5000/api/admin/influencertelegramdata/channel/${channelId}`);
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -2238,7 +2238,7 @@ function RecommendationsTab({ channelData }) {
       setLoading(true);
     }
     try {
-      const url = new URL('http://37.27.120.45:5901/api/admin/strategytelegramdata/page/' + currentPage);
+      const url = new URL('https://37.27.120.45:5000/api/admin/strategytelegramdata/page/' + currentPage);
 
       // Only add parameters if they have values
       if (startDate && startDate.trim() !== '') {

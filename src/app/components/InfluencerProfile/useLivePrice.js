@@ -59,7 +59,7 @@ export const useLivePrice = (symbols = []) => {
 
         // Fetch API prices for ALL symbols (including Binance ones as fallback)
         const symbolsParam = symbolsToFetch.join(',');
-        const apiUrl = `http://37.27.120.45:5901/api/admin/coinindex/mcmdb/filter?symbols=${symbolsParam}`;
+        const apiUrl = `https://37.27.120.45:5000/api/admin/coinindex/mcmdb/filter?symbols=${symbolsParam}`;
 
         console.log('🔍 API Request URL (ALL symbols):', apiUrl);
         console.log('🔍 Requesting symbols:', symbolsToFetch);
