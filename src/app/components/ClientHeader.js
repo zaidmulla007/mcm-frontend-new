@@ -90,15 +90,16 @@ export default function ClientHeader() {
             const isActive = pathname === link.href ||
               (link.href !== "/" && pathname.startsWith(link.href)) ||
               (link.href === "/influencers" && pathname.startsWith("/telegram-influencer"));
+
             return (
               <Link
                 key={link.name}
                 href={link.href}
                 className={`text-sm font-medium transition relative ${isActive
-                  ? 'text-purple-400'
-                  : 'text-gray-200 hover:text-purple-400'
+                  ? 'text-blue-400'
+                  : 'text-gray-200 hover:text-blue-400'
                   } ${isActive
-                    ? 'after:absolute after:bottom-[-8px] after:left-0 after:w-full after:h-0.5 after:bg-purple-400'
+                    ? 'after:absolute after:bottom-[-8px] after:left-0 after:w-full after:h-0.5 after:bg-blue-400'
                     : ''
                   }`}
               >

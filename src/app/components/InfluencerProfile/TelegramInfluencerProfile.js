@@ -5,7 +5,7 @@ import GaugeComponent from "react-gauge-component";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, ResponsiveContainer } from 'recharts';
 import { FaEye } from "react-icons/fa";
 import { useLivePrice } from "./useLivePrice";
-import RecentActivityTab from "@/app/components/InfluencerProfile/Recentactivties";
+import TelegramRecentActivities from "@/app/components/InfluencerProfile/TelegramRecentActivities";
 
 // Use global CSS class .text-to-purple from globals.css
 
@@ -22,7 +22,7 @@ export default function TelegramInfluencerProfile({ channelId }) {
     const fetchTelegramData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://37.27.120.45:5000/api/admin/influencertelegramdata/channel/${channelId}`);
+        const response = await fetch(`http://37.27.120.45:5901/api/admin/influencertelegramdata/channel/${channelId}`);
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -116,7 +116,7 @@ export default function TelegramInfluencerProfile({ channelId }) {
           <RecommendationsTab channelData={channelData} />
         )}
         {activeTab === "recentActivities" && (
-          <RecentActivityTab/>
+          <TelegramRecentActivities channelID={channelId} channelData={channelData} />
         )}
       </div>
     </div>
@@ -2238,7 +2238,7 @@ function RecommendationsTab({ channelData }) {
       setLoading(true);
     }
     try {
-      const url = new URL('https://mcmapi.showmyui.com:3035/api/admin/telegramdata/page/' + currentPage);
+      const url = new URL('http://37.27.120.45:5901/api/admin/strategytelegramdata/page/' + currentPage);
 
       // Only add parameters if they have values
       if (startDate && startDate.trim() !== '') {

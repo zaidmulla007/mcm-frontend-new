@@ -55,9 +55,9 @@ export default function InfluencerProfilePage() {
 
   // Helper function to format percentage and determine styling
   const formatPercentageWithStyling = (value, period, hoveredColumn, hoveredRow, quarter) => {
-    if (value == null) return { 
-      display: 'N/A', 
-      isNegative: true, 
+    if (value == null) return {
+      display: 'N/A',
+      isNegative: true,
       isHovered: hoveredColumn === period || hoveredRow === quarter,
       isExactCell: hoveredColumn === period && hoveredRow === quarter
     };
@@ -81,7 +81,7 @@ export default function InfluencerProfilePage() {
       console.log(`Fetching channel data for ID: ${channelID}`);
 
       const apiRes = await axios.get(
-        `http://37.27.120.45:5000/api/admin/influenceryoutubedata/channel/${channelID}`
+        `http://37.27.120.45:5901/api/admin/influenceryoutubedata/channel/${channelID}`
       );
 
       console.log('API response:', apiRes.data);
@@ -4906,8 +4906,11 @@ export default function InfluencerProfilePage() {
             channelData={channelData}
           />
         )}
-          {tab === "recentActivities" && (
-          <RecentActivityTab/>
+        {tab === "recentActivities" && (
+          <RecentActivityTab
+            channelID={channelID}
+            channelData={channelData}
+          />
         )}
         {tab === "recommendations-light" && (
           <InfluencerRecommendationsLight

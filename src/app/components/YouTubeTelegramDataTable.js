@@ -12,7 +12,7 @@ export default function YouTubeTelegramDataTable() {
     // Fetch combined YouTube and Telegram data from API
     const fetchCombinedData = async () => {
         try {
-            const response = await fetch('http://37.27.120.45:5000/api/admin/strategyyoutubedata/ytandtg');
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/strategyyoutubedata/ytandtg`);
             //https://mcmapi.showmyui.com:3035/api/admin/youtubedata/ytandtg
             const data = await response.json();
             setCombinedData(data);
@@ -34,6 +34,8 @@ export default function YouTubeTelegramDataTable() {
                 nextUpdateTime.setUTCHours(nextUpdateTime.getUTCHours() + 6);
                 setNextUpdate(nextUpdateTime);
             }
+
+            console.log('API Response:', data);
         } catch (error) {
             console.error('Error fetching combined data:', error);
         }

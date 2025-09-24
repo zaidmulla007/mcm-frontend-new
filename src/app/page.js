@@ -7,6 +7,7 @@ import DragDropCards from "../components/DragDropCards";
 import MarketHeatmap from "./components/MarketHeatmap";
 import YouTubeTelegramDataTable from "./components/YouTubeTelegramDataTable";
 import YoutubeTelegramDataTableLight from "./components/YoutubeTelegramDataTableLight";
+import YouTubeTelegramInfluencers from "./components/YouTubeTelegramInfluencers";
 // Top 5 mentioned coins data based on the image
 const topMentionedCoins = [
   {
@@ -1134,20 +1135,20 @@ export default function Home() {
               transition={{ duration: 0.5 }}
             >
               <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-                <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <span className="text-blue-400">
                   AI Powered Crypto Influencers Analytics Platform
                 </span>
               </h1>
             </motion.div>
 
             <motion.div
-              className="text-base text-purple-300"
+              className="text-base text-white-300"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
               <div className="flex items-center gap-3 mb-2">
-                <span className="text-green-400">✓</span>
+                <span className="text-blue-400">✓</span>
                 <span>Live across</span>
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="#FF0000">
                   <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
@@ -1160,30 +1161,30 @@ export default function Home() {
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="#1DA1F2">
                   <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
                 </svg>
-                <span className="text-gray-400 text-sm">(Coming Soon)</span>
+                <span className="text-white-400 text-sm">(Coming Soon)</span>
               </div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-green-400">✓</span>
+                <span className="text-blue-400">✓</span>
                 Data Granularity: 1h, 24h, 7days, 30days, 60days, 90days, 180days, 1year
               </div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-green-400">✓</span>
+                <span className="text-blue-400">✓</span>
                 ROI Win/Loss Ranking & Other metrics
               </div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-green-400">✓</span>
+                <span className="text-blue-400">✓</span>
                 2022 to most current date data
               </div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-green-400">✓</span>
+                <span className="text-blue-400">✓</span>
                 17,000 coins covered
               </div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-green-400">✓</span>
+                <span className="text-blue-400">✓</span>
                 Covering moonshots to normal recommendations
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-green-400">✓</span>
+                <span className="text-blue-400">✓</span>
                 Daily analysis update (UTC TIME)
               </div>
             </motion.div>
@@ -1218,7 +1219,7 @@ export default function Home() {
               {/* Secondary CTA */}
               <Link href="#trending">
                 <motion.button
-                  className="bg-transparent border-2 border-purple-500/50 px-6 py-3 rounded-xl font-bold text-sm hover:bg-purple-500/10 transition-colors"
+                  className="bg-transparent border-2 border-blue-500/50 px-6 py-3 rounded-xl font-bold text-sm hover:bg-blue-500/10 transition-colors"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -1229,11 +1230,11 @@ export default function Home() {
               {/* Third CTA */}
               <Link href="/login">
                 <motion.button
-                  className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-3 rounded-xl font-bold text-sm shadow-lg"
+                  className="bg-blue-600 px-6 py-3 rounded-xl font-bold text-sm shadow-lg"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  🚀 Start Free Trial
+                  Start Free Trial
                 </motion.button>
               </Link>
 
@@ -1263,8 +1264,8 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.6 }}
             >
               <h2 className="text-3xl md:text-4xl font-bold mb-1">
-                <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  CRYPTO INFLUENCERS
+                <span className="text-blue-400">
+                  INFLUENCERS ANALYTICS
                 </span>
               </h2>
               <p className="text-purple-300 text-lg font-semibold flex items-center justify-center gap-3">
@@ -1340,10 +1341,11 @@ export default function Home() {
             <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-blue-500 mx-auto rounded-full mt-5"></div>
           </h2>
           <YouTubeTelegramDataTable />
+
           {/* <YoutubeTelegramDataTableLight /> */}
           {/* <h2 className="text-white-300 text-2xl font-bold mb-3">Top 5 Mentioned Coins in 24H</h2> */}
         </motion.div>
-
+        <YouTubeTelegramInfluencers />
         {/* Display Purpose Text */}
         {/* <p className="text-center text-gray-400 text-sm italic mb-4 mt-1">
           The coins are listed for display purpose

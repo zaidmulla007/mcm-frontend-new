@@ -2,47 +2,52 @@
 
 import { useState, useEffect } from "react";
 
-export default function RecentActivityTab({ channelID, channelData }) {
+export default function TelegramRecentActivityTab({ channelID, channelData }) {
   const [recentPosts, setRecentPosts] = useState([]);
   const [expandedPosts, setExpandedPosts] = useState({});
   const [hoveredPost, setHoveredPost] = useState(null);
 
   useEffect(() => {
-    if (channelData && channelData.last5) {
-      const formattedPosts = channelData.last5.map((video, index) => ({
+    console.log("TelegramRecentActivities - channelData:", channelData);
+    console.log("TelegramRecentActivities - channelID:", channelID);
+    if (channelData && channelData.results && channelData.results.last5) {
+      const formattedPosts = channelData.results.last5.map((message, index) => ({
         id: index + 1,
-        title: video.title,
-        date: video.publishedAt,
-        summary: video.summary,
-        coinRecommendations: Object.keys(video.sentiment || {}).map((coin) => {
-          const cryptoRecType = video.Crypto_Recommendation_Type && video.Crypto_Recommendation_Type[coin];
-          const longTermPeriod = video.Long_Term_Holding_Period && video.Long_Term_Holding_Period[coin];
+        title: message.message.substring(0, 50) + "...",
+        date: message.date,
+        summary: message.summary,
+        coinRecommendations: Object.keys(message.sentiment || {}).map((coin) => {
+          const cryptoRecType = message.Crypto_Recommendation_Type && message.Crypto_Recommendation_Type[coin];
+          const longTermPeriod = message.Long_Term_Holding_Period && message.Long_Term_Holding_Period[coin];
 
           return {
             coin,
-            sentiment: video.sentiment[coin],
-            term: cryptoRecType || longTermPeriod || "medium-term",
+            sentiment: message.sentiment[coin],
+            term: cryptoRecType || longTermPeriod || "short-term",
           };
         }),
-        videoUrl: video.videoURL,
+        messageUrl: `https://t.me/${channelID}/${message.messageID}`,
         outlook:
-          video.Crypto_Recommendation_Type
-            ? Object.values(video.Crypto_Recommendation_Type)[0] ||
-            "medium-term"
-            : "medium-term",
-        actionableInsights: video.actionableInsights,
-        buyingPriceZone: video.buyingPriceZone,
-        clarityOfAnalysis: video.clarityOfAnalysis,
-        credibilityScore: video.credibilityScore,
-        educationalPurpose: video.educationalPurpose,
-        exitStrategyScore: video.exitStrategyScore,
-        overallScore: video.overallScore,
-        recommendations: video.recommendations,
-        riskManagement: video.riskManagement,
+          message.Crypto_Recommendation_Type
+            ? Object.values(message.Crypto_Recommendation_Type)[0] ||
+            "short-term"
+            : "short-term",
+        actionableInsights: message.actionableInsights,
+        buyingPriceZone: message.buyingPriceZone,
+        clarityOfAnalysis: message.clarityOfAnalysis,
+        credibilityScore: message.credibilityScore,
+        educationalPurpose: message.educationalPurpose,
+        exitStrategyScore: message.exitStrategyScore,
+        overallScore: message.overallScore,
+        recommendations: message.recommendations,
+        riskManagement: message.riskManagement,
+        views: message.views,
+        forwards: message.forwards,
+        messageText: message.message,
       }));
       setRecentPosts(formattedPosts);
     }
-  }, [channelData]);
+  }, [channelData, channelID]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -82,7 +87,7 @@ export default function RecentActivityTab({ channelID, channelData }) {
     <div className="bg-white min-h-screen rounded-xl text-black p-2">
       <div className="text-center mb-2">
         <h1 className="text-xl font-bold text-black">
-          {channelData?.influencer_name || "Influencer"}
+          {channelData?.results?.channel_id || "Telegram Influencer"}
         </h1>
       </div>
 
@@ -103,23 +108,26 @@ export default function RecentActivityTab({ channelID, channelData }) {
             {/* Post Header */}
             <div className="p-1 border-b border-black">
               <div className="flex items-center gap-1 mb-1">
-                <span className="font-bold text-[9px]">Post Header</span>
+                <span className="font-bold text-[9px]">Message Header</span>
               </div>
               <ul className="text-[9px] text-black space-y-1">
                 <li className="truncate" title={formatDate(post.date)}>
                   • {formatDate(post.date)}
                 </li>
-                <li className="truncate" title={post.title}>
+                <li className="truncate" title={post.messageText}>
                   • {post.title}
                 </li>
-                <li className="truncate" title={post.videoUrl}>
+                <li className="truncate">
+                  • Views: {post.views} | Forwards: {post.forwards}
+                </li>
+                <li className="truncate" title={post.messageUrl}>
                   •{" "}
                   <a
-                    href={post.videoUrl}
+                    href={post.messageUrl}
                     target="_blank"
-                    className="text-red-600 hover:underline"
+                    className="text-blue-600 hover:underline"
                   >
-                    Watch Video
+                    View Message
                   </a>
                 </li>
               </ul>
@@ -135,7 +143,7 @@ export default function RecentActivityTab({ channelID, channelData }) {
               </p>
             </div>
 
-            {/* Content Type */}
+            {/* AI Scoring */}
             <div className="p-1 border-b border-black">
               <div className="flex items-center gap-1 mb-1">
                 <span className="font-bold text-[9px]">AI Scoring</span>
@@ -220,6 +228,9 @@ export default function RecentActivityTab({ channelID, channelData }) {
                     <div className="mt-2 pt-2 border-t border-gray-600">
                       <div className="text-gray-300 text-[10px]">
                         <span className="font-semibold">Outlook:</span> {post.outlook}
+                      </div>
+                      <div className="text-gray-300 text-[10px]">
+                        <span className="font-semibold">Views:</span> {post.views} | <span className="font-semibold">Forwards:</span> {post.forwards}
                       </div>
                     </div>
                   </div>
