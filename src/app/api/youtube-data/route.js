@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { API_BASE_URL } from '../../../config/api';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -12,7 +11,7 @@ export async function GET(request) {
   const quarter = searchParams.get('quarter') || 'all';
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/admin/rankingsyoutubedata/ranking?timeframe=${timeframe}&type=${type}&year=${year}&quarter=${quarter}`,
+    const response = await fetch(`http://37.27.120.45:5901/api/admin/rankingsyoutubedata/ranking?timeframe=${timeframe}&type=${type}&year=${year}&quarter=${quarter}`,
       {
         headers: {
           'Content-Type': 'application/json',

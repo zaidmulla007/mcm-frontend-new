@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { FaEye } from "react-icons/fa";
-import { API_BASE_URL } from "../../config/api";
 
 export default function YouTubeTelegramDataTable({ useLocalTime: propUseLocalTime = false }) {
     const [selectedPlatform, setSelectedPlatform] = useState("Combined");
@@ -15,7 +14,7 @@ export default function YouTubeTelegramDataTable({ useLocalTime: propUseLocalTim
     // Fetch combined YouTube and Telegram data from API
     const fetchCombinedData = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/admin/strategyyoutubedata/ytandtg`);
+            const response = await fetch(`/api/admin/strategyyoutubedata/ytandtg`);
             //https://mcmapi.showmyui.com:3035/api/admin/youtubedata/ytandtg
             const data = await response.json();
             setCombinedData(data);

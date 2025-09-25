@@ -11,7 +11,6 @@ import InfluencerRecommendationsLight from "../../components/InfluencerProfile/I
 import RecentActivityTab from "@/app/components/InfluencerProfile/Recentactivties";
 import YearlyStatsRow from "../../components/InfluencerProfile/YearlyStatsRow";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
-import { API_BASE_URL } from "../../../config/api";
 
 const TABS = [
   // { label: "Overviewoption1", value: "overview-light" },
@@ -82,7 +81,7 @@ export default function InfluencerProfilePage() {
       setError(null);
 
       const apiRes = await axios.get(
-        `${API_BASE_URL}/api/admin/influenceryoutubedata/channel/${channelID}`
+        `http://37.27.120.45:5901/api/admin/influenceryoutubedata/channel/${channelID}`
       );
 
       let results = apiRes.data?.results || apiRes.data?.data || null;

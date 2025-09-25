@@ -8,7 +8,6 @@ import MarketHeatmap from "./components/MarketHeatmap";
 import YouTubeTelegramDataTable from "./components/YouTubeTelegramDataTable";
 import YoutubeTelegramDataTableLight from "./components/YoutubeTelegramDataTableLight";
 import YouTubeTelegramInfluencers from "./components/YouTubeTelegramInfluencers";
-import { API_BASE_URL } from "../config/api";
 
 // Top 5 mentioned coins data based on the image
 const topMentionedCoins = [
@@ -1118,7 +1117,7 @@ export default function Home() {
   // Fetch combined data for update times
   const fetchUpdateTimes = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/strategyyoutubedata/getlast6hrsytandtg`);
+      const response = await fetch(`http://37.27.120.45:5901/api/admin/strategyyoutubedata/getlast6hrsytandtg`);
       const data = await response.json();
       
       console.log('API Response:', data); // Debug log

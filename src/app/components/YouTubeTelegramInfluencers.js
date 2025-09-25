@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { FaCalendarAlt, FaSync, FaArrowUp, FaArrowDown, FaMinus, FaEye, FaHeart, FaThumbsUp, FaChevronDown, FaChevronUp, FaStar, FaChartLine, FaWallet, FaExchangeAlt, FaGraduationCap, FaLightbulb, FaShoppingCart, FaSearch, FaCertificate } from "react-icons/fa";
-import { API_BASE_URL } from "../../config/api";
 
 // Custom SVG Icons
 const YouTubeIcon = ({ className }) => (
@@ -70,7 +69,7 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
     // Fetch data from API
     const fetchData = () => {
         setLoading(true);
-        fetch(`${API_BASE_URL}/api/admin/strategyyoutubedata/getlast6hrsytandtg`)
+        fetch('/api/admin/strategyyoutubedata/getlast6hrsytandtg')
             // http://37.27.120.45:5901/api/admin/strategyyoutubedata/getlast5ytandtg
             .then(response => response.json())
             .then(data => {
