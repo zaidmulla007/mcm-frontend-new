@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { FaYoutube, FaCalendarAlt, FaSync, FaArrowUp, FaArrowDown, FaMinus } from "react-icons/fa";
-import YouTubeTelegramInfluencers2 from "../components/YouTubeTelegramInfluencers2";
+import YouTubeTelegramInfluencers from "../components/YouTubeTelegramInfluencers";
 
 export default function RecentActivityTab() {
   // Hardcoded data for recent posts with updated comment format
@@ -267,7 +267,7 @@ export default function RecentActivityTab() {
         ))}
       </div>
 
-      <YouTubeTelegramInfluencers2/>
+      <YouTubeTelegramInfluencers/>
 
         {/* Update Info Footer */}
         <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 rounded-2xl p-8 border border-indigo-100 shadow-lg">
