@@ -11,7 +11,7 @@ import InfluencerRecommendationsLight from "../../components/InfluencerProfile/I
 import RecentActivityTab from "@/app/components/InfluencerProfile/Recentactivties";
 import YearlyStatsRow from "../../components/InfluencerProfile/YearlyStatsRow";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
-import { API_BASE_URL } from "../../config/api";
+import { API_BASE_URL } from "../../../config/api";
 
 const TABS = [
   // { label: "Overviewoption1", value: "overview-light" },
