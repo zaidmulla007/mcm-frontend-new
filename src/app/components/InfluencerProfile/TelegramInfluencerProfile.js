@@ -6,6 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, ResponsiveContai
 import { FaEye } from "react-icons/fa";
 import { useLivePrice } from "./useLivePrice";
 import TelegramRecentActivities from "@/app/components/InfluencerProfile/TelegramRecentActivities";
+import { API_BASE_URL } from "../../../config/api";
 
 // Use global CSS class .text-to-purple from globals.css
 
@@ -23,7 +24,7 @@ export default function TelegramInfluencerProfile({ channelId }) {
     const fetchTelegramData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`https://mcm.showmyui.com:5000/api/admin/influencertelegramdata/channel/${channelId}`);
+        const response = await fetch(`${API_BASE_URL}/api/admin/influencertelegramdata/channel/${channelId}`);
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -2245,7 +2246,7 @@ function RecommendationsTab({ channelData }) {
       setLoading(true);
     }
     try {
-      const url = new URL('https://mcm.showmyui.com:5000/api/admin/strategytelegramdata/page/' + currentPage);
+      const url = new URL(`${API_BASE_URL}/api/admin/strategytelegramdata/page/${currentPage}`);
 
       // Only add parameters if they have values
       if (startDate && startDate.trim() !== '') {

@@ -1,6 +1,7 @@
 // useLivePrice.js
 import { useState, useEffect, useRef } from 'react';
 import axios from '../../api/axios';
+import { API_BASE_URL } from '../../../config/api';
 
 export const useLivePrice = (symbols = []) => {
   const [prices, setPrices] = useState({});
@@ -59,7 +60,7 @@ export const useLivePrice = (symbols = []) => {
 
         // Fetch API prices for ALL symbols (including Binance ones as fallback)
         const symbolsParam = symbolsToFetch.join(',');
-        const apiUrl = `https://mcm.showmyui.com:5000/api/admin/coinindex/mcmdb/filter?symbols=${symbolsParam}`;
+        const apiUrl = `${API_BASE_URL}/api/admin/coinindex/mcmdb/filter?symbols=${symbolsParam}`;
 
         console.log('🔍 API Request URL (ALL symbols):', apiUrl);
         console.log('🔍 Requesting symbols:', symbolsToFetch);

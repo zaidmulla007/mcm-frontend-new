@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { FaYoutube, FaCalendarAlt, FaSync, FaArrowUp, FaArrowDown, FaMinus, FaTelegramPlane, FaEye, FaHeart, FaThumbsUp, FaChevronDown, FaChevronUp, FaStar, FaChartLine, FaWallet, FaExchangeAlt, FaGraduationCap, FaLightbulb, FaShoppingCart, FaSearch, FaCertificate } from "react-icons/fa";
+import { API_BASE_URL } from "../../config/api";
 
 export default function YouTubeTelegramInfluencers2() {
     const [selectedPlatform, setSelectedPlatform] = useState("Combined");
@@ -56,7 +57,7 @@ export default function YouTubeTelegramInfluencers2() {
     // Fetch data from API
     const fetchData = () => {
         setLoading(true);
-        fetch('https://mcm.showmyui.com:5000/api/admin/strategyyoutubedata/getlast6hrsytandtg')
+        fetch(`${API_BASE_URL}/api/admin/strategyyoutubedata/getlast6hrsytandtg`)
             .then(response => response.json())
             .then(data => {
                 setApiData(data);

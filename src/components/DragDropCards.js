@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { API_BASE_URL } from "../config/api";
 
 const DragDropCards = ({ cards = [], yearlyData = null, quarterlyData = null, channelData = null }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -41,7 +42,7 @@ const DragDropCards = ({ cards = [], yearlyData = null, quarterlyData = null, ch
           type: 'yearly'
         });
 
-        const res = await fetch(`https://mcm.showmyui.com:5000/api/admin/influenceryoutubedata/channel/${selectedUserId}?${params.toString()}`);
+        const res = await fetch(`${API_BASE_URL}/api/admin/influenceryoutubedata/channel/${selectedUserId}?${params.toString()}`);
         const apiRes = await res.json();
 
         console.log('API response:', apiRes);

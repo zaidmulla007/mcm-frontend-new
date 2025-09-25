@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import axios from "../../api/axios";
 import { useLivePrice } from "./useLivePrice";
 import { FaEye } from "react-icons/fa";
+import { API_BASE_URL } from "../../../config/api";
 
 export default function InfluencerRecommendations({ channelID, channelData }) {
   const [recommendations, setRecommendations] = useState([]);
@@ -140,7 +141,7 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
   ) => {
     try {
       setLoading(true);
-      let url = `https://mcm.showmyui.com:5000/api/admin/strategyyoutubedata/page/${page}?&channelID=${channelID}&limit=${limit}`;
+      let url = `${API_BASE_URL}/api/admin/strategyyoutubedata/page/${page}?&channelID=${channelID}&limit=${limit}`;
       // Only add symbol parameter if it's not empty
       if (symbol && symbol.trim() !== "") {
         url += `&symbol=${symbol}`;
