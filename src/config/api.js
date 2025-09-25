@@ -1,5 +1,5 @@
 const API_CONFIG = {
-  development: 'http://37.27.120.45:5901',
+  development: 'https://37.27.120.45:5901',
   production: 'https://mcm.showmyui.com:5000'
 };
 
@@ -14,7 +14,7 @@ export const getApiUrl = () => {
     
     // Vercel deployment (vercel.app domain)
     if (hostname.includes('vercel.app')) {
-      return API_CONFIG.development;
+      return API_CONFIG.production;
     }
     
     // Production domain
@@ -23,7 +23,7 @@ export const getApiUrl = () => {
   
   // Server-side rendering fallback
   return process.env.VERCEL 
-    ? API_CONFIG.development
+    ? API_CONFIG.production
     : (process.env.NODE_ENV === 'production' 
         ? API_CONFIG.production 
         : API_CONFIG.development);
