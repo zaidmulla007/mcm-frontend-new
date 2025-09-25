@@ -1,18 +1,20 @@
 "use client";
 import { useState, useEffect } from "react";
+import { FaEye } from "react-icons/fa";
 
-export default function YouTubeTelegramDataTable() {
+export default function YouTubeTelegramDataTable({ useLocalTime: propUseLocalTime = false }) {
     const [selectedPlatform, setSelectedPlatform] = useState("Combined");
     const [selectedCoinType, setSelectedCoinType] = useState("top_coins");
     const [combinedData, setCombinedData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [lastUpdated, setLastUpdated] = useState(null);
     const [nextUpdate, setNextUpdate] = useState(null);
+    const useLocalTime = propUseLocalTime;
 
     // Fetch combined YouTube and Telegram data from API
     const fetchCombinedData = async () => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/strategyyoutubedata/ytandtg`);
+            const response = await fetch(`https://mcm.showmyui.com:5000/api/admin/strategyyoutubedata/ytandtg`);
             //https://mcmapi.showmyui.com:3035/api/admin/youtubedata/ytandtg
             const data = await response.json();
             setCombinedData(data);
@@ -50,47 +52,131 @@ export default function YouTubeTelegramDataTable() {
         fetchData();
     }, []);
 
-    // Format date to display string (treating input as exact UTC time)
-    const formatDateDisplay = (dateStr) => {
+    // Format date string to display string (for timeframe headers)
+    const formatDateStringDisplay = (dateStr) => {
         if (!dateStr) return "N/A";
 
-        // Parse the date string directly without creating Date object
+        // Parse the date string and create Date object (assuming it's UTC)
         const [datePart, timePart] = dateStr.split(' ');
         const [year, month, day] = datePart.split('-').map(Number);
-        const [hours, minutes] = timePart.split(':').map(Number);
+        const [hours, minutes, seconds] = timePart.split(':').map(Number);
+
+        // Create Date object using UTC values
+        const date = new Date(Date.UTC(year, month - 1, day, hours, minutes, seconds || 0));
 
         const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-        // Calculate day of week manually for the given date
-        const date = new Date(year, month - 1, day); // Just for day calculation
-        const dayName = days[date.getDay()];
-        const monthName = months[month - 1];
+        let dayName, dayNum, monthName, yearNum, displayHours, ampm, timezone;
 
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        const displayHour = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-        const formattedHour = displayHour.toString().padStart(2, '0');
+        if (useLocalTime) {
+            // Use local time
+            dayName = days[date.getDay()];
+            dayNum = date.getDate();
+            monthName = months[date.getMonth()];
+            yearNum = date.getFullYear();
+            const localHours = date.getHours();
+            ampm = localHours >= 12 ? 'PM' : 'AM';
+            displayHours = localHours === 0 ? 12 : localHours > 12 ? localHours - 12 : localHours;
+            
+            // Get timezone abbreviation
+            const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            if (userTimezone === 'Asia/Kolkata' || userTimezone === 'Asia/Calcutta') {
+                timezone = 'IST';
+            } else {
+                const formatter = new Intl.DateTimeFormat('en', {
+                    timeZoneName: 'short',
+                    timeZone: userTimezone
+                });
+                const parts = formatter.formatToParts(date);
+                let rawTimezone = parts.find(part => part.type === 'timeZoneName')?.value;
+                
+                if (rawTimezone && rawTimezone.includes('GMT+05:30')) {
+                    timezone = 'IST';
+                } else {
+                    timezone = rawTimezone || userTimezone;
+                }
+            }
+        } else {
+            // Use UTC time
+            dayName = days[date.getUTCDay()];
+            dayNum = date.getUTCDate();
+            monthName = months[date.getUTCMonth()];
+            yearNum = date.getUTCFullYear();
+            const utcHours = date.getUTCHours();
+            ampm = utcHours >= 12 ? 'PM' : 'AM';
+            displayHours = utcHours === 0 ? 12 : utcHours > 12 ? utcHours - 12 : utcHours;
+            timezone = 'UTC';
+        }
 
-        return `${dayName} ${day} ${monthName} ${year} ${formattedHour} ${ampm} UTC`;
+        const formattedHour = displayHours.toString().padStart(2, '0');
+
+        return `${dayName} ${dayNum} ${monthName} ${yearNum} ${formattedHour} ${ampm} ${timezone}`;
     };
 
-    // Format date to UTC string for header display
-    const formatUTCDate = (date) => {
+    // Format date to display string for header display (UTC or local time)
+    const formatDisplayDate = (date, showTimezone = true) => {
         if (!date) return "N/A";
 
         const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-        const dayName = days[date.getUTCDay()];
-        const day = date.getUTCDate();
-        const month = months[date.getUTCMonth()];
-        const year = date.getUTCFullYear();
-        const hours = date.getUTCHours();
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-        const formattedHours = displayHours.toString().padStart(2, '0');
+        let dayName, day, month, year, hours, minutes, displayHours, ampm, timezone;
 
-        return `${dayName} ${day} ${month} ${year} ${formattedHours} ${ampm} UTC`;
+        if (useLocalTime) {
+            // Use local time
+            dayName = days[date.getDay()];
+            day = date.getDate();
+            month = months[date.getMonth()];
+            year = date.getFullYear();
+            hours = date.getHours();
+            minutes = date.getMinutes();
+            ampm = hours >= 12 ? 'PM' : 'AM';
+            displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+            
+            // Get timezone abbreviation (e.g., IST, PST, EST)
+            const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            
+            if (userTimezone === 'Asia/Kolkata' || userTimezone === 'Asia/Calcutta') {
+                timezone = 'IST';
+            } else {
+                const formatter = new Intl.DateTimeFormat('en', {
+                    timeZoneName: 'short',
+                    timeZone: userTimezone
+                });
+                const parts = formatter.formatToParts(date);
+                let rawTimezone = parts.find(part => part.type === 'timeZoneName')?.value;
+                
+                // Replace GMT+XX:XX format with proper abbreviations
+                if (rawTimezone && rawTimezone.includes('GMT+05:30')) {
+                    timezone = 'IST';
+                } else {
+                    timezone = rawTimezone || userTimezone;
+                }
+            }
+        } else {
+            // Use UTC time
+            dayName = days[date.getUTCDay()];
+            day = date.getUTCDate();
+            month = months[date.getUTCMonth()];
+            year = date.getUTCFullYear();
+            hours = date.getUTCHours();
+            minutes = date.getUTCMinutes();
+            ampm = hours >= 12 ? 'PM' : 'AM';
+            displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+            timezone = 'UTC';
+        }
+
+        const formattedHours = displayHours.toString().padStart(2, '0');
+        const formattedMinutes = minutes.toString().padStart(2, '0');
+        const timezoneDisplay = showTimezone ? ` ${timezone}` : '';
+
+        return `${dayName} ${day} ${month} ${year} ${formattedHours}:${formattedMinutes} ${ampm}${timezoneDisplay}`;
+    };
+
+    // Legacy function for backward compatibility
+    const formatUTCDate = (date) => {
+        return formatDisplayDate(date, true);
     };
 
     // Get data for specific timeframe and coin type
@@ -188,12 +274,8 @@ export default function YouTubeTelegramDataTable() {
                 combinedData.resultsByTimeframe[timeframe] &&
                 combinedData.resultsByTimeframe[timeframe].dateRange) {
                 const fromTimeStr = combinedData.resultsByTimeframe[timeframe].dateRange.from;
-                console.log(`API Data for ${timeframe}:`, combinedData.resultsByTimeframe[timeframe].dateRange);
-                console.log(`Raw fromTimeStr for ${timeframe}:`, fromTimeStr);
-                const formatted = formatDateDisplay(fromTimeStr);
-                console.log(`Formatted result for ${timeframe}:`, formatted);
-                // Use the formatDateDisplay function to display the date as-is
-                return formatted;
+                // Use the formatDateStringDisplay function to respect useLocalTime setting
+                return formatDateStringDisplay(fromTimeStr);
             }
             return "N/A";
         };
@@ -373,31 +455,6 @@ export default function YouTubeTelegramDataTable() {
                 </div>
             </div>
 
-            {/* Update Times Display */}
-            <div className="flex justify-center">
-                <div className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-2xl border border-purple-500/30 overflow-hidden shadow-2xl p-4">
-                    <div className="flex items-center justify-center gap-8">
-                        {/* Last Updated */}
-                        <div className="flex flex-col items-center">
-                            <span className="text-sm text-gray-400 font-medium">Last Updated :</span>
-                            <span className="text-md font-bold text-white">
-                                {lastUpdated ? formatUTCDate(lastUpdated) : "N/A"}
-                            </span>
-                        </div>
-
-                        {/* Separator */}
-                        <div className="h-8 w-px bg-gray-600"></div>
-
-                        {/* Next Update */}
-                        <div className="flex flex-col items-center">
-                            <span className="text-sm text-gray-400 font-medium">Next Update :</span>
-                            <span className="text-md font-bold text-white">
-                                {nextUpdate ? formatUTCDate(nextUpdate) : "N/A"}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             {/* Four Tables in One Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

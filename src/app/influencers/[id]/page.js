@@ -34,6 +34,7 @@ const TABS = [
 export default function InfluencerProfilePage() {
   const [tab, setTab] = useState("overview-light1");
   const [channelData, setChannelData] = useState(null);
+  const [youtubeLast5, setYoutubeLast5] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [summaryType, setSummaryType] = useState("yearly");
@@ -78,51 +79,27 @@ export default function InfluencerProfilePage() {
     try {
       setLoading(true);
       setError(null);
-      console.log(`Fetching channel data for ID: ${channelID}`);
 
       const apiRes = await axios.get(
-        `https://37.27.120.45:5000/api/admin/influenceryoutubedata/channel/${channelID}`
+        `https://mcm.showmyui.com:5000/api/admin/influenceryoutubedata/channel/${channelID}`
       );
 
-      console.log('API response:', apiRes.data);
+      let results = apiRes.data?.results || apiRes.data?.data || null;
+      let last5 = apiRes.data?.youtube_last_5 || [];
 
-      // Handle different response structures
-      let results = apiRes.data;
-      if (apiRes.data && apiRes.data.results) {
-        results = apiRes.data.results;
-      } else if (apiRes.data && apiRes.data.data) {
-        results = apiRes.data.data;
-      }
-
-      if (!results) {
-        throw new Error('No data found in response');
-      }
+      if (!results) throw new Error("No data found in response");
 
       setChannelData(results);
+      setYoutubeLast5(last5);
+
     } catch (error) {
       console.error("Error fetching channel data", error);
-      let errorMessage = "Failed to load channel data. Please try again later.";
-
-      if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        console.error("Error response:", error.response.data);
-        errorMessage = error.response.data?.error || error.response.data?.details || errorMessage;
-      } else if (error.request) {
-        // The request was made but no response was received
-        console.error("No response received:", error.request);
-        errorMessage = "No response received from server";
-      } else {
-        // Something happened in setting up the request that triggered an Error
-        console.error("Error setting up request:", error.message);
-        errorMessage = error.message;
-      }
-
-      setError(errorMessage);
+      setError("Failed to load channel data. Please try again later.");
     } finally {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     if (channelID) {
@@ -4910,6 +4887,7 @@ export default function InfluencerProfilePage() {
           <RecentActivityTab
             channelID={channelID}
             channelData={channelData}
+            youtubeLast5={youtubeLast5}
           />
         )}
         {tab === "recommendations-light" && (

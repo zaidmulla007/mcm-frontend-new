@@ -13,7 +13,7 @@ export async function GET(request) {
     console.log(`Fetching Telegram ranking data with params: sentiment=${sentiment}, timeframe=${timeframe}, type=${type}, year=${year}, quarter=${quarter}`);
 
     // Build the external URL with query parameters
-    const externalUrl = `https://37.27.120.45:5000/api/admin/rankingstelegramdata/ranking?timeframe=${timeframe}&type=${type}&year=${year}&quarter=${quarter}`;
+    const externalUrl = `https://mcm.showmyui.com:5000/api/admin/rankingstelegramdata/ranking?timeframe=${timeframe}&type=${type}&year=${year}&quarter=${quarter}`;
     console.log(`Making request to: ${externalUrl}`);
 
     // Make request to external API

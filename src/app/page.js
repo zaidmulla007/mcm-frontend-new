@@ -8,6 +8,7 @@ import MarketHeatmap from "./components/MarketHeatmap";
 import YouTubeTelegramDataTable from "./components/YouTubeTelegramDataTable";
 import YoutubeTelegramDataTableLight from "./components/YoutubeTelegramDataTableLight";
 import YouTubeTelegramInfluencers from "./components/YouTubeTelegramInfluencers";
+
 // Top 5 mentioned coins data based on the image
 const topMentionedCoins = [
   {
@@ -1109,9 +1110,100 @@ export default function Home() {
   const [isRegistered, setIsRegistered] = useState(false); // This would come from auth context
   const [shouldScroll, setShouldScroll] = useState(false);
   const [loading, setLoading] = useState(false); // No loading needed for static data
+  const [useLocalTime, setUseLocalTime] = useState(false); // Centralized timezone state
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [nextUpdate, setNextUpdate] = useState(null);
+
+  // Fetch combined data for update times
+  const fetchUpdateTimes = async () => {
+    try {
+      const response = await fetch(`https://mcm.showmyui.com:5000/api/admin/strategyyoutubedata/getlast6hrsytandtg`);
+      const data = await response.json();
+      
+      console.log('API Response:', data); // Debug log
+      
+      // Extract and set the last updated time from the API metadata
+      if (data && data.metadata) {
+        console.log('Metadata found:', data.metadata); // Debug log
+        const lastUpdatedTime = new Date(data.metadata.lastUpdatedDate);
+        const nextUpdateTime = new Date(data.metadata.nextUpdateDate);
+        
+        console.log('Last Updated Time:', lastUpdatedTime); // Debug log
+        console.log('Next Update Time:', nextUpdateTime); // Debug log
+        
+        setLastUpdated(lastUpdatedTime);
+        setNextUpdate(nextUpdateTime);
+      } else {
+        console.log('No metadata found in response'); // Debug log
+      }
+    } catch (error) {
+      console.error('Error fetching update times:', error);
+    }
+  };
+
+  // Format date to display string for header display (UTC or local time)
+  const formatDisplayDate = (date, showTimezone = true) => {
+    if (!date) return "N/A";
+
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    let dayName, day, month, year, hours, minutes, displayHours, ampm, timezone;
+
+    if (useLocalTime) {
+      // Use local time
+      dayName = days[date.getDay()];
+      day = date.getDate();
+      month = months[date.getMonth()];
+      year = date.getFullYear();
+      hours = date.getHours();
+      minutes = date.getMinutes();
+      ampm = hours >= 12 ? 'PM' : 'AM';
+      displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+      
+      // Get timezone abbreviation (e.g., IST, PST, EST)
+      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      
+      if (userTimezone === 'Asia/Kolkata' || userTimezone === 'Asia/Calcutta') {
+        timezone = 'IST';
+      } else {
+        const formatter = new Intl.DateTimeFormat('en', {
+          timeZoneName: 'short',
+          timeZone: userTimezone
+        });
+        const parts = formatter.formatToParts(date);
+        let rawTimezone = parts.find(part => part.type === 'timeZoneName')?.value;
+        
+        // Replace GMT+XX:XX format with proper abbreviations
+        if (rawTimezone && rawTimezone.includes('GMT+05:30')) {
+          timezone = 'IST';
+        } else {
+          timezone = rawTimezone || userTimezone;
+        }
+      }
+    } else {
+      // Use UTC time
+      dayName = days[date.getUTCDay()];
+      day = date.getUTCDate();
+      month = months[date.getUTCMonth()];
+      year = date.getUTCFullYear();
+      hours = date.getUTCHours();
+      minutes = date.getUTCMinutes();
+      ampm = hours >= 12 ? 'PM' : 'AM';
+      displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+      timezone = 'UTC';
+    }
+
+    const formattedHours = displayHours.toString().padStart(2, '0');
+    const formattedMinutes = minutes.toString().padStart(2, '0');
+    const timezoneDisplay = showTimezone ? ` ${timezone}` : '';
+
+    return `${dayName} ${day} ${month} ${year} ${formattedHours}:${formattedMinutes} ${ampm}${timezoneDisplay}`;
+  };
 
   useEffect(() => {
     setIsMounted(true);
+    fetchUpdateTimes();
   }, []);
 
   // Use static YouTube profiles data - no API calls
@@ -1135,7 +1227,7 @@ export default function Home() {
               transition={{ duration: 0.5 }}
             >
               <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-                <span className="text-blue-400">
+                <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                   AI Powered Crypto Influencers Analytics Platform
                 </span>
               </h1>
@@ -1263,8 +1355,8 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold mb-1">
-                <span className="text-blue-400">
+              <h2 className="text-3xl md:text-3xl font-bold mb-1">
+                <span className="text-white-400">
                   INFLUENCERS ANALYTICS
                 </span>
               </h2>
@@ -1334,18 +1426,79 @@ export default function Home() {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
+
+             {/* Centralized Timezone Toggle */}
+          <div className="flex justify-center mb-6">
+            <div className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-xl border border-purple-500/30 p-4">
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-gray-300 font-bold">Timezone:</span>
+                <div className="flex items-center bg-gray-800/50 rounded-lg p-1">
+                  <button
+                    onClick={() => setUseLocalTime(false)}
+                    className={`px-4 py-2 text-xs font-medium rounded-md transition-all duration-200 ${
+                      !useLocalTime
+                        ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-6 py-3 rounded-xl font-bold text-white shadow-lg transition-all duration-200'
+                        : 'text-gray-300 hover:text-white'
+                    }`}
+                  >
+                    Default UTC
+                  </button>
+                  <button
+                    onClick={() => setUseLocalTime(true)}
+                    className={`px-4 py-2 text-xs font-medium rounded-md transition-all duration-200 ${
+                      useLocalTime
+                        ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-6 py-3 rounded-xl font-bold text-white shadow-lg transition-all duration-200'
+                        : 'text-gray-300 hover:text-white'
+                    }`}
+                  >
+                    Local Time Zone
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Update Times Display */}
+          <div className="flex justify-center mb-6">
+            <div className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-2xl border border-purple-500/30 overflow-hidden shadow-2xl p-4">
+              <div className="flex items-center justify-center gap-8">
+                {/* Last Updated */}
+                <div className="flex flex-col items-center">
+                  <span className="text-sm text-gray-400 font-medium">Last Updated:</span>
+                  <span className="text-md font-bold text-white">
+                    {lastUpdated ? formatDisplayDate(lastUpdated) : "N/A"}
+                  </span>
+                </div>
+
+                {/* Separator */}
+                <div className="h-8 w-px bg-gray-600"></div>
+
+                {/* Next Update */}
+                <div className="flex flex-col items-center">
+                  <span className="text-sm text-gray-400 font-medium">Next Update:</span>
+                  <span className="text-md font-bold text-white">
+                    {nextUpdate ? formatDisplayDate(nextUpdate) : "N/A"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <h2 className="text-4xl md:text-5xl font-bold mb-2">
             <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
               What&apos;s Trending
             </span>
             <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-blue-500 mx-auto rounded-full mt-5"></div>
           </h2>
-          <YouTubeTelegramDataTable />
+          
+       
+
+          <YouTubeTelegramDataTable useLocalTime={useLocalTime} />
 
           {/* <YoutubeTelegramDataTableLight /> */}
           {/* <h2 className="text-white-300 text-2xl font-bold mb-3">Top 5 Mentioned Coins in 24H</h2> */}
         </motion.div>
-        <YouTubeTelegramInfluencers />
+        <YouTubeTelegramInfluencers useLocalTime={useLocalTime} />
         {/* Display Purpose Text */}
         {/* <p className="text-center text-gray-400 text-sm italic mb-4 mt-1">
           The coins are listed for display purpose

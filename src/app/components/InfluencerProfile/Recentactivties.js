@@ -2,36 +2,57 @@
 
 import { useState, useEffect } from "react";
 
-export default function RecentActivityTab({ channelID, channelData }) {
+export default function RecentActivityTab({ channelID, channelData, youtubeLast5 }) {
   const [recentPosts, setRecentPosts] = useState([]);
   const [expandedPosts, setExpandedPosts] = useState({});
   const [hoveredPost, setHoveredPost] = useState(null);
+  const [expandedSummaries, setExpandedSummaries] = useState({});
 
   useEffect(() => {
-    if (channelData && channelData.last5) {
-      const formattedPosts = channelData.last5.map((video, index) => ({
-        id: index + 1,
-        title: video.title,
-        date: video.publishedAt,
-        summary: video.summary,
-        coinRecommendations: Object.keys(video.sentiment || {}).map((coin) => {
-          const cryptoRecType = video.Crypto_Recommendation_Type && video.Crypto_Recommendation_Type[coin];
-          const longTermPeriod = video.Long_Term_Holding_Period && video.Long_Term_Holding_Period[coin];
-
+    console.log("RecentActivities - Full channelData:", channelData);
+    console.log("RecentActivities - channelData.youtube_last_5:", channelData?.youtube_last_5);
+    console.log("RecentActivities - channelData.last5:", channelData?.last5);
+    console.log("RecentActivities - youtubeLast5 prop:", youtubeLast5);
+    
+    // Priority: 1) youtubeLast5 prop, 2) channelData.youtube_last_5, 3) channelData.last5
+    const videosData = youtubeLast5?.length 
+      ? youtubeLast5
+      : (channelData?.youtube_last_5?.length 
+        ? channelData.youtube_last_5 
+        : channelData?.last5);
+    
+    if (videosData && videosData.length > 0) {
+      console.log("RecentActivities - videosData:", videosData);
+      
+      const formattedPosts = videosData.map((video, index) => {
+        console.log(`Video ${index + 1} mentioned:`, video.mentioned);
+        const coinRecommendations = (video.mentioned || []).map((coin) => {
+          console.log(`Mapping coin:`, coin);
           return {
-            coin,
-            sentiment: video.sentiment[coin],
-            term: cryptoRecType || longTermPeriod || "medium-term",
+            coin: coin.symbol || coin.name,
+            name: coin.name,
+            sentiment: coin.sentiment,
+            term: coin.cryptoRecommendationType || "short-term",
+            outlook: coin.outlook || "N/A",
+            action: coin.action,
+            entryStrategy: coin.entryStrategy,
+            exitStrategy: coin.exitStrategy,
+            tradingCall: coin.tradingCall,
+            price: coin.price
           };
-        }),
-        videoUrl: video.videoURL,
-        outlook:
-          video.Crypto_Recommendation_Type
-            ? Object.values(video.Crypto_Recommendation_Type)[0] ||
-            "medium-term"
-            : "medium-term",
-        actionableInsights: video.actionableInsights,
-        buyingPriceZone: video.buyingPriceZone,
+        });
+        console.log(`Final coinRecommendations for video ${index + 1}:`, coinRecommendations);
+        
+        return {
+          id: (index + 1),
+          title: video.title,
+          date: video.publishedAt,
+          summary: video.summary,
+          coinRecommendations,
+          videoUrl: video.videoID ? `https://www.youtube.com/watch?v=${video.videoID}` : (video.videoURL || "#"),
+          outlook: video.mentioned && video.mentioned.length > 0 ? video.mentioned[0].cryptoRecommendationType || "short-term" : "medium-term",
+          actionableInsights: video.actionableInsights,
+          buyingPriceZone: video.buyingPriceZone,
         clarityOfAnalysis: video.clarityOfAnalysis,
         credibilityScore: video.credibilityScore,
         educationalPurpose: video.educationalPurpose,
@@ -39,10 +60,15 @@ export default function RecentActivityTab({ channelID, channelData }) {
         overallScore: video.overallScore,
         recommendations: video.recommendations,
         riskManagement: video.riskManagement,
-      }));
+          viewOnCoins: video.viewOnCoins
+        };
+      });
+      console.log("Final formattedPosts:", formattedPosts);
       setRecentPosts(formattedPosts);
+    } else {
+      console.log("No data found - no video data available in any format");
     }
-  }, [channelData]);
+  }, [channelData, youtubeLast5]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -78,6 +104,13 @@ export default function RecentActivityTab({ channelID, channelData }) {
     }));
   };
 
+  const toggleSummary = (postId) => {
+    setExpandedSummaries(prev => ({
+      ...prev,
+      [postId]: !prev[postId]
+    }));
+  };
+
   return (
     <div className="bg-white min-h-screen rounded-xl text-black p-2">
       <div className="text-center mb-2">
@@ -95,9 +128,10 @@ export default function RecentActivityTab({ channelID, channelData }) {
             <div
               className={`${getColumnColor(
                 index
-              )} text-black-600 p-1 text-center text-xs font-bold`}
+              )} text-black-600 p-1 text-center text-xs font-bold flex justify-between items-center`}
             >
-              POST {post.id}
+              <span>POST {post.id}</span>
+              <span className="text-[8px]">{formatDate(post.date)}</span>
             </div>
 
             {/* Post Header */}
@@ -105,51 +139,66 @@ export default function RecentActivityTab({ channelID, channelData }) {
               <div className="flex items-center gap-1 mb-1">
                 <span className="font-bold text-[9px]">Post Header</span>
               </div>
-              <ul className="text-[9px] text-black space-y-1">
-                <li className="truncate" title={formatDate(post.date)}>
-                  • {formatDate(post.date)}
-                </li>
-                <li className="truncate" title={post.title}>
-                  • {post.title}
-                </li>
-                <li className="truncate" title={post.videoUrl}>
-                  •{" "}
-                  <a
-                    href={post.videoUrl}
-                    target="_blank"
-                    className="text-red-600 hover:underline"
-                  >
-                    Watch Video
-                  </a>
-                </li>
-              </ul>
+              <div className="text-[9px] mb-1 font-medium" title={post.title}>
+                {post.title}
+              </div>
+              <div className="text-[9px]">
+                <a
+                  href={post.videoUrl}
+                  target="_blank"
+                  className="text-red-600 hover:underline"
+                >
+                  Watch Video
+                </a>
+              </div>
             </div>
 
             {/* AI Summary */}
             <div className="p-1 border-b border-black">
               <div className="flex items-center gap-1 mb-1">
-                <span className="font-bold text-[9px]">AI Summary</span>
+                <span className="font-bold text-[9px]">Post Summary</span>
               </div>
-              <p className="text-[9px] truncate" title={post.summary}>
-                {post.summary}
+              <p className="text-[9px]">
+                {expandedSummaries[post.id] 
+                  ? post.summary 
+                  : `${post.summary.substring(0, 150)}${post.summary.length > 150 ? '...' : ''}`}
               </p>
+              {post.summary.length > 150 && (
+                <button
+                  onClick={() => toggleSummary(post.id)}
+                  className="text-[8px] text-blue-600 hover:text-blue-800 mt-1 cursor-pointer underline"
+                >
+                  {expandedSummaries[post.id] ? 'Show Less' : 'Read More'}
+                </button>
+              )}
             </div>
 
             {/* Content Type */}
             <div className="p-1 border-b border-black">
               <div className="flex items-center gap-1 mb-1">
-                <span className="font-bold text-[9px]">AI Scoring</span>
+                <span className="font-bold text-[9px]">MCM Scoring</span>
               </div>
               <ul className="text-[9px] space-y-1">
-                <li>• Overall Score: {post.overallScore || "N/A"}</li>
-                <li>• Credibility Score: {post.credibilityScore || "N/A"}</li>
-                <li>• Clarity Of Analysis: {post.clarityOfAnalysis || "N/A"}</li>
-                <li>• Educational Purpose: {post.educationalPurpose || "N/A"}</li>
-                <li>• Actionable Insights: {post.actionableInsights || "N/A"}</li>
-                <li>• Buying Zone: {post.buyingPriceZone || "N/A"}</li>
-                <li>• Recommendations: {post.recommendations || "N/A"}</li>
-                <li>• Exit Strategy: {post.exitStrategyScore || "N/A"}</li>
-                <li>• Risk Management: {post.riskManagement || "N/A"}</li>
+                <li className="flex items-start">
+                  <span className="mr-1">*</span>
+                  <span>Overall Score: {post.overallScore || "N/A"}</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-1">*</span>
+                  <span>Educational Purpose: {post.educationalPurpose || "N/A"}</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-1">*</span>
+                  <span>Actionable Insights: {post.actionableInsights || "N/A"}</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-1">*</span>
+                  <span>Credibility: {post.credibilityScore || "N/A"}</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-1">*</span>
+                  <span>Clarity of Analysis: {post.clarityOfAnalysis || "N/A"}</span>
+                </li>
               </ul>
             </div>
 
@@ -160,26 +209,35 @@ export default function RecentActivityTab({ channelID, channelData }) {
               onMouseLeave={() => setHoveredPost(null)}
             >
               <div className="flex items-center gap-1 mb-1">
-                <span className="font-bold text-[9px]">Post Analysis</span>
+                <span className="font-bold text-[9px]">Coins Analysis</span>
               </div>
 
               {/* Coins display */}
-              <div className="grid grid-cols-3 gap-1 text-[9px]">
-                {(expandedPosts[post.id]
-                  ? post.coinRecommendations
-                  : post.coinRecommendations.slice(0, 5)
-                ).map((rec, i) => (
-                  <div
-                    key={i}
-                    className={`truncate ${getSentimentColor(rec.sentiment)}`}
-                    title={`${rec.coin}: ${rec.sentiment}, ${rec.term}`}
-                  >
-                    {rec.coin}: {rec.sentiment}, {rec.term}
+              <div className="space-y-1 text-[9px]">
+                {console.log(`Post ${post.id} coinRecommendations:`, post.coinRecommendations)}
+                {post.coinRecommendations && post.coinRecommendations.length > 0 ? (
+                  (expandedPosts[post.id]
+                    ? post.coinRecommendations
+                    : post.coinRecommendations.slice(0, 5)
+                  ).map((rec, i) => (
+                    <div
+                      key={i}
+                      className={`flex items-start ${getSentimentColor(rec.sentiment || 'neutral')}`}
+                      title={`${rec.name || rec.coin}: ${rec.sentiment || 'N/A'}, ${rec.term}`}
+                    >
+                      <span className="mr-1">*</span>
+                      <span>{rec.name || rec.coin}: {(rec.sentiment || 'N/A').replace('_', ' ')}, {rec.term}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-gray-400 text-[9px]">
+                    <span className="mr-1">*</span>
+                    <span>No coins mentioned</span>
                   </div>
-                ))}
+                )}
               </div>
 
-              {post.coinRecommendations.length > 5 && (
+              {post.coinRecommendations && post.coinRecommendations.length > 5 && (
                 <button
                   onClick={() => toggleExpanded(post.id)}
                   className="text-[8px] text-blue-600 hover:text-blue-800 mt-1 cursor-pointer underline"
@@ -201,25 +259,46 @@ export default function RecentActivityTab({ channelID, channelData }) {
                       <span className="font-semibold text-blue-400">All Recommendations ({post.coinRecommendations.length}):</span>
                       <div className="mt-1 max-h-32 overflow-y-auto">
                         {post.coinRecommendations.map((rec, i) => (
-                          <div key={i} className={`${getSentimentColor(rec.sentiment)} mb-1`}>
-                            • {rec.coin}: {rec.sentiment}, {rec.term}
+                          <div key={i} className={`${getSentimentColor(rec.sentiment)} mb-1 flex items-start`}>
+                            <span className="mr-1">*</span>
+                            <span>{rec.name || rec.coin}: {rec.sentiment.replace('_', ' ')}, {rec.term}</span>
+                            {rec.price && <span className="ml-1 text-gray-400">@ {rec.price}</span>}
                           </div>
                         ))}
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2 text-[10px]">
-                      <div><span className="text-gray-300">Actionable:</span> {post.actionableInsights || "N/A"}</div>
-                      <div><span className="text-gray-300">Buying Zone:</span> {post.buyingPriceZone || "N/A"}</div>
-                      <div><span className="text-gray-300">Clarity:</span> {post.clarityOfAnalysis || "N/A"}</div>
-                      <div><span className="text-gray-300">Credibility:</span> {post.credibilityScore || "N/A"}</div>
-                      <div><span className="text-gray-300">Educational:</span> {post.educationalPurpose || "N/A"}</div>
-                      <div><span className="text-gray-300">Exit Strategy:</span> {post.exitStrategyScore || "N/A"}</div>
+                      <div className="flex items-start">
+                        <span className="mr-1">*</span>
+                        <span><span className="text-gray-300">Actionable:</span> {post.actionableInsights || "N/A"}</span>
+                      </div>
+                      <div className="flex items-start">
+                        <span className="mr-1">*</span>
+                        <span><span className="text-gray-300">Buying Zone:</span> {post.buyingPriceZone || "N/A"}</span>
+                      </div>
+                      <div className="flex items-start">
+                        <span className="mr-1">*</span>
+                        <span><span className="text-gray-300">Clarity:</span> {post.clarityOfAnalysis || "N/A"}</span>
+                      </div>
+                      <div className="flex items-start">
+                        <span className="mr-1">*</span>
+                        <span><span className="text-gray-300">Credibility:</span> {post.credibilityScore || "N/A"}</span>
+                      </div>
+                      <div className="flex items-start">
+                        <span className="mr-1">*</span>
+                        <span><span className="text-gray-300">Educational:</span> {post.educationalPurpose || "N/A"}</span>
+                      </div>
+                      <div className="flex items-start">
+                        <span className="mr-1">*</span>
+                        <span><span className="text-gray-300">Exit Strategy:</span> {post.exitStrategyScore || "N/A"}</span>
+                      </div>
                     </div>
 
                     <div className="mt-2 pt-2 border-t border-gray-600">
-                      <div className="text-gray-300 text-[10px]">
-                        <span className="font-semibold">Outlook:</span> {post.outlook}
+                      <div className="text-gray-300 text-[10px] flex items-start">
+                        <span className="mr-1">*</span>
+                        <span><span className="font-semibold">Outlook:</span> {post.outlook}</span>
                       </div>
                     </div>
                   </div>

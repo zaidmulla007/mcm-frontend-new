@@ -1,21 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { FaCalendarAlt, FaSync, FaArrowUp, FaArrowDown, FaMinus, FaEye, FaHeart, FaThumbsUp, FaChevronDown, FaChevronUp, FaStar, FaChartLine, FaWallet, FaExchangeAlt, FaGraduationCap, FaLightbulb, FaShoppingCart, FaSearch, FaCertificate } from "react-icons/fa";
+import { FaYoutube, FaCalendarAlt, FaSync, FaArrowUp, FaArrowDown, FaMinus, FaTelegramPlane, FaEye, FaHeart, FaThumbsUp, FaChevronDown, FaChevronUp, FaStar, FaChartLine, FaWallet, FaExchangeAlt, FaGraduationCap, FaLightbulb, FaShoppingCart, FaSearch, FaCertificate } from "react-icons/fa";
 
-// Custom SVG Icons
-const YouTubeIcon = ({ className }) => (
-    <svg stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 576 512" className={className} height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-        <path d="M549.655 124.083c-6.281-23.65-24.787-42.276-48.284-48.597C458.781 64 288 64 288 64S117.22 64 74.629 75.486c-23.497 6.322-42.003 24.947-48.284 48.597-11.412 42.867-11.412 132.305-11.412 132.305s0 89.438 11.412 132.305c6.281 23.65 24.787 41.5 48.284 47.821C117.22 448 288 448 288 448s170.78 0 213.371-11.486c23.497-6.321 42.003-24.171 48.284-47.821 11.412-42.867 11.412-132.305 11.412-132.305s0-89.438-11.412-132.305zm-317.51 213.508V175.185l142.739 81.205-142.739 81.201z"></path>
-    </svg>
-);
-
-const TelegramIcon = ({ className }) => (
-    <svg stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 448 512" className={className} height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-        <path d="M446.7 98.6l-67.6 318.8c-5.1 22.5-18.4 28.1-37.3 17.5l-103-75.9-49.7 47.8c-5.5 5.5-10.1 10.1-20.7 10.1l7.4-104.9 190.9-172.5c8.3-7.4-1.8-11.5-12.9-4.1L117.8 284 16.2 252.2c-22.1-6.9-22.5-22.1 4.6-32.7L418.2 66.4c18.4-6.9 34.5 4.1 28.5 32.2z"></path>
-    </svg>
-);
-
-export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalTime = false }) {
+export default function YouTubeTelegramInfluencers2() {
     const [selectedPlatform, setSelectedPlatform] = useState("Combined");
     const [loading, setLoading] = useState(false);
     const [lastUpdated, setLastUpdated] = useState(new Date());
@@ -28,7 +15,7 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
     const [expandedCoins, setExpandedCoins] = useState({});
     const [hoveredPost, setHoveredPost] = useState(null);
     const [apiData, setApiData] = useState(null);
-    const useLocalTime = propUseLocalTime;
+    const [useLocalTime, setUseLocalTime] = useState(false);
 
     // Toggle summary expansion
     const toggleSummary = (postId) => {
@@ -50,7 +37,7 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
     const renderStars = (score) => {
         const stars = [];
         const fullStars = Math.floor(score / 2);
-
+        
         for (let i = 0; i < 5; i++) {
             if (i < fullStars) {
                 stars.push(<FaStar key={i} className="text-yellow-400" />);
@@ -58,7 +45,7 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
                 stars.push(<FaStar key={i} className="text-gray-600" />);
             }
         }
-
+        
         return (
             <div className="flex">
                 {stars}
@@ -70,21 +57,13 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
     const fetchData = () => {
         setLoading(true);
         fetch('https://mcm.showmyui.com:5000/api/admin/strategyyoutubedata/getlast6hrsytandtg')
-            // https://mcm.showmyui.com:5000/api/admin/strategyyoutubedata/getlast5ytandtg
             .then(response => response.json())
             .then(data => {
                 setApiData(data);
-                // Update times from API metadata if available
-                if (data.metadata) {
-                    setLastUpdated(new Date(data.metadata.lastUpdatedDate));
-                    setNextUpdate(new Date(data.metadata.nextUpdateDate));
-                } else {
-                    // Fallback to current behavior
-                    setLastUpdated(new Date());
-                    const next = new Date();
-                    next.setHours(next.getHours() + 4);
-                    setNextUpdate(next);
-                }
+                setLastUpdated(new Date());
+                const next = new Date();
+                next.setHours(next.getHours() + 4);
+                setNextUpdate(next);
                 setLoading(false);
             })
             .catch(error => {
@@ -104,85 +83,98 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
 
         let allPosts = [];
 
-        if (selectedPlatform === "Combined") {
-            // Use the combined array from the new API structure
-            if (apiData.combined && Array.isArray(apiData.combined)) {
-                apiData.combined.forEach(item => {
-                    allPosts.push(transformPostData(item));
+        if (selectedPlatform === "YouTube" || selectedPlatform === "Combined") {
+            apiData.youtube.forEach(item => {
+                allPosts.push({
+                    id: item.youtube_oid,
+                    title: item.title,
+                    date: item.publishedAt,
+                    summary: item.summary,
+                    content: item.summary,
+                    timestamp: useLocalTime 
+                        ? new Date(item.publishedAt).toLocaleString()
+                        : new Date(item.publishedAt).toLocaleString('en-US', { timeZone: 'UTC' }) + ' UTC',
+                    views: "N/A",
+                    likes: "N/A",
+                    videoUrl: `https://www.youtube.com/watch?v=${item.videoID}`,
+                    telegramUrl: null,
+                    outlook: "short term",
+                    comment: "Analysis from API",
+                    mentionedCoins: item.mentioned && Array.isArray(item.mentioned) ? item.mentioned : [],
+                    influencer: {
+                        name: item.channelID,
+                        channel: item.channelID,
+                        avatar: `https://ui-avatars.com/api/?name=${item.channelID}&background=random`,
+                        subscribers: "N/A",
+                        platform: "YouTube"
+                    },
+                    // Add content scores
+                    viewOnCoins: item.viewOnCoins || 0,
+                    recommendationScore: item.recommendations || 0,
+                    riskManagement: item.riskManagement || 0,
+                    overallScore: item.overallScore || 0,
+                    exitStrategyScore: item.exitStrategyScore || 0,
+                    educationalPurpose: item.educationalPurpose || 0,
+                    actionableInsights: item.actionableInsights || 0,
+                    buyingPriceZone: item.buyingPriceZone || 0,
+                    clarityOfAnalysis: item.clarityOfAnalysis || 0,
+                    credibilityScore: item.credibilityScore || 0
                 });
-            }
-        } else if (selectedPlatform === "YouTube") {
-            // Use the youtube array from the new API structure
-            if (apiData.youtube && Array.isArray(apiData.youtube)) {
-                apiData.youtube.forEach(item => {
-                    allPosts.push(transformPostData(item));
-                });
-            }
-        } else if (selectedPlatform === "Telegram") {
-            // Use the telegram array from the new API structure
-            if (apiData.telegram && Array.isArray(apiData.telegram)) {
-                apiData.telegram.forEach(item => {
-                    allPosts.push(transformPostData(item));
-                });
-            }
+            });
         }
 
-        return allPosts.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
-    };
+        if (selectedPlatform === "Telegram" || selectedPlatform === "Combined") {
+            apiData.telegram.forEach(item => {
+                allPosts.push({
+                    id: item.telegram_oid,
+                    title: item.message ? (item.message.substring(0, 50) + (item.message.length > 50 ? '...' : '')) : "No title",
+                    date: item.publishedAt,
+                    summary: item.summary,
+                    content: item.message || "",
+                    timestamp: useLocalTime 
+                        ? new Date(item.publishedAt).toLocaleString()
+                        : new Date(item.publishedAt).toLocaleString('en-US', { timeZone: 'UTC' }) + ' UTC',
+                    views: "N/A",
+                    likes: "N/A",
+                    videoUrl: null,
+                    telegramUrl: `https://t.me/${item.channelID}/${item.messageID}`,
+                    outlook: "short term",
+                    comment: "Analysis from API",
+                    mentionedCoins: item.mentioned && Array.isArray(item.mentioned) ? item.mentioned : [],
+                    influencer: {
+                        name: item.channelID,
+                        channel: item.channelID,
+                        avatar: `https://ui-avatars.com/api/?name=${item.channelID}&background=random`,
+                        subscribers: "N/A",
+                        platform: "Telegram"
+                    },
+                    // Add content scores
+                    viewOnCoins: item.viewOnCoins || 0,
+                    recommendationScore: item.recommendations || 0,
+                    riskManagement: item.riskManagement || 0,
+                    overallScore: item.overallScore || 0,
+                    exitStrategyScore: item.exitStrategyScore || 0,
+                    educationalPurpose: item.educationalPurpose || 0,
+                    actionableInsights: item.actionableInsights || 0,
+                    buyingPriceZone: item.buyingPriceZone || 0,
+                    clarityOfAnalysis: item.clarityOfAnalysis || 0,
+                    credibilityScore: item.credibilityScore || 0
+                });
+            });
+        }
 
-    // Helper function to transform post data regardless of type
-    const transformPostData = (item) => {
-        const isYoutube = item.type === "youtube";
-        const isTelegram = item.type === "telegram";
-
-        return {
-            id: isYoutube ? item.youtube_oid : item.telegram_oid,
-            title: isYoutube ? item.title : (item.message ? (item.message.substring(0, 50) + (item.message.length > 50 ? '...' : '')) : "No title"),
-            date: item.publishedAt,
-            publishedAt: item.publishedAt,
-            summary: item.summary,
-            content: isYoutube ? item.summary : (item.message || ""),
-            timestamp: useLocalTime
-                ? new Date(item.publishedAt).toLocaleString()
-                : new Date(item.publishedAt).toLocaleString('en-US', { timeZone: 'UTC' }) + ' UTC',
-            views: "N/A",
-            likes: "N/A",
-            videoUrl: isYoutube ? `https://www.youtube.com/watch?v=${item.videoID}` : null,
-            telegramUrl: isTelegram ? `https://t.me/${item.channelID}/${item.messageID}` : null,
-            outlook: "short term",
-            comment: "Analysis from API",
-            mentionedCoins: item.mentioned && Array.isArray(item.mentioned) ? item.mentioned : [],
-            platform: isYoutube ? "YouTube" : "Telegram",
-            influencer: {
-                name: item.channelID,
-                channel: item.channelID,
-                avatar: `https://ui-avatars.com/api/?name=${item.channelID}&background=random`,
-                subscribers: "N/A",
-                platform: isYoutube ? "YouTube" : "Telegram"
-            },
-            // Add content scores
-            viewOnCoins: item.viewOnCoins || 0,
-            recommendationScore: item.recommendations || 0,
-            riskManagement: item.riskManagement || 0,
-            overallScore: item.overallScore || 0,
-            exitStrategyScore: item.exitStrategyScore || 0,
-            educationalPurpose: item.educationalPurpose || 0,
-            actionableInsights: item.actionableInsights || 0,
-            buyingPriceZone: item.buyingPriceZone || 0,
-            clarityOfAnalysis: item.clarityOfAnalysis || 0,
-            marketingContent: item.marketingContent,
-        };
+        return allPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
     };
 
     // Format date function for post headers
     const formatDate = (dateString) => {
         const date = new Date(dateString);
-
+        
         if (useLocalTime) {
             // Get timezone abbreviation for local time
             const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
             let timezone;
-
+            
             if (userTimezone === 'Asia/Kolkata' || userTimezone === 'Asia/Calcutta') {
                 timezone = 'IST';
             } else {
@@ -192,7 +184,7 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
                 });
                 const parts = formatter.formatToParts(date);
                 let rawTimezone = parts.find(part => part.type === 'timeZoneName')?.value;
-
+                
                 // Replace GMT+XX:XX format with proper abbreviations
                 if (rawTimezone && rawTimezone.includes('GMT+05:30')) {
                     timezone = 'IST';
@@ -200,15 +192,15 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
                     timezone = rawTimezone || userTimezone;
                 }
             }
-
+            
             const dateOptions = { year: "numeric", month: "short", day: "numeric" };
             const timeOptions = { hour: "2-digit", minute: "2-digit", hour12: true };
-
+            
             return `${date.toLocaleDateString(undefined, dateOptions)} ${date.toLocaleTimeString(undefined, timeOptions)} ${timezone}`;
         } else {
             const dateOptions = { year: "numeric", month: "short", day: "numeric", timeZone: 'UTC' };
             const timeOptions = { hour: "2-digit", minute: "2-digit", hour12: true, timeZone: 'UTC' };
-
+            
             return `${date.toLocaleDateString(undefined, dateOptions)} ${date.toLocaleTimeString(undefined, timeOptions)} UTC`;
         }
     };
@@ -233,14 +225,6 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
         return "text-red-400";
     };
 
-    // Capitalize first letter of each word
-    const capitalizeWords = (str) => {
-        if (!str) return '';
-        return str.split(' ').map(word =>
-            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-        ).join(' ');
-    };
-
     // Format date to UTC or local time for header display
     const formatDisplayDate = (date, showTimezone = true) => {
         if (!date) return "N/A";
@@ -260,10 +244,10 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
             minutes = date.getMinutes();
             ampm = hours >= 12 ? 'PM' : 'AM';
             displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-
+            
             // Get timezone abbreviation (e.g., IST, PST, EST)
             const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
+            
             if (userTimezone === 'Asia/Kolkata' || userTimezone === 'Asia/Calcutta') {
                 timezone = 'IST';
             } else {
@@ -273,7 +257,7 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
                 });
                 const parts = formatter.formatToParts(date);
                 let rawTimezone = parts.find(part => part.type === 'timeZoneName')?.value;
-
+                
                 // Replace GMT+XX:XX format with proper abbreviations
                 if (rawTimezone && rawTimezone.includes('GMT+05:30')) {
                     timezone = 'IST';
@@ -347,19 +331,19 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
                                 <div className="flex items-center gap-2">
                                     {selectedPlatform === "Combined" ? (
                                         <>
-                                            <YouTubeIcon className="text-red-500" />
+                                            <FaYoutube className="text-red-500" />
                                             <span className="text-sm text-gray-300">YouTube</span>
-                                            <TelegramIcon className="text-blue-500" />
+                                            <FaTelegramPlane className="text-blue-500" />
                                             <span className="text-sm text-gray-300">Telegram</span>
                                         </>
                                     ) : selectedPlatform === "YouTube" ? (
                                         <>
-                                            <YouTubeIcon className="text-red-500" />
+                                            <FaYoutube className="text-red-500" />
                                             <span className="text-sm text-gray-300">YouTube</span>
                                         </>
                                     ) : (
                                         <>
-                                            <TelegramIcon className="text-blue-500" />
+                                            <FaTelegramPlane className="text-blue-500" />
                                             <span className="text-sm text-gray-300">Telegram</span>
                                         </>
                                     )}
@@ -369,6 +353,54 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
                     </div>
                 </div>
 
+                {/* Update Times Display */}
+                <div className="flex justify-center mb-8">
+                    <div className="jsx-816192472cbeba0e bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-xl border border-purple-500/30 p-4 w-full max-w-2xl">
+                        <div className="flex items-center justify-center gap-8">
+                            <div className="flex flex-col items-center relative group">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-gray-400 font-medium">Last Updated:</span>
+                                    <FaEye 
+                                        className="text-gray-400 hover:text-white cursor-pointer transition-colors" 
+                                        onClick={() => setUseLocalTime(!useLocalTime)}
+                                    />
+                                </div>
+                                <span className="text-md font-bold text-white">
+                                    {lastUpdated ? formatDisplayDate(lastUpdated) : "N/A"}
+                                </span>
+                                
+                                {/* Hover tooltip */}
+                                <div className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-3 py-2 rounded-lg shadow-xl border border-gray-700 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                                    <div className="text-xs">
+                                        <div className="font-semibold text-blue-400 mb-1">
+                                            {useLocalTime ? "Switch to UTC Time?" : "Convert to Local Time?"}
+                                        </div>
+                                        <div className="text-gray-300">
+                                            {useLocalTime 
+                                                ? "Times will be displayed in UTC timezone" 
+                                                : "Times will be displayed in your browser's timezone"
+                                            }
+                                        </div>
+                                        <div className="text-gray-400 mt-1">
+                                            Current: {useLocalTime ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC"}
+                                        </div>
+                                    </div>
+                                    {/* Arrow */}
+                                    <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-800 border-l border-t border-gray-700 rotate-45"></div>
+                                </div>
+                            </div>
+
+                            <div className="h-8 w-px bg-gray-700"></div>
+
+                            <div className="flex flex-col items-center">
+                                <span className="text-sm text-gray-400 font-medium">Next Update:</span>
+                                <span className="text-md font-bold text-white">
+                                    {nextUpdate ? formatDisplayDate(nextUpdate) : "N/A"}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 {/* Posts */}
                 <div className="flex gap-4 overflow-x-auto pb-6">
@@ -384,22 +416,20 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
                                 <span>POST {index + 1}</span>
                                 <div className="flex items-center">
                                     <span className="text-xs mr-2">{formatDate(post.date)}</span>
-                                    {(selectedPlatform === "Combined") ? (
-                                        post.platform === "YouTube" ? (
-                                            <YouTubeIcon className="text-red-500" />
-                                        ) : (
-                                            <TelegramIcon className="text-blue-500" />
-                                        )
-                                    ) : selectedPlatform === "YouTube" ? (
-                                        <YouTubeIcon className="text-red-500" />
-                                    ) : (
-                                        <TelegramIcon className="text-blue-500" />
+                                    {selectedPlatform === "YouTube" && (
+                                        <FaYoutube className="text-white" />
+                                    )}
+                                    {selectedPlatform === "Telegram" && (
+                                        <FaTelegramPlane className="text-white" />
                                     )}
                                 </div>
                             </div>
 
                             {/* Post Header */}
                             <div className="p-3 border-b border-gray-700">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className="font-bold text-xs text-gray-300">Post Header</span>
+                                </div>
                                 <div className="text-sm mb-2 font-medium text-white" title={post.title}>
                                     {post.title}
                                 </div>
@@ -408,7 +438,7 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
                                         href={post.videoUrl || post.telegramUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className={`flex items-center gap-1 ${post.platform === "YouTube" ? "text-red-400 hover:text-red-500" : "text-blue-400 hover:text-blue-500"}`}
+                                        className={`flex items-center gap-1 ${post.platform === "YouTube" ? "text-red-400 hover:text-red-300" : "text-blue-400 hover:text-blue-300"}`}
                                     >
                                         {post.platform === "YouTube" ? "Watch Video" : "View Post"}
                                     </a>
@@ -445,18 +475,18 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
 
                                 {/* Coins display */}
                                 <div className="space-y-1 text-xs">
-                                    {(expandedCoins[post.id]
-                                        ? post.mentionedCoins
+                                    {(expandedCoins[post.id] 
+                                        ? post.mentionedCoins 
                                         : post.mentionedCoins.slice(0, 5)
                                     ).map((coin, i) => (
                                         <div
                                             key={i}
                                             className={`flex items-start ${getSentimentColor(coin.sentiment)}`}
-                                            title={`${capitalizeWords(coin.name || coin.symbol)}: ${capitalizeWords(coin.sentiment.replace('_', ' '))}, ${capitalizeWords(coin.outlook)}`}
+                                            title={`${coin.name || coin.symbol}: ${coin.sentiment}, ${coin.cryptoRecommendationType}`}
                                         >
                                             <span className="mr-1">•</span>
                                             <span>
-                                                {capitalizeWords(coin.name || coin.symbol)}: {capitalizeWords(coin.sentiment.replace('_', ' '))}, {capitalizeWords(coin.outlook)}
+                                                {coin.name || coin.symbol}: {coin.sentiment.replace('_', ' ')}, {coin.cryptoRecommendationType}
                                             </span>
                                         </div>
                                     ))}
@@ -467,8 +497,8 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
                                         onClick={() => toggleCoins(post.id)}
                                         className="text-xs text-blue-400 hover:text-blue-300 mt-2 cursor-pointer"
                                     >
-                                        {expandedCoins[post.id]
-                                            ? 'Show Less'
+                                        {expandedCoins[post.id] 
+                                            ? 'Show Less' 
                                             : `+${post.mentionedCoins.length - 5} more coins`
                                         }
                                     </button>
@@ -486,7 +516,7 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
                                                     {post.mentionedCoins.map((coin, i) => (
                                                         <div key={i} className={`${getSentimentColor(coin.sentiment)} mb-1 flex items-start`}>
                                                             <span className="mr-1">•</span>
-                                                            <span>{capitalizeWords(coin.name || coin.symbol)}: {capitalizeWords(coin.sentiment.replace('_', ' '))}, {capitalizeWords(coin.outlook)}</span>
+                                                            <span>{coin.name || coin.symbol}: {coin.sentiment.replace('_', ' ')}, {coin.cryptoRecommendationType}</span>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -548,30 +578,13 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
                                         <span className="text-gray-300">Actionable</span>
                                         {renderStars(post.actionableInsights)}
                                     </li>
-                                    <li className="flex flex-col">
-                                        <span className="text-gray-300 mb-2">Marketing Content</span>
-                                        <div
-                                            className={`text-xs text-gray-400 leading-tight ${expandedSummaries[`marketing-${post.id}`] ? '' : 'line-clamp-2'
-                                                }`}
-                                        >
-                                            {typeof post.marketingContent === "string"
-                                                ? post.marketingContent
-                                                    .split(" ")
-                                                    .map((word, i) =>
-                                                        i < 2 ? word.charAt(0).toUpperCase() + word.slice(1) : word
-                                                    )
-                                                    .join(" ")
-                                                : "N/A"}
-                                        </div>
-                                        {typeof post.marketingContent === "string" &&
-                                            post.marketingContent.length > 100 && (
-                                                <button
-                                                    onClick={() => toggleSummary(`marketing-${post.id}`)}
-                                                    className="text-xs text-blue-400 hover:text-blue-300 mt-2 cursor-pointer self-start"
-                                                >
-                                                    {expandedSummaries[`marketing-${post.id}`] ? "Show Less" : "Read More"}
-                                                </button>
-                                            )}
+                                    <li className="flex items-center justify-between">
+                                        <span className="text-gray-300">Credibility</span>
+                                        {renderStars(post.credibilityScore)}
+                                    </li>
+                                    <li className="flex items-center justify-between">
+                                        <span className="text-gray-300">Clarity</span>
+                                        {renderStars(post.clarityOfAnalysis)}
                                     </li>
                                 </ul>
                             </div>

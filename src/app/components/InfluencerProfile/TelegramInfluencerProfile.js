@@ -12,6 +12,7 @@ import TelegramRecentActivities from "@/app/components/InfluencerProfile/Telegra
 export default function TelegramInfluencerProfile({ channelId }) {
   const [activeTab, setActiveTab] = useState("overview");
   const [channelData, setChannelData] = useState(null);
+  const [telegramLast5, setTelegramLast5] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -22,14 +23,20 @@ export default function TelegramInfluencerProfile({ channelId }) {
     const fetchTelegramData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`https://37.27.120.45:5000/api/admin/influencertelegramdata/channel/${channelId}`);
+        const response = await fetch(`https://mcm.showmyui.com:5000/api/admin/influencertelegramdata/channel/${channelId}`);
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
+        
+        let last5 = data?.telegram_last_5 || [];
+
+        if (!data) throw new Error("No data found in response");
+
         setChannelData(data);
+        setTelegramLast5(last5);
       } catch (err) {
         console.error("Error fetching telegram data:", err);
         setError(err.message);
@@ -116,7 +123,7 @@ export default function TelegramInfluencerProfile({ channelId }) {
           <RecommendationsTab channelData={channelData} />
         )}
         {activeTab === "recentActivities" && (
-          <TelegramRecentActivities channelID={channelId} channelData={channelData} />
+          <TelegramRecentActivities channelID={channelId} channelData={channelData} telegramLast5={telegramLast5} />
         )}
       </div>
     </div>
@@ -2238,7 +2245,7 @@ function RecommendationsTab({ channelData }) {
       setLoading(true);
     }
     try {
-      const url = new URL('https://37.27.120.45:5000/api/admin/strategytelegramdata/page/' + currentPage);
+      const url = new URL('https://mcm.showmyui.com:5000/api/admin/strategytelegramdata/page/' + currentPage);
 
       // Only add parameters if they have values
       if (startDate && startDate.trim() !== '') {
