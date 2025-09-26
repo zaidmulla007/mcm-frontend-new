@@ -81,7 +81,7 @@ export default function InfluencerProfilePage() {
       setError(null);
 
       const apiRes = await axios.get(
-        `http://37.27.120.45:5901/api/admin/influenceryoutubedata/channel/${channelID}`
+        `/api/admin/influenceryoutubedata/channel/${channelID}`
       );
 
       let results = apiRes.data?.results || apiRes.data?.data || null;
