@@ -41,7 +41,7 @@ const DragDropCards = ({ cards = [], yearlyData = null, quarterlyData = null, ch
           type: 'yearly'
         });
 
-        const res = await fetch(`/api/drag-drop-cards?${params.toString()}&userId=${selectedUserId}`);
+        const res = await fetch(`/api/admin/influenceryoutubedata/channel/${selectedUserId}?${params.toString()}`);
         const apiRes = await res.json();
 
         console.log('API response:', apiRes);
@@ -70,6 +70,7 @@ const DragDropCards = ({ cards = [], yearlyData = null, quarterlyData = null, ch
         }
 
         setUserPerformanceData(results);
+        console.log('Set userPerformanceData:', JSON.stringify(results, null, 2));
       } catch (error) {
         console.error("Error fetching channel data", error);
         let errorMessage = "Failed to load channel data. Please try again later.";
@@ -114,8 +115,13 @@ const DragDropCards = ({ cards = [], yearlyData = null, quarterlyData = null, ch
     // Access the Yearly data from the response structure
     const yearlyData = userPerformanceData?.Yearly || userPerformanceData?.data?.Yearly;
 
+    console.log(`Full userPerformanceData keys:`, userPerformanceData ? Object.keys(userPerformanceData) : 'No data');
     console.log(`Checking yearly data structure:`, yearlyData ? Object.keys(yearlyData) : 'No yearly data');
     console.log(`Looking for year ${yearKey} in yearly data:`, yearlyData?.[yearKey] ? 'Found' : 'Not found');
+    
+    if (yearlyData) {
+      console.log(`All available years:`, Object.keys(yearlyData));
+    }
 
     if (yearlyData?.[yearKey]) {
       baseData = yearlyData[yearKey][timeframeKey];
@@ -158,10 +164,12 @@ const DragDropCards = ({ cards = [], yearlyData = null, quarterlyData = null, ch
 
       if (yearData) {
         // Get Average Return (Strong Bullish probability weighted returns percentage)
+        console.log(`yearData for ${year}:`, JSON.stringify(yearData, null, 2));
         const averageReturn = yearData.Strong_Bullish_probablity_weighted_returns_percentage || 0;
         roiData[year] = averageReturn;
         console.log(`Strong Bullish Average Return for ${year}, timeframe ${timeframeKey}:`, averageReturn);
       } else {
+        console.log(`No yearData found for ${year}`);
         roiData[year] = 0;
       }
     });

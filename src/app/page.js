@@ -1117,7 +1117,7 @@ export default function Home() {
   // Fetch combined data for update times
   const fetchUpdateTimes = async () => {
     try {
-      const response = await fetch(`http://37.27.120.45:5901/api/admin/strategyyoutubedata/getlast6hrsytandtg`);
+      const response = await fetch(`/api/admin/strategyyoutubedata/getlast6hrsytandtg`);
       const data = await response.json();
       
       console.log('API Response:', data); // Debug log
