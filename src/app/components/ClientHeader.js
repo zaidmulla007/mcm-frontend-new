@@ -6,9 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { FaUserCircle, FaUser, FaCreditCard, FaSignOutAlt } from "react-icons/fa";
 
 const navLinks = [
-  { name: "LandingPage", href: "/" },
-  { name: "Homepage", href: "/home" },
-  { name: "Recent Activities", href: "/enhanced" },
+  { name: "Home", href: "/" },
   { name: "Influencers", href: "/influencers" },
   { name: "Leaderboard", href: "/leaderboard" },
   { name: "About", href: "/about" },
