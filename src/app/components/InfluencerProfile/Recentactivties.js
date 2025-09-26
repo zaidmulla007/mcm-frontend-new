@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { FaStar } from "react-icons/fa";
 
 export default function RecentActivityTab({ channelID, channelData, youtubeLast5 }) {
   const [recentPosts, setRecentPosts] = useState([]);
   const [expandedPosts, setExpandedPosts] = useState({});
   const [hoveredPost, setHoveredPost] = useState(null);
   const [expandedSummaries, setExpandedSummaries] = useState({});
+  const [expandedTitles, setExpandedTitles] = useState({});
+  const [expandedMarketing, setExpandedMarketing] = useState({});
 
   useEffect(() => {
     console.log("RecentActivities - Full channelData:", channelData);
@@ -53,14 +56,15 @@ export default function RecentActivityTab({ channelID, channelData, youtubeLast5
           outlook: video.mentioned && video.mentioned.length > 0 ? video.mentioned[0].cryptoRecommendationType || "short-term" : "medium-term",
           actionableInsights: video.actionableInsights,
           buyingPriceZone: video.buyingPriceZone,
-        clarityOfAnalysis: video.clarityOfAnalysis,
-        credibilityScore: video.credibilityScore,
-        educationalPurpose: video.educationalPurpose,
-        exitStrategyScore: video.exitStrategyScore,
-        overallScore: video.overallScore,
-        recommendations: video.recommendations,
-        riskManagement: video.riskManagement,
-          viewOnCoins: video.viewOnCoins
+          clarityOfAnalysis: video.clarityOfAnalysis,
+          credibilityScore: video.credibilityScore,
+          educationalPurpose: video.educationalPurpose,
+          exitStrategyScore: video.exitStrategyScore,
+          overallScore: video.overallScore,
+          recommendations: video.recommendations,
+          riskManagement: video.riskManagement,
+          viewOnCoins: video.viewOnCoins,
+          marketingContent: video.marketingContent || "No marketing content available"
         };
       });
       console.log("Final formattedPosts:", formattedPosts);
@@ -70,33 +74,7 @@ export default function RecentActivityTab({ channelID, channelData, youtubeLast5
     }
   }, [channelData, youtubeLast5]);
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const dateOptions = { year: "numeric", month: "short", day: "numeric" };
-    const timeOptions = { hour: "2-digit", minute: "2-digit", hour12: true };
-    return `${date.toLocaleDateString(
-      undefined,
-      dateOptions
-    )} ${date.toLocaleTimeString(undefined, timeOptions)}`;
-  };
-
-  const getSentimentColor = (sentiment) => {
-    if (sentiment.toLowerCase().includes("bullish")) return "text-green-600";
-    if (sentiment.toLowerCase().includes("bearish")) return "text-red-600";
-    return "text-blue-600"; // neutral
-  };
-
-  const getColumnColor = (index) => {
-    const colors = [
-      "bg-blue-900",
-      "bg-blue-700",
-      "bg-blue-500",
-      "bg-blue-300",
-      "bg-blue-100",
-    ];
-    return colors[index] || "bg-gray-400";
-  };
-
+  // Toggle functions
   const toggleExpanded = (postId) => {
     setExpandedPosts(prev => ({
       ...prev,
@@ -111,202 +89,338 @@ export default function RecentActivityTab({ channelID, channelData, youtubeLast5
     }));
   };
 
-  return (
-    <div className="bg-white min-h-screen rounded-xl text-black p-2">
-      <div className="text-center mb-2">
-        <h1 className="text-xl font-bold text-black">
-          {channelData?.influencer_name || "Influencer"}
-        </h1>
+  const toggleTitle = (postId) => {
+    setExpandedTitles(prev => ({
+      ...prev,
+      [postId]: !prev[postId]
+    }));
+  };
+
+  const toggleMarketing = (postId) => {
+    setExpandedMarketing(prev => ({
+      ...prev,
+      [postId]: !prev[postId]
+    }));
+  };
+
+  // Render stars based on score
+  const renderStars = (score) => {
+    const stars = [];
+    const fullStars = Math.floor(score / 2);
+
+    for (let i = 0; i < 5; i++) {
+      if (i < fullStars) {
+        stars.push(<FaStar key={i} className="text-yellow-400" />);
+      } else {
+        stars.push(<FaStar key={i} className="text-gray-300" />);
+      }
+    }
+
+    return (
+      <div className="flex">
+        {stars}
       </div>
+    );
+  };
 
-      <div className="flex gap-1 pb-2 mt-5">
-        {recentPosts.map((post, index) => (
-          <div
-            key={post.id}
-            className="w-1/5 bg-white rounded-lg overflow-hidden border border-black"
-          >
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const dateOptions = { year: "numeric", month: "short", day: "numeric" };
+    const timeOptions = { hour: "2-digit", minute: "2-digit", hour12: true };
+    return `${date.toLocaleDateString(
+      undefined,
+      dateOptions
+    )} ${date.toLocaleTimeString(undefined, timeOptions)}`;
+  };
+
+  const getSentimentColor = (sentiment) => {
+    if (sentiment.toLowerCase().includes("bullish")) return "text-green-500";
+    if (sentiment.toLowerCase().includes("bearish")) return "text-red-500";
+    return "text-blue-500"; // neutral
+  };
+
+  const getColumnColor = (index) => {
+    return "bg-blue-600";
+  };
+
+  const getScoreColor = (score) => {
+    if (score >= 8) return "text-green-500";
+    if (score >= 6) return "text-blue-500";
+    if (score >= 4) return "text-yellow-500";
+    return "text-red-500";
+  };
+
+  // Capitalize first letter of each word
+  const capitalizeWords = (str) => {
+    if (!str) return '';
+    return str.split(' ').map(word =>
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ).join(' ');
+  };
+
+  return (
+    <div className="bg-white min-h-screen text-gray-900 p-4">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-900">
+            {channelData?.influencer_name || "Influencer"} 
+          </h1>
+        </div>
+
+        {/* Posts */}
+        <div className="flex gap-4 overflow-x-auto pb-6">
+          {recentPosts.map((post, index) => (
             <div
-              className={`${getColumnColor(
-                index
-              )} text-black-600 p-1 text-center text-xs font-bold flex justify-between items-center`}
+              key={post.id}
+              className="w-80 flex-shrink-0 bg-white rounded-xl overflow-hidden border border-gray-200 shadow-lg"
             >
-              <span>POST {post.id}</span>
-              <span className="text-[8px]">{formatDate(post.date)}</span>
-            </div>
-
-            {/* Post Header */}
-            <div className="p-1 border-b border-black">
-              <div className="flex items-center gap-1 mb-1">
-                <span className="font-bold text-[9px]">Post Header</span>
-              </div>
-              <div className="text-[9px] mb-1 font-medium" title={post.title}>
-                {post.title}
-              </div>
-              <div className="text-[9px]">
-                <a
-                  href={post.videoUrl}
-                  target="_blank"
-                  className="text-red-600 hover:underline"
-                >
-                  Watch Video
-                </a>
-              </div>
-            </div>
-
-            {/* AI Summary */}
-            <div className="p-1 border-b border-black">
-              <div className="flex items-center gap-1 mb-1">
-                <span className="font-bold text-[9px]">Post Summary</span>
-              </div>
-              <p className="text-[9px]">
-                {expandedSummaries[post.id] 
-                  ? post.summary 
-                  : `${post.summary.substring(0, 150)}${post.summary.length > 150 ? '...' : ''}`}
-              </p>
-              {post.summary.length > 150 && (
-                <button
-                  onClick={() => toggleSummary(post.id)}
-                  className="text-[8px] text-blue-600 hover:text-blue-800 mt-1 cursor-pointer underline"
-                >
-                  {expandedSummaries[post.id] ? 'Show Less' : 'Read More'}
-                </button>
-              )}
-            </div>
-
-            {/* Content Type */}
-            <div className="p-1 border-b border-black">
-              <div className="flex items-center gap-1 mb-1">
-                <span className="font-bold text-[9px]">MCM Scoring</span>
-              </div>
-              <ul className="text-[9px] space-y-1">
-                <li className="flex items-start">
-                  <span className="mr-1">*</span>
-                  <span>Overall Score: {post.overallScore || "N/A"}</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="mr-1">*</span>
-                  <span>Educational Purpose: {post.educationalPurpose || "N/A"}</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="mr-1">*</span>
-                  <span>Actionable Insights: {post.actionableInsights || "N/A"}</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="mr-1">*</span>
-                  <span>Credibility: {post.credibilityScore || "N/A"}</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="mr-1">*</span>
-                  <span>Clarity of Analysis: {post.clarityOfAnalysis || "N/A"}</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Post Analysis */}
-            <div
-              className="p-1 relative"
-              onMouseEnter={() => setHoveredPost(post.id)}
-              onMouseLeave={() => setHoveredPost(null)}
-            >
-              <div className="flex items-center gap-1 mb-1">
-                <span className="font-bold text-[9px]">Coins Analysis</span>
+              {/* Post Header with Number */}
+              <div
+                className={`${getColumnColor(index)} text-white p-3 text-center text-sm font-bold flex justify-between items-center`}
+              >
+                <span>POST {post.id}</span>
+                <span className="text-xs">{formatDate(post.date)}</span>
               </div>
 
-              {/* Coins display */}
-              <div className="space-y-1 text-[9px]">
-                {console.log(`Post ${post.id} coinRecommendations:`, post.coinRecommendations)}
-                {post.coinRecommendations && post.coinRecommendations.length > 0 ? (
-                  (expandedPosts[post.id]
-                    ? post.coinRecommendations
-                    : post.coinRecommendations.slice(0, 5)
-                  ).map((rec, i) => (
-                    <div
-                      key={i}
-                      className={`flex items-start ${getSentimentColor(rec.sentiment || 'neutral')}`}
-                      title={`${rec.name || rec.coin}: ${rec.sentiment || 'N/A'}, ${rec.term}`}
+              {/* Post Title */}
+              <div className="p-3 border-b border-gray-200">
+                <div className="min-h-[40px] mb-2">
+                  <div className={`text-sm font-medium text-gray-900 ${expandedTitles[post.id] ? '' : 'line-clamp-2'}`} title={post.title}>
+                    {post.title}
+                  </div>
+                </div>
+                <div className="h-6 mb-2">
+                  {post.title.length > 80 && (
+                    <button
+                      onClick={() => toggleTitle(post.id)}
+                      className="text-xs text-blue-500 hover:text-blue-700 cursor-pointer"
                     >
-                      <span className="mr-1">*</span>
-                      <span>{rec.name || rec.coin}: {(rec.sentiment || 'N/A').replace('_', ' ')}, {rec.term}</span>
+                      {expandedTitles[post.id] ? '.....' : '......'}
+                    </button>
+                  )}
+                </div>
+                <div className="text-xs h-6">
+                  <a
+                    href={post.videoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-red-500 hover:text-red-600"
+                  >
+                    Watch Video
+                  </a>
+                </div>
+              </div>
+
+              {/* MCM Scoring */}
+              <div className="p-3 border-b border-gray-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="font-bold text-xs text-gray-700">MCM Scoring</span>
+                </div>
+                <ul className="text-xs space-y-2">
+                  <li className="flex items-center justify-between">
+                    <span className="text-gray-700">Overall</span>
+                    {renderStars(post.overallScore)}
+                  </li>
+                  <li className="flex items-center justify-between">
+                    <span className="text-gray-700">Educational</span>
+                    {renderStars(post.educationalPurpose)}
+                  </li>
+                  <li className="flex items-center justify-between">
+                    <span className="text-gray-700">Actionable</span>
+                    {renderStars(post.actionableInsights)}
+                  </li>
+                  <li className="flex flex-col">
+                    <span className="text-gray-700 mb-2">Marketing Content</span>
+                    <div className={`text-xs text-gray-500 ${expandedMarketing[post.id] ? 'leading-tight' : 'truncate overflow-hidden whitespace-nowrap'}`}>
+                      {typeof post.marketingContent === "string"
+                        ? expandedMarketing[post.id]
+                          ? post.marketingContent
+                            .split(" ")
+                            .map((word, i) =>
+                              i < 2 ? word.charAt(0).toUpperCase() + word.slice(1) : word
+                            )
+                            .join(" ")
+                          : post.marketingContent
+                            .split(" ")
+                            .map((word, i) =>
+                              i < 2 ? word.charAt(0).toUpperCase() + word.slice(1) : word
+                            )
+                            .join(" ")
+                        : "N/A"}
                     </div>
-                  ))
-                ) : (
-                  <div className="text-gray-400 text-[9px]">
-                    <span className="mr-1">*</span>
-                    <span>No coins mentioned</span>
+                    <div className="h-6 mt-2">
+                      {typeof post.marketingContent === "string" &&
+                        post.marketingContent.length > 50 && (
+                          <button
+                            onClick={() => toggleMarketing(post.id)}
+                            className="text-xs text-blue-500 hover:text-blue-700 cursor-pointer self-start"
+                          >
+                            {expandedMarketing[post.id] ? "Read Less" : "Read More"}
+                          </button>
+                        )}
+                    </div>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Post Summary */}
+              <div className="p-3 border-b border-gray-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="font-bold text-xs text-gray-700">Post Summary</span>
+                </div>
+                <div className="min-h-[96px] mb-2">
+                  <div className={`text-xs text-gray-600 leading-tight ${expandedSummaries[post.id] ? '' : 'line-clamp-6'}`}>
+                    {post.summary || "No summary available"}
+                  </div>
+                </div>
+                <div className="h-6">
+                  <button
+                    onClick={() => toggleSummary(post.id)}
+                    className="text-xs text-blue-500 hover:text-blue-700 cursor-pointer"
+                  >
+                    {expandedSummaries[post.id] ? 'Show Less' : 'Read More'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Coins Analysis */}
+              <div
+                className="p-3 relative"
+                onMouseEnter={() => setHoveredPost(post.id)}
+                onMouseLeave={() => setHoveredPost(null)}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="font-bold text-xs text-gray-700">Coins Analysis</span>
+                </div>
+
+                {/* Coins table */}
+                <div className="flex justify-center">
+                  <div className="overflow-x-auto w-full">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="border-b border-gray-300">
+                          <th className="text-center text-gray-700 pb-1 pr-2">symbol</th>
+                          <th className="text-center text-gray-700 pb-1 pr-2">Sentiment</th>
+                          <th className="text-center text-gray-700 pb-1">Holding Period</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[...Array(5)].map((_, i) => {
+                          const coins = expandedPosts[post.id]
+                            ? post.coinRecommendations || []
+                            : (post.coinRecommendations || []).slice(0, 5);
+                          const coin = coins[i];
+                          
+                          return (
+                            <tr key={i} className="border-b border-gray-200/50">
+                              <td className="py-1 pr-2 text-center">
+                                {coin ? (
+                                  <span className="text-gray-900" title={coin.name}>
+                                    {(coin.coin || coin.name).toUpperCase()}
+                                  </span>
+                                ) : (
+                                  <span className="text-transparent">-</span>
+                                )}
+                              </td>
+                              <td className="py-1 pr-2 text-center">
+                                {coin ? (
+                                  <span className={getSentimentColor(coin.sentiment || 'neutral')}>
+                                    {(coin.sentiment || 'N/A').replace('_', ' ').toUpperCase()}
+                                  </span>
+                                ) : (
+                                  <span className="text-transparent">-</span>
+                                )}
+                              </td>
+                              <td className="py-1 text-center">
+                                {coin ? (
+                                  <span className="text-gray-700">
+                                    {coin.term && coin.term.toLowerCase() !== 'no outlook' ? coin.term.toUpperCase() : 'NOT SPECIFIED'}
+                                  </span>
+                                ) : (
+                                  <span className="text-transparent">-</span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="h-6 mt-2">
+                  {post.coinRecommendations && post.coinRecommendations.length > 5 && (
+                    <button
+                      onClick={() => toggleExpanded(post.id)}
+                      className="text-xs text-blue-500 hover:text-blue-700 cursor-pointer"
+                    >
+                      {expandedPosts[post.id]
+                        ? 'Read Less'
+                        : 'Read More'
+                      }
+                    </button>
+                  )}
+                </div>
+
+                {/* Hover Tooltip */}
+                {hoveredPost === post.id && (
+                  <div className="absolute top-0 left-full ml-2 z-50 bg-gray-800 text-white p-4 rounded-lg shadow-xl border border-gray-300 max-w-md">
+                    <div className="text-xs">
+                      <div className="font-bold mb-2 text-blue-400">Complete Post Analysis</div>
+
+                      <div className="mb-3">
+                        <span className="font-semibold text-blue-400">All Recommendations ({post.coinRecommendations?.length || 0}):</span>
+                        <div className="mt-1 max-h-32 overflow-y-auto">
+                          {post.coinRecommendations?.map((rec, i) => (
+                            <div key={i} className={`${getSentimentColor(rec.sentiment)} mb-1 flex items-start`}>
+                              <span className="mr-1">•</span>
+                              <span>{capitalizeWords(rec.name || rec.coin)}: {capitalizeWords(rec.sentiment?.replace('_', ' ') || 'N/A')}, {capitalizeWords(rec.term)}</span>
+                              {rec.price && <span className="ml-1 text-gray-400">@ {rec.price}</span>}
+                            </div>
+                          )) || []}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="flex items-start">
+                          <span className="mr-1 text-gray-400">•</span>
+                          <span><span className="text-gray-400">Actionable:</span> <span className={getScoreColor(post.actionableInsights)}>{post.actionableInsights}/10</span></span>
+                        </div>
+                        <div className="flex items-start">
+                          <span className="mr-1 text-gray-400">•</span>
+                          <span><span className="text-gray-400">Buying Zone:</span> <span className={getScoreColor(post.buyingPriceZone)}>{post.buyingPriceZone}/10</span></span>
+                        </div>
+                        <div className="flex items-start">
+                          <span className="mr-1 text-gray-400">•</span>
+                          <span><span className="text-gray-400">Clarity:</span> <span className={getScoreColor(post.clarityOfAnalysis)}>{post.clarityOfAnalysis}/10</span></span>
+                        </div>
+                        <div className="flex items-start">
+                          <span className="mr-1 text-gray-400">•</span>
+                          <span><span className="text-gray-400">Credibility:</span> <span className={getScoreColor(post.credibilityScore)}>{post.credibilityScore}/10</span></span>
+                        </div>
+                        <div className="flex items-start">
+                          <span className="mr-1 text-gray-400">•</span>
+                          <span><span className="text-gray-400">Educational:</span> <span className={getScoreColor(post.educationalPurpose)}>{post.educationalPurpose}/10</span></span>
+                        </div>
+                        <div className="flex items-start">
+                          <span className="mr-1 text-gray-400">•</span>
+                          <span><span className="text-gray-400">Exit Strategy:</span> <span className={getScoreColor(post.exitStrategyScore)}>{post.exitStrategyScore}/10</span></span>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 pt-2 border-t border-gray-600">
+                        <div className="text-gray-400 text-xs flex items-start">
+                          <span className="mr-1">•</span>
+                          <span><span className="font-semibold">Outlook:</span> {post.outlook}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
-
-              {post.coinRecommendations && post.coinRecommendations.length > 5 && (
-                <button
-                  onClick={() => toggleExpanded(post.id)}
-                  className="text-[8px] text-blue-600 hover:text-blue-800 mt-1 cursor-pointer underline"
-                >
-                  {expandedPosts[post.id]
-                    ? 'Show Less'
-                    : `+${post.coinRecommendations.length - 5} more`
-                  }
-                </button>
-              )}
-
-              {/* Hover Tooltip */}
-              {hoveredPost === post.id && (
-                <div className="absolute top-0 left-full ml-2 z-50 bg-black text-white p-3 rounded-lg shadow-lg border border-gray-300 max-w-md">
-                  <div className="text-xs">
-                    <div className="font-bold mb-2 text-yellow-400">Complete Post Analysis</div>
-
-                    <div className="mb-2">
-                      <span className="font-semibold text-blue-400">All Recommendations ({post.coinRecommendations.length}):</span>
-                      <div className="mt-1 max-h-32 overflow-y-auto">
-                        {post.coinRecommendations.map((rec, i) => (
-                          <div key={i} className={`${getSentimentColor(rec.sentiment)} mb-1 flex items-start`}>
-                            <span className="mr-1">*</span>
-                            <span>{rec.name || rec.coin}: {rec.sentiment.replace('_', ' ')}, {rec.term}</span>
-                            {rec.price && <span className="ml-1 text-gray-400">@ {rec.price}</span>}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 text-[10px]">
-                      <div className="flex items-start">
-                        <span className="mr-1">*</span>
-                        <span><span className="text-gray-300">Actionable:</span> {post.actionableInsights || "N/A"}</span>
-                      </div>
-                      <div className="flex items-start">
-                        <span className="mr-1">*</span>
-                        <span><span className="text-gray-300">Buying Zone:</span> {post.buyingPriceZone || "N/A"}</span>
-                      </div>
-                      <div className="flex items-start">
-                        <span className="mr-1">*</span>
-                        <span><span className="text-gray-300">Clarity:</span> {post.clarityOfAnalysis || "N/A"}</span>
-                      </div>
-                      <div className="flex items-start">
-                        <span className="mr-1">*</span>
-                        <span><span className="text-gray-300">Credibility:</span> {post.credibilityScore || "N/A"}</span>
-                      </div>
-                      <div className="flex items-start">
-                        <span className="mr-1">*</span>
-                        <span><span className="text-gray-300">Educational:</span> {post.educationalPurpose || "N/A"}</span>
-                      </div>
-                      <div className="flex items-start">
-                        <span className="mr-1">*</span>
-                        <span><span className="text-gray-300">Exit Strategy:</span> {post.exitStrategyScore || "N/A"}</span>
-                      </div>
-                    </div>
-
-                    <div className="mt-2 pt-2 border-t border-gray-600">
-                      <div className="text-gray-300 text-[10px] flex items-start">
-                        <span className="mr-1">*</span>
-                        <span><span className="font-semibold">Outlook:</span> {post.outlook}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

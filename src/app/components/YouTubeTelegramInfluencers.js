@@ -26,6 +26,8 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
     });
     const [expandedSummaries, setExpandedSummaries] = useState({});
     const [expandedCoins, setExpandedCoins] = useState({});
+    const [expandedTitles, setExpandedTitles] = useState({});
+    const [expandedMarketing, setExpandedMarketing] = useState({});
     const [hoveredPost, setHoveredPost] = useState(null);
     const [apiData, setApiData] = useState(null);
     const useLocalTime = propUseLocalTime;
@@ -41,6 +43,22 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
     // Toggle coins expansion
     const toggleCoins = (postId) => {
         setExpandedCoins(prev => ({
+            ...prev,
+            [postId]: !prev[postId]
+        }));
+    };
+
+    // Toggle title expansion
+    const toggleTitle = (postId) => {
+        setExpandedTitles(prev => ({
+            ...prev,
+            [postId]: !prev[postId]
+        }));
+    };
+
+    // Toggle marketing content expansion
+    const toggleMarketing = (postId) => {
+        setExpandedMarketing(prev => ({
             ...prev,
             [postId]: !prev[postId]
         }));
@@ -222,7 +240,7 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
 
     // Get column color - always blue-700 for all platforms
     const getColumnColor = (index) => {
-        return "bg-blue-700";
+        return "bg-white-700";
     };
 
     // Get score color
@@ -308,9 +326,11 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
 
     if (loading) {
         return (
-            <div className="bg-gradient-to-br from-purple-900 to-blue-900 min-h-screen text-white">
-                <div className="flex justify-center items-center min-h-screen">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400"></div>
+            <div className="bg-gradient-to-br from-purple-900 to-blue-900 min-h-screen text-white flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-400 border-t-transparent mx-auto mb-4"></div>
+                    <div className="text-white text-lg font-semibold mb-2">Loading Latest Posts...</div>
+                    <div className="text-purple-300 text-sm">Fetching YouTube & Telegram data</div>
                 </div>
             </div>
         );
@@ -378,32 +398,46 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
                             className="w-80 flex-shrink-0 bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-xl overflow-hidden border border-purple-500/30"
                         >
                             {/* Post Header with Platform Icon in Top Right */}
-                            <div
-                                className={`${getColumnColor(index)} text-white p-3 text-center text-sm font-bold flex justify-between items-center`}
-                            >
-                                <span>POST {index + 1}</span>
-                                <div className="flex items-center">
-                                    <span className="text-xs mr-2">{formatDate(post.date)}</span>
-                                    {(selectedPlatform === "Combined") ? (
-                                        post.platform === "YouTube" ? (
+                            <div className="border-b border-gray-700">
+                                <div
+                                    className={`${getColumnColor(index)} text-white p-3 text-center text-sm font-bold flex justify-between items-center`}
+                                >
+                                    <span>POST {index + 1}</span>
+                                    <div className="flex items-center">
+                                        <span className="text-xs mr-2">{formatDate(post.date)}</span>
+                                        {(selectedPlatform === "Combined") ? (
+                                            post.platform === "YouTube" ? (
+                                                <YouTubeIcon className="text-red-500" />
+                                            ) : (
+                                                <TelegramIcon className="text-blue-500" />
+                                            )
+                                        ) : selectedPlatform === "YouTube" ? (
                                             <YouTubeIcon className="text-red-500" />
                                         ) : (
                                             <TelegramIcon className="text-blue-500" />
-                                        )
-                                    ) : selectedPlatform === "YouTube" ? (
-                                        <YouTubeIcon className="text-red-500" />
-                                    ) : (
-                                        <TelegramIcon className="text-blue-500" />
-                                    )}
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
                             {/* Post Header */}
                             <div className="p-3 border-b border-gray-700">
-                                <div className="text-sm mb-2 font-medium text-white" title={post.title}>
-                                    {post.title}
+                                <div className="min-h-[40px] mb-2">
+                                    <div className={`text-sm font-medium text-white ${expandedTitles[post.id] ? '' : 'line-clamp-2'}`} title={post.title}>
+                                        {post.title}
+                                    </div>
                                 </div>
-                                <div className="text-xs">
+                                <div className="h-6 mb-2">
+                                    {post.title.length > 80 && (
+                                        <button
+                                            onClick={() => toggleTitle(post.id)}
+                                            className="text-xs text-blue-400 hover:text-blue-300 cursor-pointer"
+                                        >
+                                            {expandedTitles[post.id] ? '.....' : '......'}
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="text-xs h-6">
                                     <a
                                         href={post.videoUrl || post.telegramUrl}
                                         target="_blank"
@@ -414,28 +448,82 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
                                     </a>
                                 </div>
                             </div>
+                            {/* MCM Scoring */}
+                            <div className="p-3 border-b border-gray-700">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className="font-bold text-xs text-gray-300">MCM Scoring</span>
+                                </div>
+                                <ul className="text-xs space-y-2">
+                                    <li className="flex items-center justify-between">
+                                        <span className="text-gray-300">Overall</span>
+                                        {renderStars(post.overallScore)}
+                                    </li>
+                                    <li className="flex items-center justify-between">
+                                        <span className="text-gray-300">Educational</span>
+                                        {renderStars(post.educationalPurpose)}
+                                    </li>
+                                    <li className="flex items-center justify-between">
+                                        <span className="text-gray-300">Actionable</span>
+                                        {renderStars(post.actionableInsights)}
+                                    </li>
+                                    <li className="flex flex-col">
+                                        <span className="text-gray-300 mb-2">Marketing Content</span>
+                                        <div className={`text-xs text-gray-400 ${expandedMarketing[post.id] ? 'leading-tight' : 'truncate overflow-hidden whitespace-nowrap'}`}>
+                                            {typeof post.marketingContent === "string"
+                                                ? expandedMarketing[post.id]
+                                                    ? post.marketingContent
+                                                        .split(" ")
+                                                        .map((word, i) =>
+                                                            i < 2 ? word.charAt(0).toUpperCase() + word.slice(1) : word
+                                                        )
+                                                        .join(" ")
+                                                    : post.marketingContent
+                                                        .split(" ")
+                                                        .map((word, i) =>
+                                                            i < 2 ? word.charAt(0).toUpperCase() + word.slice(1) : word
+                                                        )
+                                                        .join(" ")
+                                                : "N/A"}
+                                        </div>
+                                        <div className="h-6 mt-2">
+                                            {typeof post.marketingContent === "string" &&
+                                                post.marketingContent.length > 50 && (
+                                                    <button
+                                                        onClick={() => toggleMarketing(post.id)}
+                                                        className="text-xs text-blue-400 hover:text-blue-300 cursor-pointer self-start"
+                                                    >
+                                                        {expandedMarketing[post.id] ? "Read Less" : "Read More"}
+                                                    </button>
+                                                )}
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
 
                             {/* Post Summary */}
                             <div className="p-3 border-b border-gray-700">
                                 <div className="flex items-center gap-2 mb-2">
                                     <span className="font-bold text-xs text-gray-300">Post Summary</span>
                                 </div>
-                                <div className={`text-xs text-gray-300 ${expandedSummaries[post.id] ? '' : 'line-clamp-8'}`}>
-                                    {post.summary}
+                                <div className="min-h-[96px] mb-2">
+                                    <div className={`text-xs text-gray-300 leading-tight ${expandedSummaries[post.id] ? '' : 'line-clamp-6'}`}>
+                                        {post.summary || "No summary available"}
+                                    </div>
                                 </div>
-                                {post.summary.length > 300 && (
+                                <div className="h-6">
                                     <button
                                         onClick={() => toggleSummary(post.id)}
-                                        className="text-xs text-blue-400 hover:text-blue-300 mt-2 cursor-pointer"
+                                        className="text-xs text-blue-400 hover:text-blue-300 cursor-pointer"
                                     >
                                         {expandedSummaries[post.id] ? 'Show Less' : 'Read More'}
                                     </button>
-                                )}
+                                </div>
                             </div>
 
-                            {/* Post Analysis */}
+
+                            {/* Coins Analysis */}
                             <div
-                                className="p-3 border-b border-gray-700 relative"
+                                className="p-3 relative"
                                 onMouseEnter={() => setHoveredPost(post.id)}
                                 onMouseLeave={() => setHoveredPost(null)}
                             >
@@ -443,23 +531,59 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
                                     <span className="font-bold text-xs text-gray-300">Coins Analysis</span>
                                 </div>
 
-                                {/* Coins display */}
-                                <div className="space-y-1 text-xs">
-                                    {(expandedCoins[post.id]
-                                        ? post.mentionedCoins
-                                        : post.mentionedCoins.slice(0, 5)
-                                    ).map((coin, i) => (
-                                        <div
-                                            key={i}
-                                            className={`flex items-start ${getSentimentColor(coin.sentiment)}`}
-                                            title={`${capitalizeWords(coin.name || coin.symbol)}: ${capitalizeWords(coin.sentiment.replace('_', ' '))}, ${capitalizeWords(coin.outlook)}`}
-                                        >
-                                            <span className="mr-1">•</span>
-                                            <span>
-                                                {capitalizeWords(coin.name || coin.symbol)}: {capitalizeWords(coin.sentiment.replace('_', ' '))}, {capitalizeWords(coin.outlook)}
-                                            </span>
-                                        </div>
-                                    ))}
+                                {/* Coins table */}
+                                <div className="flex justify-center">
+                                    <div className="overflow-x-auto w-full">
+                                        <table className="w-full text-xs">
+                                            <thead>
+                                                <tr className="border-b border-gray-600">
+                                                    <th className="text-center text-gray-300 pb-1 pr-2">symbol</th>
+                                                    <th className="text-center text-gray-300 pb-1 pr-2">Sentiment</th>
+                                                    <th className="text-center text-gray-300 pb-1">Holding Period</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {[...Array(5)].map((_, i) => {
+                                                    const coins = expandedCoins[post.id]
+                                                        ? post.mentionedCoins
+                                                        : post.mentionedCoins.slice(0, 5);
+                                                    const coin = coins[i];
+                                                    
+                                                    return (
+                                                        <tr key={i} className="border-b border-gray-700/50">
+                                                            <td className="py-1 pr-2 text-center">
+                                                                {coin ? (
+                                                                    <span className="text-white" title={coin.name}>
+                                                                        {(coin.name || coin.symbol).toUpperCase()}
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="text-transparent">-</span>
+                                                                )}
+                                                            </td>
+                                                            <td className="py-1 pr-2 text-center">
+                                                                {coin ? (
+                                                                    <span className={getSentimentColor(coin.sentiment)}>
+                                                                        {coin.sentiment.replace('_', ' ').toUpperCase()}
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="text-transparent">-</span>
+                                                                )}
+                                                            </td>
+                                                            <td className="py-1 text-center">
+                                                                {coin ? (
+                                                                    <span className="text-gray-300">
+                                                                        {coin.outlook && coin.outlook.toLowerCase() !== 'no outlook' ? coin.outlook.toUpperCase() : 'NOT SPECIFIED'}
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="text-transparent">-</span>
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
 
                                 {post.mentionedCoins.length > 5 && (
@@ -468,8 +592,8 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
                                         className="text-xs text-blue-400 hover:text-blue-300 mt-2 cursor-pointer"
                                     >
                                         {expandedCoins[post.id]
-                                            ? 'Show Less'
-                                            : `+${post.mentionedCoins.length - 5} more coins`
+                                            ? 'Read Less'
+                                            : 'Read More'
                                         }
                                     </button>
                                 )}
@@ -528,52 +652,6 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
                                         </div>
                                     </div>
                                 )}
-                            </div>
-
-                            {/* MCM Scoring */}
-                            <div className="p-3">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className="font-bold text-xs text-gray-300">MCM Scoring</span>
-                                </div>
-                                <ul className="text-xs space-y-2">
-                                    <li className="flex items-center justify-between">
-                                        <span className="text-gray-300">Overall</span>
-                                        {renderStars(post.overallScore)}
-                                    </li>
-                                    <li className="flex items-center justify-between">
-                                        <span className="text-gray-300">Educational</span>
-                                        {renderStars(post.educationalPurpose)}
-                                    </li>
-                                    <li className="flex items-center justify-between">
-                                        <span className="text-gray-300">Actionable</span>
-                                        {renderStars(post.actionableInsights)}
-                                    </li>
-                                    <li className="flex flex-col">
-                                        <span className="text-gray-300 mb-2">Marketing Content</span>
-                                        <div
-                                            className={`text-xs text-gray-400 leading-tight ${expandedSummaries[`marketing-${post.id}`] ? '' : 'line-clamp-2'
-                                                }`}
-                                        >
-                                            {typeof post.marketingContent === "string"
-                                                ? post.marketingContent
-                                                    .split(" ")
-                                                    .map((word, i) =>
-                                                        i < 2 ? word.charAt(0).toUpperCase() + word.slice(1) : word
-                                                    )
-                                                    .join(" ")
-                                                : "N/A"}
-                                        </div>
-                                        {typeof post.marketingContent === "string" &&
-                                            post.marketingContent.length > 100 && (
-                                                <button
-                                                    onClick={() => toggleSummary(`marketing-${post.id}`)}
-                                                    className="text-xs text-blue-400 hover:text-blue-300 mt-2 cursor-pointer self-start"
-                                                >
-                                                    {expandedSummaries[`marketing-${post.id}`] ? "Show Less" : "Read More"}
-                                                </button>
-                                            )}
-                                    </li>
-                                </ul>
                             </div>
                         </div>
                     ))}

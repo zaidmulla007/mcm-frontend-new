@@ -359,9 +359,11 @@ export default function YouTubeTelegramDataTable({ useLocalTime: propUseLocalTim
 
     if (loading) {
         return (
-            <div className="relative h-24 bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-2xl border border-purple-500/30 overflow-hidden shadow-2xl mb-4 p-6">
-                <div className="flex justify-center items-center py-20">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+            <div className="bg-gradient-to-br from-purple-900 to-blue-900 min-h-screen text-white flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-400 border-t-transparent mx-auto mb-4"></div>
+                    <div className="text-white text-lg font-semibold mb-2">Loading Data Table...</div>
+                    <div className="text-purple-300 text-sm">Fetching YouTube & Telegram analytics</div>
                 </div>
             </div>
         );

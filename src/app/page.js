@@ -1657,7 +1657,7 @@ export default function Home() {
 
         {/* Influencer Flash News Text */}
         <h2 className="text-center text-white text-2xl font-bold mb-3 mt-4">
-          Influencer Flash News Update
+          Live Prices
         </h2>
 
 
@@ -1736,8 +1736,7 @@ export default function Home() {
             transition={{ duration: 0.6 }}
           >
             <div className="text-center mb-4">
-              <h3 className="text-3xl font-bold text-white mb-2">Trending Top Mentioned Coins</h3>
-              <p className="text-gray-300 text-lg">7 days most mentioned coins(for 24 hours start free trial)</p>
+              <h3 className="text-3xl font-bold text-white mb-2">Trending Top Influencers</h3>
             </div>
 
             {/* Static Cards Row - No Scrolling */}
