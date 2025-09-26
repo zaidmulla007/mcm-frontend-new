@@ -3,12 +3,92 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+// Custom timezone abbreviations mapping
+const timeZoneAbbreviations = {
+  // India
+  "Asia/Kolkata": "IST",      // India Standard Time
+  "Asia/Calcutta": "IST",     // India Standard Time (legacy)
+  
+  // Middle East
+  "Asia/Dubai": "GST",        // Gulf Standard Time (UAE)
+  "Asia/Riyadh": "AST",       // Arabia Standard Time (Saudi Arabia)
+  "Asia/Qatar": "AST",        // Arabia Standard Time (Qatar)
+  "Asia/Kuwait": "AST",       // Arabia Standard Time (Kuwait)
+  "Asia/Bahrain": "AST",      // Arabia Standard Time (Bahrain)
+  "Asia/Muscat": "GST",       // Gulf Standard Time (Oman)
+  
+  // Europe
+  "Europe/London": "GMT",     // Greenwich Mean Time (UK)
+  "Europe/Paris": "CET",      // Central European Time (France)
+  "Europe/Berlin": "CET",     // Central European Time (Germany)
+  "Europe/Rome": "CET",       // Central European Time (Italy)
+  "Europe/Madrid": "CET",     // Central European Time (Spain)
+  "Europe/Amsterdam": "CET",  // Central European Time (Netherlands)
+  "Europe/Brussels": "CET",   // Central European Time (Belgium)
+  "Europe/Vienna": "CET",     // Central European Time (Austria)
+  "Europe/Zurich": "CET",     // Central European Time (Switzerland)
+  "Europe/Stockholm": "CET",  // Central European Time (Sweden)
+  "Europe/Oslo": "CET",       // Central European Time (Norway)
+  "Europe/Copenhagen": "CET", // Central European Time (Denmark)
+  "Europe/Helsinki": "EET",   // Eastern European Time (Finland)
+  "Europe/Moscow": "MSK",     // Moscow Time (Russia)
+  
+  // Americas
+  "America/New_York": "EST",  // Eastern Standard Time (USA East Coast)
+  "America/Chicago": "CST",   // Central Standard Time (USA Central)
+  "America/Denver": "MST",    // Mountain Standard Time (USA Mountain)
+  "America/Los_Angeles": "PST", // Pacific Standard Time (USA West Coast)
+  "America/Toronto": "EST",   // Eastern Standard Time (Canada)
+  "America/Vancouver": "PST", // Pacific Standard Time (Canada)
+  "America/Mexico_City": "CST", // Central Standard Time (Mexico)
+  "America/Sao_Paulo": "BRT", // Brasilia Time (Brazil)
+  "America/Argentina/Buenos_Aires": "ART", // Argentina Time
+  
+  // Asia Pacific
+  "Asia/Tokyo": "JST",        // Japan Standard Time
+  "Asia/Shanghai": "CST",     // China Standard Time
+  "Asia/Hong_Kong": "HKT",    // Hong Kong Time
+  "Asia/Singapore": "SGT",    // Singapore Time
+  "Asia/Bangkok": "ICT",      // Indochina Time (Thailand)
+  "Asia/Jakarta": "WIB",      // Western Indonesia Time
+  "Asia/Manila": "PHT",       // Philippines Time
+  "Asia/Seoul": "KST",        // Korea Standard Time
+  "Asia/Taipei": "CST",       // China Standard Time (Taiwan)
+  
+  // Australia & New Zealand
+  "Australia/Sydney": "AEDT", // Australian Eastern Daylight Time
+  "Australia/Melbourne": "AEDT", // Australian Eastern Daylight Time
+  "Australia/Perth": "AWST",  // Australian Western Standard Time
+  "Pacific/Auckland": "NZDT", // New Zealand Daylight Time
+  
+  // Africa
+  "Africa/Cairo": "EET",      // Eastern European Time (Egypt)
+  "Africa/Johannesburg": "SAST", // South Africa Standard Time
+  "Africa/Lagos": "WAT",      // West Africa Time (Nigeria)
+  "Africa/Nairobi": "EAT",    // East Africa Time (Kenya)
+  
+  // Add more as needed
+};
+
 import DragDropCards from "../components/DragDropCards";
 import MarketHeatmap from "./components/MarketHeatmap";
 import YouTubeTelegramDataTable from "./components/YouTubeTelegramDataTable";
 import YoutubeTelegramDataTableLight from "./components/YoutubeTelegramDataTableLight";
 import YouTubeTelegramInfluencers from "./components/YouTubeTelegramInfluencers";
-
+import { useTop10LivePrice } from "./livePriceTop10";
+const marqueeVariants = {
+  animate: {
+    x: ["0%", "-100%"],
+    transition: {
+      x: {
+        repeat: Infinity,
+        repeatType: "loop",
+        duration: 100,
+        ease: "linear"
+      }
+    }
+  }
+};
 // Top 5 mentioned coins data based on the image
 const topMentionedCoins = [
   {
@@ -1106,6 +1186,8 @@ const ProfessionalTrendingTable = ({ title, data, isLocked = false }) => {
 };
 
 export default function Home() {
+  const { top10Data, isConnected } = useTop10LivePrice();
+  const scrollingData = [...top10Data, ...top10Data];
   const [isMounted, setIsMounted] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false); // This would come from auth context
   const [shouldScroll, setShouldScroll] = useState(false);
@@ -1119,18 +1201,18 @@ export default function Home() {
     try {
       const response = await fetch(`/api/admin/strategyyoutubedata/getlast6hrsytandtg`);
       const data = await response.json();
-      
+
       console.log('API Response:', data); // Debug log
-      
+
       // Extract and set the last updated time from the API metadata
       if (data && data.metadata) {
         console.log('Metadata found:', data.metadata); // Debug log
         const lastUpdatedTime = new Date(data.metadata.lastUpdatedDate);
         const nextUpdateTime = new Date(data.metadata.nextUpdateDate);
-        
+
         console.log('Last Updated Time:', lastUpdatedTime); // Debug log
         console.log('Next Update Time:', nextUpdateTime); // Debug log
-        
+
         setLastUpdated(lastUpdatedTime);
         setNextUpdate(nextUpdateTime);
       } else {
@@ -1160,27 +1242,10 @@ export default function Home() {
       minutes = date.getMinutes();
       ampm = hours >= 12 ? 'PM' : 'AM';
       displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-      
-      // Get timezone abbreviation (e.g., IST, PST, EST)
-      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      
-      if (userTimezone === 'Asia/Kolkata' || userTimezone === 'Asia/Calcutta') {
-        timezone = 'IST';
-      } else {
-        const formatter = new Intl.DateTimeFormat('en', {
-          timeZoneName: 'short',
-          timeZone: userTimezone
-        });
-        const parts = formatter.formatToParts(date);
-        let rawTimezone = parts.find(part => part.type === 'timeZoneName')?.value;
-        
-        // Replace GMT+XX:XX format with proper abbreviations
-        if (rawTimezone && rawTimezone.includes('GMT+05:30')) {
-          timezone = 'IST';
-        } else {
-          timezone = rawTimezone || userTimezone;
-        }
-      }
+
+      // Get user's timezone and map to abbreviation
+      const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      timezone = timeZoneAbbreviations[userTimeZone] || userTimeZone;
     } else {
       // Use UTC time
       dayName = days[date.getUTCDay()];
@@ -1427,7 +1492,7 @@ export default function Home() {
           transition={{ duration: 0.5 }}
         >
 
-             {/* Centralized Timezone Toggle */}
+          {/* Centralized Timezone Toggle */}
           <div className="flex justify-center mb-6">
             <div className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-xl border border-purple-500/30 p-4">
               <div className="flex items-center gap-4">
@@ -1435,21 +1500,19 @@ export default function Home() {
                 <div className="flex items-center bg-gray-800/50 rounded-lg p-1">
                   <button
                     onClick={() => setUseLocalTime(false)}
-                    className={`px-4 py-2 text-xs font-medium rounded-md transition-all duration-200 ${
-                      !useLocalTime
-                        ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-6 py-3 rounded-xl font-bold text-white shadow-lg transition-all duration-200'
-                        : 'text-gray-300 hover:text-white'
-                    }`}
+                    className={`px-4 py-2 text-xs font-medium rounded-md transition-all duration-200 ${!useLocalTime
+                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-6 py-3 rounded-xl font-bold text-white shadow-lg transition-all duration-200'
+                      : 'text-gray-300 hover:text-white'
+                      }`}
                   >
                     Default UTC
                   </button>
                   <button
                     onClick={() => setUseLocalTime(true)}
-                    className={`px-4 py-2 text-xs font-medium rounded-md transition-all duration-200 ${
-                      useLocalTime
-                        ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-6 py-3 rounded-xl font-bold text-white shadow-lg transition-all duration-200'
-                        : 'text-gray-300 hover:text-white'
-                    }`}
+                    className={`px-4 py-2 text-xs font-medium rounded-md transition-all duration-200 ${useLocalTime
+                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-6 py-3 rounded-xl font-bold text-white shadow-lg transition-all duration-200'
+                      : 'text-gray-300 hover:text-white'
+                      }`}
                   >
                     Local Time Zone
                   </button>
@@ -1457,7 +1520,7 @@ export default function Home() {
               </div>
             </div>
           </div>
-          
+
           {/* Update Times Display */}
           <div className="flex justify-center mb-6">
             <div className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-2xl border border-purple-500/30 overflow-hidden shadow-2xl p-4">
@@ -1490,8 +1553,8 @@ export default function Home() {
             </span>
             <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-blue-500 mx-auto rounded-full mt-5"></div>
           </h2>
-          
-       
+
+
 
           <YouTubeTelegramDataTable useLocalTime={useLocalTime} />
 
@@ -1660,63 +1723,26 @@ export default function Home() {
           Live Prices
         </h2>
 
-
         {/* Influencer News Scroller Container */}
         <div className="relative h-24 bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-2xl border border-purple-500/30 overflow-hidden shadow-2xl mb-4">
           {/* Continuous Left-to-Right Scrolling News */}
           <div className="absolute inset-0 flex items-center">
             <motion.div
+              variants={marqueeVariants}
+              animate="animate"
               className="flex whitespace-nowrap"
-              animate={{
-                x: ["-100vw", "100vw"],
-              }}
-              transition={{
-                duration: 25,
-                repeat: Infinity,
-                ease: "linear",
-              }}
             >
-              {/* Repeat the news multiple times for continuous scroll */}
-              {[...Array(2)].map((_, index) => (
-                <div key={index} className="flex items-center space-x-12 mx-12">
-                  {[
-                    {
-                      influencer: "Crypto Lifter",
-                      coin: "XRP",
-                      sentiment: "Mild Bullish → Strong Bullish",
-                      time: "2 mins ago"
-                    },
-                    {
-                      influencer: "Crypto Banter Plus",
-                      coin: "BNB",
-                      sentiment: "Mild Bullish → Strong Bullish",
-                      time: "5 mins ago"
-                    },
-                    {
-                      influencer: "Crypto Mobi",
-                      coin: "SOL",
-                      sentiment: "Mild Bullish → Strong Bullish",
-                      time: "8 mins ago"
-                    }
-                  ].map((news, newsIndex) => (
-                    <div
-                      key={newsIndex}
-                      className="flex items-center space-x-4 bg-gradient-to-r from-purple-800/20 to-blue-800/20 px-6 py-2 rounded-xl border border-purple-400/30"
-                    >
-                      <span className="text-purple-400 font-bold text-sm">
-                        📈 {news.influencer}
-                      </span>
-                      <span className="text-white font-semibold">
-                        {news.coin}
-                      </span>
-                      <span className="text-blue-300 text-sm">
-                        {news.sentiment}
-                      </span>
-                      <span className="text-gray-400 text-xs">
-                        {news.time}
-                      </span>
-                    </div>
-                  ))}
+              {scrollingData.map(item => (
+                <div
+                  key={item.symbol + Math.random()}
+                  className="flex items-center space-x-4 bg-gradient-to-r from-purple-800/20 to-blue-800/20 px-6 py-2 rounded-xl border border-purple-400/30 mx-4"
+                >
+                  <span className="text-purple-400 font-bold text-sm">
+                    📈 {item.symbol}
+                  </span>
+                  <span className="text-white font-semibold">
+                    {item.price}
+                  </span>
                 </div>
               ))}
             </motion.div>

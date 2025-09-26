@@ -22,7 +22,7 @@ export default function RecentActivityTab({ channelID, channelData, youtubeLast5
       ? youtubeLast5
       : (channelData?.youtube_last_5?.length 
         ? channelData.youtube_last_5 
-        : channelData?.last5);
+        : channelData?.youtubeLast5);
     
     if (videosData && videosData.length > 0) {
       console.log("RecentActivities - videosData:", videosData);
@@ -154,6 +154,28 @@ export default function RecentActivityTab({ channelID, channelData, youtubeLast5
   const capitalizeWords = (str) => {
     if (!str) return '';
     return str.split(' ').map(word =>
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ).join(' ');
+  };
+
+  // Format coin name - first letter capitalized, rest lowercase
+  const formatCoinName = (name) => {
+    if (!name) return '';
+    return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+  };
+
+  // Format sentiment - capitalize each word
+  const formatSentiment = (sentiment) => {
+    if (!sentiment) return 'N/A';
+    return sentiment.replace('_', ' ').split(' ').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ).join(' ');
+  };
+
+  // Format holding period - capitalize each word and remove hyphens
+  const formatHoldingPeriod = (term) => {
+    if (!term || term.toLowerCase() === 'no outlook') return 'Not Specified';
+    return term.replace(/-/g, ' ').split(' ').map(word => 
       word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
     ).join(' ');
   };
@@ -299,7 +321,7 @@ export default function RecentActivityTab({ channelID, channelData, youtubeLast5
                     <table className="w-full text-xs">
                       <thead>
                         <tr className="border-b border-gray-300">
-                          <th className="text-center text-gray-700 pb-1 pr-2">symbol</th>
+                          <th className="text-center text-gray-700 pb-1 pr-2">Name</th>
                           <th className="text-center text-gray-700 pb-1 pr-2">Sentiment</th>
                           <th className="text-center text-gray-700 pb-1">Holding Period</th>
                         </tr>
@@ -315,8 +337,8 @@ export default function RecentActivityTab({ channelID, channelData, youtubeLast5
                             <tr key={i} className="border-b border-gray-200/50">
                               <td className="py-1 pr-2 text-center">
                                 {coin ? (
-                                  <span className="text-gray-900" title={coin.name}>
-                                    {(coin.coin || coin.name).toUpperCase()}
+                                  <span className="text-gray-900" title={coin.symbol}>
+                                    {formatCoinName(coin.name || coin.name)}
                                   </span>
                                 ) : (
                                   <span className="text-transparent">-</span>
@@ -325,7 +347,7 @@ export default function RecentActivityTab({ channelID, channelData, youtubeLast5
                               <td className="py-1 pr-2 text-center">
                                 {coin ? (
                                   <span className={getSentimentColor(coin.sentiment || 'neutral')}>
-                                    {(coin.sentiment || 'N/A').replace('_', ' ').toUpperCase()}
+                                    {formatSentiment(coin.sentiment)}
                                   </span>
                                 ) : (
                                   <span className="text-transparent">-</span>
@@ -334,7 +356,7 @@ export default function RecentActivityTab({ channelID, channelData, youtubeLast5
                               <td className="py-1 text-center">
                                 {coin ? (
                                   <span className="text-gray-700">
-                                    {coin.term && coin.term.toLowerCase() !== 'no outlook' ? coin.term.toUpperCase() : 'NOT SPECIFIED'}
+                                    {formatHoldingPeriod(coin.term)}
                                   </span>
                                 ) : (
                                   <span className="text-transparent">-</span>
@@ -374,7 +396,7 @@ export default function RecentActivityTab({ channelID, channelData, youtubeLast5
                           {post.coinRecommendations?.map((rec, i) => (
                             <div key={i} className={`${getSentimentColor(rec.sentiment)} mb-1 flex items-start`}>
                               <span className="mr-1">•</span>
-                              <span>{capitalizeWords(rec.name || rec.coin)}: {capitalizeWords(rec.sentiment?.replace('_', ' ') || 'N/A')}, {capitalizeWords(rec.term)}</span>
+                              <span>{formatCoinName(rec.name || rec.coin)}: {formatSentiment(rec.sentiment)}, {formatHoldingPeriod(rec.term)}</span>
                               {rec.price && <span className="ml-1 text-gray-400">@ {rec.price}</span>}
                             </div>
                           )) || []}

@@ -1664,34 +1664,50 @@ export default function InfluencerProfilePage() {
                 {(() => {
                   // Prepare data for charts
                   const currentYear = new Date().getFullYear().toString();
-                  // Define categories with their properties
+                  
+                  // Extract data from API - based on console logs, data is directly under channelData
+                  const overallData = channelData?.Yearly || {};
+                  const moonshotsData = channelData?.hyperactive?.Yearly || {};
+                  const normalData = channelData?.normal?.Yearly || {};
+                  
+                  // Debug logs
+                  console.log('Debug - overallData sample:', overallData['2023']);
+                  console.log('Debug - moonshotsData sample:', moonshotsData['2023']);
+                  console.log('Debug - normalData sample:', normalData['2023']);
+                  
+                  // Helper function to transform API data to chart format
+                  const transformYearlyData = (yearlyData) => {
+                    if (!yearlyData) return [];
+                    console.log('Transform input:', yearlyData);
+                    const result = Object.keys(yearlyData).map(year => {
+                      const item = {
+                        year,
+                        bullish: yearlyData[year].bullish_count || 0,
+                        bearish: yearlyData[year].bearish_count || 0
+                      };
+                      console.log(`Year ${year}:`, item);
+                      return item;
+                    }).sort((a, b) => b.year.localeCompare(a.year)); // Sort by year descending
+                    console.log('Transform result:', result);
+                    return result;
+                  };
+
+                  // Define categories with their properties using API data
                   const categories = [
                     {
                       key: 'overall',
                       label: 'Overall',
-                      data: [
-                        { year: '2025', bullish: 76, bearish: 54 },
-                        { year: '2024', bullish: 111, bearish: 44 },
-                        { year: '2023', bullish: 63, bearish: 32 }
-                      ]
+                      data: transformYearlyData(overallData)
                     },
                     {
                       key: 'without_moonshots',
                       label: 'Without Moonshots',
-                      data: [
-                        { year: '2025', bullish: 18, bearish: 12 },
-                        { year: '2024', bullish: 22, bearish: 6 },
-                        { year: '2023', bullish: 18, bearish: 4 }
-                      ]
+                      data: transformYearlyData(normalData)
                     },
                     {
                       key: 'with_moonshots',
                       label: 'Moonshots',
-                      data: [
-                        { year: '2025', bullish: 58, bearish: 42 },
-                        { year: '2024', bullish: 89, bearish: 38 },
-                        { year: '2023', bullish: 45, bearish: 28 }
-                      ]
+                      data: transformYearlyData(moonshotsData)
                     },
                   ];
                   // Format data for charts
