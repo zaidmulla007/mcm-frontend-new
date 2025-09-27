@@ -597,11 +597,12 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {[...Array(5)].map((_, i) => {
+                                                {(() => {
                                                     const coins = expandedCoins[post.id]
                                                         ? post.mentionedCoins
                                                         : post.mentionedCoins.slice(0, 5);
-                                                    const coin = coins[i];
+                                                    
+                                                    return coins.map((coin, i) => {
                                                     
                                                     return (
                                                         <tr key={i} className="border-b border-gray-700/50">
@@ -634,7 +635,8 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
                                                             </td>
                                                         </tr>
                                                     );
-                                                })}
+                                                });
+                                                })()}
                                             </tbody>
                                         </table>
                                     </div>

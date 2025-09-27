@@ -327,11 +327,12 @@ export default function RecentActivityTab({ channelID, channelData, youtubeLast5
                         </tr>
                       </thead>
                       <tbody>
-                        {[...Array(5)].map((_, i) => {
+                        {(() => {
                           const coins = expandedPosts[post.id]
                             ? post.coinRecommendations || []
                             : (post.coinRecommendations || []).slice(0, 5);
-                          const coin = coins[i];
+                          
+                          return coins.map((coin, i) => {
                           
                           return (
                             <tr key={i} className="border-b border-gray-200/50">
@@ -364,7 +365,8 @@ export default function RecentActivityTab({ channelID, channelData, youtubeLast5
                               </td>
                             </tr>
                           );
-                        })}
+                        });
+                        })()}
                       </tbody>
                     </table>
                   </div>
