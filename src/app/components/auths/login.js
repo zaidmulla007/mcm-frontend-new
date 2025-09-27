@@ -488,7 +488,7 @@ export default function Login() {
       const fullPhoneNumber = `${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}`;
       
       try {
-        const response = await fetch('http://37.27.120.45:5000/api/auth/signup', {
+        const response = await fetch('/api/auth/signup', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -617,7 +617,7 @@ export default function Login() {
     try {
       // For login, use the actual API endpoint
       if (isLogin) {
-        const response = await fetch('http://37.27.120.45:5000/api/auth/signin', {
+        const response = await fetch('/api/auth/signin', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -672,7 +672,7 @@ export default function Login() {
         }
       } else {
         // For signup verification, use signin API with phone + OTP
-        const response = await fetch('http://37.27.120.45:5000/api/auth/signin', {
+        const response = await fetch('/api/auth/signin', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -902,7 +902,7 @@ export default function Login() {
         if (hasValidPhone) {
           const fullPhoneNumber = `${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}`;
           otpRequests.push(
-            fetch('http://37.27.120.45:5000/api/sendEmail', {
+            fetch('/api/sendEmail', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -918,7 +918,7 @@ export default function Login() {
         if (hasValidEmail) {
           const otpCode = Math.floor(100000 + Math.random() * 900000);
           otpRequests.push(
-            fetch('http://37.27.120.45:5000/api/sendEmail', {
+            fetch('/api/sendEmail', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({

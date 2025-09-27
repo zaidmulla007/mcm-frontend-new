@@ -67,7 +67,7 @@ const timeZoneAbbreviations = {
   // Add more as needed
 };
 
-import { FaCalendarAlt, FaSync, FaArrowUp, FaArrowDown, FaMinus, FaEye, FaHeart, FaThumbsUp, FaChevronDown, FaChevronUp, FaStar, FaChartLine, FaWallet, FaExchangeAlt, FaGraduationCap, FaLightbulb, FaShoppingCart, FaSearch, FaCertificate } from "react-icons/fa";
+import { FaCalendarAlt, FaSync, FaArrowUp, FaArrowDown, FaMinus, FaEye, FaHeart, FaThumbsUp, FaChevronDown, FaChevronUp, FaStar, FaStarHalfAlt, FaChartLine, FaWallet, FaExchangeAlt, FaGraduationCap, FaLightbulb, FaShoppingCart, FaSearch, FaCertificate } from "react-icons/fa";
 
 // Custom SVG Icons
 const YouTubeIcon = ({ className }) => (
@@ -134,11 +134,15 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
     // Render stars based on score
     const renderStars = (score) => {
         const stars = [];
-        const fullStars = Math.floor(score / 2);
+        const rating = score / 2; // Convert score to 5-star rating
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 !== 0;
 
         for (let i = 0; i < 5; i++) {
             if (i < fullStars) {
                 stars.push(<FaStar key={i} className="text-yellow-400" />);
+            } else if (i === fullStars && hasHalfStar) {
+                stars.push(<FaStarHalfAlt key={i} className="text-yellow-400" />);
             } else {
                 stars.push(<FaStar key={i} className="text-gray-600" />);
             }
@@ -556,22 +560,22 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
 
                             {/* Post Summary */}
                             <div className="p-3 border-b border-gray-700">
-                                <div className="flex items-center gap-2 mb-2">
+                                <div className="flex items-center justify-between mb-2">
                                     <span className="font-bold text-xs text-gray-300">Post Summary</span>
-                                </div>
-                                <div className="min-h-[96px] mb-2">
-                                    <div className={`text-xs text-gray-300 leading-tight ${expandedSummaries[post.id] ? '' : 'line-clamp-6'}`}>
-                                        {post.summary || "No summary available"}
-                                    </div>
-                                </div>
-                                <div className="h-6">
                                     <button
                                         onClick={() => toggleSummary(post.id)}
-                                        className="text-xs text-blue-400 hover:text-blue-300 cursor-pointer"
+                                        className="text-lg text-blue-400 hover:text-blue-300 cursor-pointer font-bold"
                                     >
-                                        {expandedSummaries[post.id] ? 'Show Less' : 'Read More'}
+                                        {expandedSummaries[post.id] ? '−' : '+'}
                                     </button>
                                 </div>
+                                {expandedSummaries[post.id] && (
+                                    <div className="min-h-[96px] mb-2">
+                                        <div className="text-xs text-gray-300 leading-tight">
+                                            {post.summary || "No summary available"}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
 

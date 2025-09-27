@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FaStar } from "react-icons/fa";
+import { FaStar, FaStarHalfAlt } from "react-icons/fa";
 
 export default function TelegramRecentActivityTab({ channelID, channelData, telegramLast5 }) {
   const [recentPosts, setRecentPosts] = useState([]);
@@ -96,11 +96,15 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
   // Render stars based on score
   const renderStars = (score) => {
     const stars = [];
-    const fullStars = Math.floor(score / 2);
+    const rating = score / 2; // Convert score to 5-star rating
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 !== 0;
 
     for (let i = 0; i < 5; i++) {
       if (i < fullStars) {
         stars.push(<FaStar key={i} className="text-yellow-400" />);
+      } else if (i === fullStars && hasHalfStar) {
+        stars.push(<FaStarHalfAlt key={i} className="text-yellow-400" />);
       } else {
         stars.push(<FaStar key={i} className="text-gray-300" />);
       }
@@ -184,7 +188,7 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
           {recentPosts.map((post, index) => (
             <div
               key={post.id}
-              className="w-80 flex-shrink-0 bg-white rounded-xl overflow-hidden border border-gray-200 shadow-lg"
+              className="w-80 flex-shrink-0 bg-white rounded-xl overflow-hidden border border-gray-800 shadow-lg"
             >
               {/* Post Header with Number */}
               <div
@@ -195,7 +199,7 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
               </div>
 
               {/* Post Title */}
-              <div className="p-3 border-b border-gray-200">
+              <div className="p-3 border-b border-gray-800">
                 <div className="min-h-[40px] mb-2">
                   <div className={`text-sm font-medium text-gray-900 ${expandedTitles[post.id] ? '' : 'line-clamp-2'}`} title={post.messageText}>
                     {expandedTitles[post.id] ? post.messageText : post.title}
@@ -228,7 +232,7 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
               </div>
 
               {/* MCM Scoring */}
-              <div className="p-3 border-b border-gray-200">
+              <div className="p-3 border-b border-gray-800">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="font-bold text-xs text-gray-700">MCM Scoring</span>
                 </div>
@@ -280,23 +284,23 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
               </div>
 
               {/* Post Summary */}
-              <div className="p-3 border-b border-gray-200">
-                <div className="flex items-center gap-2 mb-2">
+              <div className="p-3 border-b border-gray-800">
+                <div className="flex items-center justify-between mb-2">
                   <span className="font-bold text-xs text-gray-700">Post Summary</span>
-                </div>
-                <div className="min-h-[96px] mb-2">
-                  <div className={`text-xs text-gray-600 leading-tight ${expandedSummaries[post.id] ? '' : 'line-clamp-6'}`}>
-                    {post.summary || "No summary available"}
-                  </div>
-                </div>
-                <div className="h-6">
                   <button
                     onClick={() => toggleSummary(post.id)}
-                    className="text-xs text-blue-500 hover:text-blue-700 cursor-pointer"
+                    className="text-lg text-blue-500 hover:text-blue-700 cursor-pointer font-bold"
                   >
-                    {expandedSummaries[post.id] ? 'Show Less' : 'Read More'}
+                    {expandedSummaries[post.id] ? '−' : '+'}
                   </button>
                 </div>
+                {expandedSummaries[post.id] && (
+                  <div className="min-h-[96px] mb-2">
+                    <div className="text-xs text-gray-600 leading-tight">
+                      {post.summary || "No summary available"}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Coins Analysis */}
@@ -314,7 +318,7 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
                   <div className="overflow-x-auto w-full">
                     <table className="w-full text-xs">
                       <thead>
-                        <tr className="border-b border-gray-300">
+                        <tr className="border-b border-gray-800">
                           <th className="text-center text-gray-700 pb-1 pr-2">Name</th>
                           <th className="text-center text-gray-700 pb-1 pr-2">Sentiment</th>
                           <th className="text-center text-gray-700 pb-1">Holding Period</th>
@@ -326,40 +330,42 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
                             ? post.coinRecommendations || []
                             : (post.coinRecommendations || []).slice(0, 5);
                           
-                          return coins.map((coin, i) => {
-                          
-                          return (
-                            <tr key={i} className="border-b border-gray-200/50">
-                              <td className="py-1 pr-2 text-center">
-                                {coin ? (
-                                  <span className="text-gray-900" title={coin.symbol}>
-                                    {formatCoinName(coin.name || coin.name)}
-                                  </span>
-                                ) : (
-                                  <span className="text-transparent">-</span>
-                                )}
-                              </td>
-                              <td className="py-1 pr-2 text-center">
-                                {coin ? (
-                                  <span className={getSentimentColor(coin.sentiment || 'neutral')}>
-                                    {formatSentiment(coin.sentiment)}
-                                  </span>
-                                ) : (
-                                  <span className="text-transparent">-</span>
-                                )}
-                              </td>
-                              <td className="py-1 text-center">
-                                {coin ? (
-                                  <span className="text-gray-700">
-                                    {formatHoldingPeriod(coin.term)}
-                                  </span>
-                                ) : (
-                                  <span className="text-transparent">-</span>
-                                )}
-                              </td>
-                            </tr>
-                          );
-                        });
+                          const rows = [];
+                          for (let i = 0; i < 5; i++) {
+                            const coin = coins[i];
+                            rows.push(
+                              <tr key={i} className={coin ? "border-b border-gray-800/50" : ""}>
+                                <td className="py-1 pr-2 text-center">
+                                  {coin ? (
+                                    <span className="text-gray-900" title={coin.symbol}>
+                                      {formatCoinName(coin.name || coin.name)}
+                                    </span>
+                                  ) : (
+                                    <span className="text-transparent">-</span>
+                                  )}
+                                </td>
+                                <td className="py-1 pr-2 text-center">
+                                  {coin ? (
+                                    <span className={getSentimentColor(coin.sentiment || 'neutral')}>
+                                      {formatSentiment(coin.sentiment)}
+                                    </span>
+                                  ) : (
+                                    <span className="text-transparent">-</span>
+                                  )}
+                                </td>
+                                <td className="py-1 text-center">
+                                  {coin ? (
+                                    <span className="text-gray-700">
+                                      {formatHoldingPeriod(coin.term)}
+                                    </span>
+                                  ) : (
+                                    <span className="text-transparent">-</span>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          }
+                          return rows;
                         })()}
                       </tbody>
                     </table>
