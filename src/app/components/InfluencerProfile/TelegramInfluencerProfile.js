@@ -95,7 +95,7 @@ export default function TelegramInfluencerProfile({ channelId }) {
 
       {/* Tabs Navigation */}
       <div className="w-full border-b border-[#232042] px-4">
-        <div className="flex space-x-8">
+        <div className="flex space-x-8 overflow-x-auto scrollbar-hide">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -648,10 +648,10 @@ function OverviewTab({ channelData }) {
                       {chartsData.map((category) => (
                         <div key={category.key} className="border border-gray-200 rounded-lg p-4">
                           <h4 className="text-center font-medium text-gray-700 mb-3">{category.label}</h4>
-                          <ResponsiveContainer width="100%" height={220}>
+                          <ResponsiveContainer width="100%" height={180}>
                             <BarChart
                               data={category.data}
-                              margin={{ top: 40, right: 10, left: 0, bottom: 30 }}
+                              margin={{ top: 30, right: 10, left: 0, bottom: 30 }}
                             >
                               <XAxis
                                 dataKey="year"
@@ -706,10 +706,10 @@ function OverviewTab({ channelData }) {
                       {chartsData.map((category) => (
                         <div key={category.key} className="space-y-2">
                           <h4 className="text-sm font-semibold text-[#0c0023] text-center mb-2">{category.label}</h4>
-                          <ResponsiveContainer width="100%" height={190}>
+                          <ResponsiveContainer width="100%" height={150}>
                             <BarChart
                               data={category.data}
-                              margin={{ top: 40, right: 5, left: 0, bottom: 25 }}
+                              margin={{ top: 25, right: 5, left: 0, bottom: 25 }}
                             >
                               <XAxis
                                 dataKey="year"

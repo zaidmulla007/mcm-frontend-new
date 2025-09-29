@@ -1544,7 +1544,7 @@ export default function InfluencerProfilePage() {
                                   <ResponsiveContainer width="100%" height={180}>
                                     <BarChart
                                       data={metric.data}
-                                      margin={{ top: 10, right: 10, left: 0, bottom: 30 }}
+                                      margin={{ top: 30, right: 10, left: 0, bottom: 30 }}
                                     >
                                       <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                                       <XAxis
@@ -1604,7 +1604,7 @@ export default function InfluencerProfilePage() {
                                   <ResponsiveContainer width="100%" height={150}>
                                     <BarChart
                                       data={metric.data}
-                                      margin={{ top: 5, right: 5, left: 0, bottom: 25 }}
+                                      margin={{ top: 25, right: 5, left: 0, bottom: 25 }}
                                     >
                                       <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                                       <XAxis
@@ -1746,7 +1746,7 @@ export default function InfluencerProfilePage() {
                                 <ResponsiveContainer width="100%" height={180}>
                                   <BarChart
                                     data={category.data}
-                                    margin={{ top: 10, right: 10, left: 0, bottom: 30 }}
+                                    margin={{ top: 30, right: 10, left: 0, bottom: 30 }}
                                   >
                                     <XAxis
                                       dataKey="year"
@@ -1801,7 +1801,7 @@ export default function InfluencerProfilePage() {
                                 <ResponsiveContainer width="100%" height={150}>
                                   <BarChart
                                     data={category.data}
-                                    margin={{ top: 5, right: 5, left: 0, bottom: 25 }}
+                                    margin={{ top: 25, right: 5, left: 0, bottom: 25 }}
                                   >
                                     <XAxis
                                       dataKey="year"
