@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import "./globals.css";
 import ClientHeader from "./components/ClientHeader";
+import ClientWrapper from "./components/ClientWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -121,9 +122,11 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ClientHeader />
-        {children}
-        <Footer />
+        <ClientWrapper>
+          <ClientHeader />
+          {children}
+          <Footer />
+        </ClientWrapper>
       </body>
     </html>
   );

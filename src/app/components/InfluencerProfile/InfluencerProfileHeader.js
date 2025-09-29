@@ -110,11 +110,8 @@ export default function InfluencerProfileHeader({ channelData }) {
                         : "Not available"}
                     </span>
                   </div>
-                  <span className="text-xs text-gray-500 ml-10">
-                    (dd-mm-yyyy)
-                  </span>
                 </div>
-                <div className="flex flex-col gap-1">
+                {/* <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-2">
                     <span>🔄 Influencer Last Video:</span>
                     <span className="text-white">
@@ -129,10 +126,7 @@ export default function InfluencerProfileHeader({ channelData }) {
                         : "Not available"}
                     </span>
                   </div>
-                  <span className="text-xs text-gray-500 ml-10">
-                    (dd-mm-yyyy)
-                  </span>
-                </div>
+                </div> */}
                 <div className="flex flex-col gap-1">
                   <div className="text-sm text-gray-400 flex items-center gap-2">
                     <span>🔄 Last System Updated:</span>
@@ -146,9 +140,6 @@ export default function InfluencerProfileHeader({ channelData }) {
                       : "Not available"}
                     </span>
                   </div>
-                  <span className="text-xs text-gray-500 ml-10">
-                    (dd-mm-yyyy)
-                  </span>
                 </div>
               </div>
               {/* Video Counts */}

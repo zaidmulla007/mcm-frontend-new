@@ -1,73 +1,75 @@
 "use client";
 import { useState, useEffect } from "react";
+import moment from "moment-timezone";
 // Custom timezone abbreviations mapping
 const timeZoneAbbreviations = {
-  // India
-  "Asia/Kolkata": "IST",      // India Standard Time
-  "Asia/Calcutta": "IST",     // India Standard Time (legacy)
-  
-  // Middle East
-  "Asia/Dubai": "GST",        // Gulf Standard Time (UAE)
-  "Asia/Riyadh": "AST",       // Arabia Standard Time (Saudi Arabia)
-  "Asia/Qatar": "AST",        // Arabia Standard Time (Qatar)
-  "Asia/Kuwait": "AST",       // Arabia Standard Time (Kuwait)
-  "Asia/Bahrain": "AST",      // Arabia Standard Time (Bahrain)
-  "Asia/Muscat": "GST",       // Gulf Standard Time (Oman)
-  
-  // Europe
-  "Europe/London": "GMT",     // Greenwich Mean Time (UK)
-  "Europe/Paris": "CET",      // Central European Time (France)
-  "Europe/Berlin": "CET",     // Central European Time (Germany)
-  "Europe/Rome": "CET",       // Central European Time (Italy)
-  "Europe/Madrid": "CET",     // Central European Time (Spain)
-  "Europe/Amsterdam": "CET",  // Central European Time (Netherlands)
-  "Europe/Brussels": "CET",   // Central European Time (Belgium)
-  "Europe/Vienna": "CET",     // Central European Time (Austria)
-  "Europe/Zurich": "CET",     // Central European Time (Switzerland)
-  "Europe/Stockholm": "CET",  // Central European Time (Sweden)
-  "Europe/Oslo": "CET",       // Central European Time (Norway)
-  "Europe/Copenhagen": "CET", // Central European Time (Denmark)
-  "Europe/Helsinki": "EET",   // Eastern European Time (Finland)
-  "Europe/Moscow": "MSK",     // Moscow Time (Russia)
-  
-  // Americas
-  "America/New_York": "EST",  // Eastern Standard Time (USA East Coast)
-  "America/Chicago": "CST",   // Central Standard Time (USA Central)
-  "America/Denver": "MST",    // Mountain Standard Time (USA Mountain)
-  "America/Los_Angeles": "PST", // Pacific Standard Time (USA West Coast)
-  "America/Toronto": "EST",   // Eastern Standard Time (Canada)
-  "America/Vancouver": "PST", // Pacific Standard Time (Canada)
-  "America/Mexico_City": "CST", // Central Standard Time (Mexico)
-  "America/Sao_Paulo": "BRT", // Brasilia Time (Brazil)
-  "America/Argentina/Buenos_Aires": "ART", // Argentina Time
-  
-  // Asia Pacific
-  "Asia/Tokyo": "JST",        // Japan Standard Time
-  "Asia/Shanghai": "CST",     // China Standard Time
-  "Asia/Hong_Kong": "HKT",    // Hong Kong Time
-  "Asia/Singapore": "SGT",    // Singapore Time
-  "Asia/Bangkok": "ICT",      // Indochina Time (Thailand)
-  "Asia/Jakarta": "WIB",      // Western Indonesia Time
-  "Asia/Manila": "PHT",       // Philippines Time
-  "Asia/Seoul": "KST",        // Korea Standard Time
-  "Asia/Taipei": "CST",       // China Standard Time (Taiwan)
-  
-  // Australia & New Zealand
-  "Australia/Sydney": "AEDT", // Australian Eastern Daylight Time
-  "Australia/Melbourne": "AEDT", // Australian Eastern Daylight Time
-  "Australia/Perth": "AWST",  // Australian Western Standard Time
-  "Pacific/Auckland": "NZDT", // New Zealand Daylight Time
-  
-  // Africa
-  "Africa/Cairo": "EET",      // Eastern European Time (Egypt)
-  "Africa/Johannesburg": "SAST", // South Africa Standard Time
-  "Africa/Lagos": "WAT",      // West Africa Time (Nigeria)
-  "Africa/Nairobi": "EAT",    // East Africa Time (Kenya)
-  
-  // Add more as needed
+    // India
+    "Asia/Kolkata": "IST",      // India Standard Time
+    "Asia/Calcutta": "IST",     // India Standard Time (legacy)
+
+    // Middle East
+    "Asia/Dubai": "GST",        // Gulf Standard Time (UAE)
+    "Asia/Riyadh": "AST",       // Arabia Standard Time (Saudi Arabia)
+    "Asia/Qatar": "AST",        // Arabia Standard Time (Qatar)
+    "Asia/Kuwait": "AST",       // Arabia Standard Time (Kuwait)
+    "Asia/Bahrain": "AST",      // Arabia Standard Time (Bahrain)
+    "Asia/Muscat": "GST",       // Gulf Standard Time (Oman)
+
+    // Europe
+    "Europe/London": "GMT",     // Greenwich Mean Time (UK)
+    "Europe/Paris": "CET",      // Central European Time (France)
+    "Europe/Berlin": "CET",     // Central European Time (Germany)
+    "Europe/Rome": "CET",       // Central European Time (Italy)
+    "Europe/Madrid": "CET",     // Central European Time (Spain)
+    "Europe/Amsterdam": "CET",  // Central European Time (Netherlands)
+    "Europe/Brussels": "CET",   // Central European Time (Belgium)
+    "Europe/Vienna": "CET",     // Central European Time (Austria)
+    "Europe/Zurich": "CET",     // Central European Time (Switzerland)
+    "Europe/Stockholm": "CET",  // Central European Time (Sweden)
+    "Europe/Oslo": "CET",       // Central European Time (Norway)
+    "Europe/Copenhagen": "CET", // Central European Time (Denmark)
+    "Europe/Helsinki": "EET",   // Eastern European Time (Finland)
+    "Europe/Moscow": "MSK",     // Moscow Time (Russia)
+
+    // Americas
+    "America/New_York": "EST",  // Eastern Standard Time (USA East Coast)
+    "America/Chicago": "CST",   // Central Standard Time (USA Central)
+    "America/Denver": "MST",    // Mountain Standard Time (USA Mountain)
+    "America/Los_Angeles": "PST", // Pacific Standard Time (USA West Coast)
+    "America/Toronto": "EST",   // Eastern Standard Time (Canada)
+    "America/Vancouver": "PST", // Pacific Standard Time (Canada)
+    "America/Mexico_City": "CST", // Central Standard Time (Mexico)
+    "America/Sao_Paulo": "BRT", // Brasilia Time (Brazil)
+    "America/Argentina/Buenos_Aires": "ART", // Argentina Time
+
+    // Asia Pacific
+    "Asia/Tokyo": "JST",        // Japan Standard Time
+    "Asia/Shanghai": "CST",     // China Standard Time
+    "Asia/Hong_Kong": "HKT",    // Hong Kong Time
+    "Asia/Singapore": "SGT",    // Singapore Time
+    "Asia/Bangkok": "ICT",      // Indochina Time (Thailand)
+    "Asia/Jakarta": "WIB",      // Western Indonesia Time
+    "Asia/Manila": "PHT",       // Philippines Time
+    "Asia/Seoul": "KST",        // Korea Standard Time
+    "Asia/Taipei": "CST",       // China Standard Time (Taiwan)
+
+    // Australia & New Zealand
+    "Australia/Sydney": "AEDT", // Australian Eastern Daylight Time
+    "Australia/Melbourne": "AEDT", // Australian Eastern Daylight Time
+    "Australia/Perth": "AWST",  // Australian Western Standard Time
+    "Pacific/Auckland": "NZDT", // New Zealand Daylight Time
+
+    // Africa
+    "Africa/Cairo": "EET",      // Eastern European Time (Egypt)
+    "Africa/Johannesburg": "SAST", // South Africa Standard Time
+    "Africa/Lagos": "WAT",      // West Africa Time (Nigeria)
+    "Africa/Nairobi": "EAT",    // East Africa Time (Kenya)
+
+    // Add more as needed
 };
 
 import { FaCalendarAlt, FaSync, FaArrowUp, FaArrowDown, FaMinus, FaEye, FaHeart, FaThumbsUp, FaChevronDown, FaChevronUp, FaStar, FaStarHalfAlt, FaChartLine, FaWallet, FaExchangeAlt, FaGraduationCap, FaLightbulb, FaShoppingCart, FaSearch, FaCertificate } from "react-icons/fa";
+import { useTimezone } from "../contexts/TimezoneContext";
 
 // Custom SVG Icons
 const YouTubeIcon = ({ className }) => (
@@ -82,7 +84,8 @@ const TelegramIcon = ({ className }) => (
     </svg>
 );
 
-export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalTime = false }) {
+export default function YouTubeTelegramInfluencers() {
+    const { useLocalTime, formatDate } = useTimezone();
     const [selectedPlatform, setSelectedPlatform] = useState("Combined");
     const [loading, setLoading] = useState(false);
     const [lastUpdated, setLastUpdated] = useState(new Date());
@@ -97,7 +100,6 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
     const [expandedMarketing, setExpandedMarketing] = useState({});
     const [hoveredPost, setHoveredPost] = useState(null);
     const [apiData, setApiData] = useState(null);
-    const useLocalTime = propUseLocalTime;
 
     // Toggle summary expansion
     const toggleSummary = (postId) => {
@@ -229,6 +231,8 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
             title: isYoutube ? item.title : (item.message ? (item.message.substring(0, 50) + (item.message.length > 50 ? '...' : '')) : "No title"),
             date: item.publishedAt,
             publishedAt: item.publishedAt,
+            rank: item.rank || 0,
+            channel_name: isYoutube ? item.channel_name : item.channelID,
             summary: item.summary,
             content: isYoutube ? item.summary : (item.message || ""),
             timestamp: useLocalTime
@@ -243,9 +247,9 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
             mentionedCoins: item.mentioned && Array.isArray(item.mentioned) ? item.mentioned : [],
             platform: isYoutube ? "YouTube" : "Telegram",
             influencer: {
-                name: item.channelID,
-                channel: item.channelID,
-                avatar: `https://ui-avatars.com/api/?name=${item.channelID}&background=random`,
+                name: isYoutube ? item.channel_name : item.channelID,
+                channel: isYoutube ? item.channel_name : item.channelID,
+                avatar: `https://ui-avatars.com/api/?name=${isYoutube ? item.channel_name : item.channelID}&background=random`,
                 subscribers: "N/A",
                 platform: isYoutube ? "YouTube" : "Telegram"
             },
@@ -263,26 +267,6 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
         };
     };
 
-    // Format date function for post headers
-    const formatDate = (dateString) => {
-        const date = new Date(dateString);
-
-        if (useLocalTime) {
-            // Get user's timezone and map to abbreviation
-            const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            const timezone = timeZoneAbbreviations[userTimeZone] || userTimeZone;
-
-            const dateOptions = { year: "numeric", month: "short", day: "numeric" };
-            const timeOptions = { hour: "2-digit", minute: "2-digit", hour12: true };
-
-            return `${date.toLocaleDateString(undefined, dateOptions)} ${date.toLocaleTimeString(undefined, timeOptions)} ${timezone}`;
-        } else {
-            const dateOptions = { year: "numeric", month: "short", day: "numeric", timeZone: 'UTC' };
-            const timeOptions = { hour: "2-digit", minute: "2-digit", hour12: true, timeZone: 'UTC' };
-
-            return `${date.toLocaleDateString(undefined, dateOptions)} ${date.toLocaleTimeString(undefined, timeOptions)} UTC`;
-        }
-    };
 
     // Get sentiment color
     const getSentimentColor = (sentiment) => {
@@ -321,7 +305,7 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
     // Format sentiment - capitalize each word
     const formatSentiment = (sentiment) => {
         if (!sentiment) return 'N/A';
-        return sentiment.replace('_', ' ').split(' ').map(word => 
+        return sentiment.replace('_', ' ').split(' ').map(word =>
             word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
         ).join(' ');
     };
@@ -329,7 +313,7 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
     // Format holding period - capitalize each word and remove hyphens
     const formatHoldingPeriod = (term) => {
         if (!term || term.toLowerCase() === 'no outlook') return 'Not Specified';
-        return term.replace(/-/g, ' ').split(' ').map(word => 
+        return term.replace(/-/g, ' ').split(' ').map(word =>
             word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
         ).join(' ');
     };
@@ -480,6 +464,10 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
 
                             {/* Post Header */}
                             <div className="p-3 border-b border-gray-700">
+                                <div className="text-sm font-bold text-white-400 mb-2">Name : {post.channel_name}
+                                </div>
+                                <div className="text-sm font-bold text-white-400 mb-2">Rank : {post.rank}
+                                </div>
                                 <div className="min-h-[40px] mb-2">
                                     <div className={`text-sm font-medium text-white ${expandedTitles[post.id] ? '' : 'line-clamp-2'}`} title={post.title}>
                                         {post.title}
@@ -605,41 +593,41 @@ export default function YouTubeTelegramInfluencers({ useLocalTime: propUseLocalT
                                                     const coins = expandedCoins[post.id]
                                                         ? post.mentionedCoins
                                                         : post.mentionedCoins.slice(0, 5);
-                                                    
+
                                                     return coins.map((coin, i) => {
-                                                    
-                                                    return (
-                                                        <tr key={i} className="border-b border-gray-700/50">
-                                                            <td className="py-1 pr-2 text-center">
-                                                                {coin ? (
-                                                                    <span className="text-white" title={coin.symbol}>
-                                                                        {formatCoinName(coin.name || coin.symbol)}
-                                                                    </span>
-                                                                ) : (
-                                                                    <span className="text-transparent">-</span>
-                                                                )}
-                                                            </td>
-                                                            <td className="py-1 pr-2 text-center">
-                                                                {coin ? (
-                                                                    <span className={getSentimentColor(coin.sentiment)}>
-                                                                        {formatSentiment(coin.sentiment)}
-                                                                    </span>
-                                                                ) : (
-                                                                    <span className="text-transparent">-</span>
-                                                                )}
-                                                            </td>
-                                                            <td className="py-1 text-center">
-                                                                {coin ? (
-                                                                    <span className="text-gray-300">
-                                                                        {formatHoldingPeriod(coin.outlook)}
-                                                                    </span>
-                                                                ) : (
-                                                                    <span className="text-transparent">-</span>
-                                                                )}
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                });
+
+                                                        return (
+                                                            <tr key={i} className="border-b border-gray-700/50">
+                                                                <td className="py-1 pr-2 text-center">
+                                                                    {coin ? (
+                                                                        <span className="text-white" title={coin.symbol}>
+                                                                            {formatCoinName(coin.name || coin.symbol)}
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="text-transparent">-</span>
+                                                                    )}
+                                                                </td>
+                                                                <td className="py-1 pr-2 text-center">
+                                                                    {coin ? (
+                                                                        <span className={getSentimentColor(coin.sentiment)}>
+                                                                            {formatSentiment(coin.sentiment)}
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="text-transparent">-</span>
+                                                                    )}
+                                                                </td>
+                                                                <td className="py-1 text-center">
+                                                                    {coin ? (
+                                                                        <span className="text-gray-300">
+                                                                            {formatHoldingPeriod(coin.outlook)}
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="text-transparent">-</span>
+                                                                    )}
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    });
                                                 })()}
                                             </tbody>
                                         </table>

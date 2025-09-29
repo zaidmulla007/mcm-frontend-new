@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { FaUserCircle, FaUser, FaCreditCard, FaSignOutAlt } from "react-icons/fa";
+import { useTimezone } from "../contexts/TimezoneContext";
 
 const navLinks = [
   { name: "Home", href: "/" },
@@ -16,6 +17,7 @@ const navLinks = [
 export default function ClientHeader() {
   const pathname = usePathname();
   const router = useRouter();
+  const { useLocalTime, toggleTimezone } = useTimezone();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState({
     firstName: '',
@@ -106,6 +108,31 @@ export default function ClientHeader() {
             );
           })}
         </nav>
+        
+        {/* Timezone Toggle in Navbar */}
+        <div className="hidden md:flex items-center gap-2 ml-8">
+          <button
+            onClick={toggleTimezone}
+            className={`text-xs px-3 py-1 rounded-full transition ${
+              useLocalTime
+                ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                : 'bg-gray-500/20 text-white border border-gray-500/30 hover:bg-gray-500/30'
+            }`}
+          >
+            Local Time
+          </button>
+          <button
+            onClick={toggleTimezone}
+            className={`text-xs px-3 py-1 rounded-full transition ${
+              !useLocalTime
+                ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                : 'bg-gray-500/20 text-white border border-gray-500/30 hover:bg-gray-500/30'
+            }`}
+          >
+            Default UTC
+          </button>
+        </div>
+
         {/* Search + Auth */}
         <div className="flex items-center gap-4 ml-auto">
           {/* <div className="relative hidden md:block">
@@ -168,9 +195,35 @@ export default function ClientHeader() {
                       <span className="text-white">Manage Subscriptions</span>
                     </Link>
 
+                    <div className="px-4 py-2 border-t border-purple-500/30 mt-2">
+                      <div className="text-xs text-white mb-2">Timezone</div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={toggleTimezone}
+                          className={`text-xs px-2 py-1 rounded transition ${
+                            useLocalTime
+                              ? 'bg-blue-500/20 text-blue-400'
+                              : 'bg-gray-500/20 text-white hover:bg-gray-500/30'
+                          }`}
+                        >
+                          Local Time
+                        </button>
+                        <button
+                          onClick={toggleTimezone}
+                          className={`text-xs px-2 py-1 rounded transition ${
+                            !useLocalTime
+                              ? 'bg-blue-500/20 text-blue-400'
+                              : 'bg-gray-500/20 text-white hover:bg-gray-500/30'
+                          }`}
+                        >
+                          Default UTC
+                        </button>
+                      </div>
+                    </div>
+
                     <button
                       onClick={handleLogout}
-                      className="flex items-center gap-3 px-4 py-2 hover:bg-purple-500/20 transition text-sm w-full text-left border-t border-purple-500/30 mt-2"
+                      className="flex items-center gap-3 px-4 py-2 hover:bg-purple-500/20 transition text-sm w-full text-left border-t border-purple-500/30"
                     >
                       <FaSignOutAlt className="text-purple-400" />
                       <span className="text-white">Logout</span>

@@ -3,8 +3,11 @@ import { useEffect, useState } from "react";
 import axios from "../../api/axios";
 import { useLivePrice } from "./useLivePrice";
 import { FaEye } from "react-icons/fa";
+import moment from "moment-timezone";
+import { useTimezone } from "../../contexts/TimezoneContext";
 
 export default function InfluencerRecommendations({ channelID, channelData }) {
+  const { useLocalTime, formatDate } = useTimezone();
   const [recommendations, setRecommendations] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [uniqueSymbols, setUniqueSymbols] = useState([]);
@@ -252,15 +255,6 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
     setCurrentPage(0);
     // Call API with only channelID and limit parameters
     getRecommendations(0, 100);
-  };
-  // helper function
-  const formatDate = (dateStr) => {
-    if (!dateStr) return "";
-    const date = new Date(dateStr);
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
   };
   const scrollToFilters = () => {
     // First, show advanced filters to ensure all filters are visible

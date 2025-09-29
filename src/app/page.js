@@ -3,71 +3,25 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-// Custom timezone abbreviations mapping
-const timeZoneAbbreviations = {
-  // India
-  "Asia/Kolkata": "IST",      // India Standard Time
-  "Asia/Calcutta": "IST",     // India Standard Time (legacy)
-  
-  // Middle East
-  "Asia/Dubai": "GST",        // Gulf Standard Time (UAE)
-  "Asia/Riyadh": "AST",       // Arabia Standard Time (Saudi Arabia)
-  "Asia/Qatar": "AST",        // Arabia Standard Time (Qatar)
-  "Asia/Kuwait": "AST",       // Arabia Standard Time (Kuwait)
-  "Asia/Bahrain": "AST",      // Arabia Standard Time (Bahrain)
-  "Asia/Muscat": "GST",       // Gulf Standard Time (Oman)
-  
-  // Europe
-  "Europe/London": "GMT",     // Greenwich Mean Time (UK)
-  "Europe/Paris": "CET",      // Central European Time (France)
-  "Europe/Berlin": "CET",     // Central European Time (Germany)
-  "Europe/Rome": "CET",       // Central European Time (Italy)
-  "Europe/Madrid": "CET",     // Central European Time (Spain)
-  "Europe/Amsterdam": "CET",  // Central European Time (Netherlands)
-  "Europe/Brussels": "CET",   // Central European Time (Belgium)
-  "Europe/Vienna": "CET",     // Central European Time (Austria)
-  "Europe/Zurich": "CET",     // Central European Time (Switzerland)
-  "Europe/Stockholm": "CET",  // Central European Time (Sweden)
-  "Europe/Oslo": "CET",       // Central European Time (Norway)
-  "Europe/Copenhagen": "CET", // Central European Time (Denmark)
-  "Europe/Helsinki": "EET",   // Eastern European Time (Finland)
-  "Europe/Moscow": "MSK",     // Moscow Time (Russia)
-  
-  // Americas
-  "America/New_York": "EST",  // Eastern Standard Time (USA East Coast)
-  "America/Chicago": "CST",   // Central Standard Time (USA Central)
-  "America/Denver": "MST",    // Mountain Standard Time (USA Mountain)
-  "America/Los_Angeles": "PST", // Pacific Standard Time (USA West Coast)
-  "America/Toronto": "EST",   // Eastern Standard Time (Canada)
-  "America/Vancouver": "PST", // Pacific Standard Time (Canada)
-  "America/Mexico_City": "CST", // Central Standard Time (Mexico)
-  "America/Sao_Paulo": "BRT", // Brasilia Time (Brazil)
-  "America/Argentina/Buenos_Aires": "ART", // Argentina Time
-  
-  // Asia Pacific
-  "Asia/Tokyo": "JST",        // Japan Standard Time
-  "Asia/Shanghai": "CST",     // China Standard Time
-  "Asia/Hong_Kong": "HKT",    // Hong Kong Time
-  "Asia/Singapore": "SGT",    // Singapore Time
-  "Asia/Bangkok": "ICT",      // Indochina Time (Thailand)
-  "Asia/Jakarta": "WIB",      // Western Indonesia Time
-  "Asia/Manila": "PHT",       // Philippines Time
-  "Asia/Seoul": "KST",        // Korea Standard Time
-  "Asia/Taipei": "CST",       // China Standard Time (Taiwan)
-  
-  // Australia & New Zealand
-  "Australia/Sydney": "AEDT", // Australian Eastern Daylight Time
-  "Australia/Melbourne": "AEDT", // Australian Eastern Daylight Time
-  "Australia/Perth": "AWST",  // Australian Western Standard Time
-  "Pacific/Auckland": "NZDT", // New Zealand Daylight Time
-  
-  // Africa
-  "Africa/Cairo": "EET",      // Eastern European Time (Egypt)
-  "Africa/Johannesburg": "SAST", // South Africa Standard Time
-  "Africa/Lagos": "WAT",      // West Africa Time (Nigeria)
-  "Africa/Nairobi": "EAT",    // East Africa Time (Kenya)
-  
-  // Add more as needed
+import moment from "moment-timezone";
+import { useTimezone } from "./contexts/TimezoneContext";
+// Major cities with their timezones for display
+const worldCities = [
+  { name: "New York", timezone: "America/New_York" },
+  { name: "Tokyo", timezone: "Asia/Tokyo" },
+  { name: "India", timezone: "Asia/Kolkata" },
+  { name: "London", timezone: "Europe/London" },
+  { name: "Dubai", timezone: "Asia/Dubai" },
+  { name: "Singapore", timezone: "Asia/Singapore" }
+];
+
+// Helper function to get formatted time for a city
+const getCityTime = (timezone) => {
+  const now = moment().tz(timezone);
+  return {
+    time: now.format('YYYY-MM-DD HH:mm:ss'),
+    abbr: now.format('z')
+  };
 };
 
 import DragDropCards from "../components/DragDropCards";
@@ -1187,12 +1141,12 @@ const ProfessionalTrendingTable = ({ title, data, isLocked = false }) => {
 
 export default function Home() {
   const { top10Data, isConnected } = useTop10LivePrice();
+  const { useLocalTime, toggleTimezone, formatDate } = useTimezone();
   const scrollingData = [...top10Data, ...top10Data];
   const [isMounted, setIsMounted] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false); // This would come from auth context
   const [shouldScroll, setShouldScroll] = useState(false);
   const [loading, setLoading] = useState(false); // No loading needed for static data
-  const [useLocalTime, setUseLocalTime] = useState(false); // Centralized timezone state
   const [lastUpdated, setLastUpdated] = useState(null);
   const [nextUpdate, setNextUpdate] = useState(null);
 
@@ -1227,43 +1181,25 @@ export default function Home() {
   const formatDisplayDate = (date, showTimezone = true) => {
     if (!date) return "N/A";
 
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-    let dayName, day, month, year, hours, minutes, displayHours, ampm, timezone;
+    let momentDate;
+    let timezone;
+    let locationDisplay = '';
 
     if (useLocalTime) {
       // Use local time
-      dayName = days[date.getDay()];
-      day = date.getDate();
-      month = months[date.getMonth()];
-      year = date.getFullYear();
-      hours = date.getHours();
-      minutes = date.getMinutes();
-      ampm = hours >= 12 ? 'PM' : 'AM';
-      displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-
-      // Get user's timezone and map to abbreviation
       const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      timezone = timeZoneAbbreviations[userTimeZone] || userTimeZone;
+      momentDate = moment(date).tz(userTimeZone);
+      
+      // Extract city name only
+      const cityName = userTimeZone.split('/').pop().replace(/_/g, ' ');
+      locationDisplay = ` (${cityName})`;
     } else {
       // Use UTC time
-      dayName = days[date.getUTCDay()];
-      day = date.getUTCDate();
-      month = months[date.getUTCMonth()];
-      year = date.getUTCFullYear();
-      hours = date.getUTCHours();
-      minutes = date.getUTCMinutes();
-      ampm = hours >= 12 ? 'PM' : 'AM';
-      displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-      timezone = 'UTC';
+      momentDate = moment(date).utc();
+      locationDisplay = ' UTC';
     }
 
-    const formattedHours = displayHours.toString().padStart(2, '0');
-    const formattedMinutes = minutes.toString().padStart(2, '0');
-    const timezoneDisplay = showTimezone ? ` ${timezone}` : '';
-
-    return `${dayName} ${day} ${month} ${year} ${formattedHours}:${formattedMinutes} ${ampm}${timezoneDisplay}`;
+    return `${momentDate.format('ddd DD MMM hh:mm A')}${locationDisplay}`;
   };
 
   useEffect(() => {
@@ -1499,7 +1435,7 @@ export default function Home() {
                 <span className="text-sm text-gray-300 font-bold">Timezone:</span>
                 <div className="flex items-center bg-gray-800/50 rounded-lg p-1">
                   <button
-                    onClick={() => setUseLocalTime(false)}
+                    onClick={() => toggleTimezone()}
                     className={`px-4 py-2 text-xs font-medium rounded-md transition-all duration-200 ${!useLocalTime
                       ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-6 py-3 rounded-xl font-bold text-white shadow-lg transition-all duration-200'
                       : 'text-gray-300 hover:text-white'
@@ -1508,7 +1444,7 @@ export default function Home() {
                     Default UTC
                   </button>
                   <button
-                    onClick={() => setUseLocalTime(true)}
+                    onClick={() => toggleTimezone()}
                     className={`px-4 py-2 text-xs font-medium rounded-md transition-all duration-200 ${useLocalTime
                       ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-6 py-3 rounded-xl font-bold text-white shadow-lg transition-all duration-200'
                       : 'text-gray-300 hover:text-white'
@@ -1529,7 +1465,7 @@ export default function Home() {
                 <div className="flex flex-col items-center">
                   <span className="text-sm text-gray-400 font-medium">Last Updated:</span>
                   <span className="text-md font-bold text-white">
-                    {lastUpdated ? formatDisplayDate(lastUpdated) : "N/A"}
+                    {lastUpdated ? formatDate(lastUpdated) : "N/A"}
                   </span>
                 </div>
 
@@ -1540,7 +1476,7 @@ export default function Home() {
                 <div className="flex flex-col items-center">
                   <span className="text-sm text-gray-400 font-medium">Next Update:</span>
                   <span className="text-md font-bold text-white">
-                    {nextUpdate ? formatDisplayDate(nextUpdate) : "N/A"}
+                    {nextUpdate ? formatDate(nextUpdate) : "N/A"}
                   </span>
                 </div>
               </div>
@@ -1561,7 +1497,7 @@ export default function Home() {
           {/* <YoutubeTelegramDataTableLight /> */}
           {/* <h2 className="text-white-300 text-2xl font-bold mb-3">Top 5 Mentioned Coins in 24H</h2> */}
         </motion.div>
-        <YouTubeTelegramInfluencers useLocalTime={useLocalTime} />
+        <YouTubeTelegramInfluencers />
         {/* Display Purpose Text */}
         {/* <p className="text-center text-gray-400 text-sm italic mb-4 mt-1">
           The coins are listed for display purpose
@@ -1720,22 +1656,30 @@ export default function Home() {
 
         {/* Influencer Flash News Text */}
         <h2 className="text-center text-white text-2xl font-bold mb-3 mt-4">
-          Live Prices
+          Live Prices <span className="text-gray-400 text-sm">(Source Binance)</span>
         </h2>
-
         {/* Influencer News Scroller Container */}
         <div className="relative h-24 bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-2xl border border-purple-500/30 overflow-hidden shadow-2xl mb-4">
           {/* Continuous Left-to-Right Scrolling News */}
           <div className="absolute inset-0 flex items-center">
             <motion.div
-              variants={marqueeVariants}
-              animate="animate"
+              animate={{
+                x: [0, -1920],
+              }}
+              transition={{
+                x: {
+                  repeat: Infinity,
+                  repeatType: "loop",
+                  duration: 40,
+                  ease: "linear",
+                },
+              }}
               className="flex whitespace-nowrap"
             >
-              {scrollingData.map(item => (
+              {[...scrollingData, ...scrollingData, ...scrollingData].map((item, index) => (
                 <div
-                  key={item.symbol + Math.random()}
-                  className="flex items-center space-x-4 bg-gradient-to-r from-purple-800/20 to-blue-800/20 px-6 py-2 rounded-xl border border-purple-400/30 mx-4"
+                  key={item.symbol + index}
+                  className="flex items-center space-x-4 bg-gradient-to-r from-purple-800/20 to-blue-800/20 px-6 py-2 rounded-xl border border-purple-400/30 mx-4 flex-shrink-0 w-48"
                 >
                   <span className="text-purple-400 font-bold text-sm">
                     📈 {item.symbol}

@@ -2,6 +2,7 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState, Fragment } from "react";
 import axios from "../../api/axios";
+import { useTimezone } from "../../contexts/TimezoneContext";
 import InfluencerProfileHeader from "../../components/InfluencerProfile/InfluencerProfileHeader";
 import InfluencerRecommendations from "../../components/InfluencerProfile/InfluencerRecommendations";
 import YearlyPerformanceTable from "../../components/InfluencerProfile/YearlyPerformanceTable";
@@ -32,6 +33,7 @@ const TABS = [
 ];
 
 export default function InfluencerProfilePage() {
+  const { useLocalTime, toggleTimezone } = useTimezone();
   const [tab, setTab] = useState("overview-light1");
   const [channelData, setChannelData] = useState(null);
   const [youtubeLast5, setYoutubeLast5] = useState([]);
@@ -86,10 +88,17 @@ export default function InfluencerProfilePage() {
 
       let results = apiRes.data?.results || apiRes.data?.data || null;
       let last5 = apiRes.data?.youtube_last_5 || [];
+      let rank = apiRes.data?.rank || null;
 
       if (!results) throw new Error("No data found in response");
 
-      setChannelData(results);
+      // Add rank to the results object
+      const channelDataWithRank = {
+        ...results,
+        rank: rank
+      };
+
+      setChannelData(channelDataWithRank);
       setYoutubeLast5(last5);
 
     } catch (error) {
@@ -214,6 +223,7 @@ export default function InfluencerProfilePage() {
         bullishPercentage={bullishPercentage}
         bearishPercentage={bearishPercentage}
       />
+
 
       {/* Tabs */}
       <div className="px-4">
@@ -4904,6 +4914,7 @@ export default function InfluencerProfilePage() {
             channelID={channelID}
             channelData={channelData}
             youtubeLast5={youtubeLast5}
+            rank={channelData?.rank}
           />
         )}
         {tab === "recommendations-light" && (

@@ -2,9 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { FaStar, FaStarHalfAlt } from "react-icons/fa";
+import moment from "moment-timezone";
+import { useTimezone } from "../../contexts/TimezoneContext";
 
-export default function RecentActivityTab({ channelID, channelData, youtubeLast5 }) {
+export default function RecentActivityTab({ channelID, channelData, youtubeLast5, rank }) {
+  const { useLocalTime, formatDate } = useTimezone();
   const [recentPosts, setRecentPosts] = useState([]);
+  const [forceUpdate, setForceUpdate] = useState(0);
   const [expandedPosts, setExpandedPosts] = useState({});
   const [hoveredPost, setHoveredPost] = useState(null);
   const [expandedSummaries, setExpandedSummaries] = useState({});
@@ -74,6 +78,11 @@ export default function RecentActivityTab({ channelID, channelData, youtubeLast5
     }
   }, [channelData, youtubeLast5]);
 
+  // Force re-render when timezone changes
+  useEffect(() => {
+    setForceUpdate(prev => prev + 1);
+  }, [useLocalTime]);
+
   // Toggle functions
   const toggleExpanded = (postId) => {
     setExpandedPosts(prev => ({
@@ -127,15 +136,6 @@ export default function RecentActivityTab({ channelID, channelData, youtubeLast5
     );
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const dateOptions = { year: "numeric", month: "short", day: "numeric" };
-    const timeOptions = { hour: "2-digit", minute: "2-digit", hour12: true };
-    return `${date.toLocaleDateString(
-      undefined,
-      dateOptions
-    )} ${date.toLocaleTimeString(undefined, timeOptions)}`;
-  };
 
   const getSentimentColor = (sentiment) => {
     if (sentiment.toLowerCase().includes("bullish")) return "text-green-500";
@@ -191,6 +191,11 @@ export default function RecentActivityTab({ channelID, channelData, youtubeLast5
           <h1 className="text-3xl font-bold text-gray-900">
             {channelData?.influencer_name || "Influencer"} 
           </h1>
+          {rank && (
+            <div className="text-xl font-semibold text-white-600 mt-2">
+              Rank : {rank}
+            </div>
+          )}
         </div>
 
         {/* Posts */}

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { FaEye } from "react-icons/fa";
+import moment from "moment-timezone";
 
 export default function YouTubeTelegramDataTable({ useLocalTime: propUseLocalTime = false }) {
     const [selectedPlatform, setSelectedPlatform] = useState("Combined");
@@ -56,62 +57,26 @@ export default function YouTubeTelegramDataTable({ useLocalTime: propUseLocalTim
     const formatDateStringDisplay = (dateStr) => {
         if (!dateStr) return "N/A";
 
-        // Parse the date string and create Date object (assuming it's UTC)
-        const [datePart, timePart] = dateStr.split(' ');
-        const [year, month, day] = datePart.split('-').map(Number);
-        const [hours, minutes, seconds] = timePart.split(':').map(Number);
-
-        // Create Date object using UTC values
-        const date = new Date(Date.UTC(year, month - 1, day, hours, minutes, seconds || 0));
-
-        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-        let dayName, dayNum, monthName, yearNum, displayHours, ampm, timezone;
+        // Parse the date string and create moment object
+        const date = moment(dateStr).utc();
+        let momentDate;
+        let locationDisplay = '';
 
         if (useLocalTime) {
             // Use local time
-            dayName = days[date.getDay()];
-            dayNum = date.getDate();
-            monthName = months[date.getMonth()];
-            yearNum = date.getFullYear();
-            const localHours = date.getHours();
-            ampm = localHours >= 12 ? 'PM' : 'AM';
-            displayHours = localHours === 0 ? 12 : localHours > 12 ? localHours - 12 : localHours;
+            const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            momentDate = date.tz(userTimeZone);
             
-            // Get timezone abbreviation
-            const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            if (userTimezone === 'Asia/Kolkata' || userTimezone === 'Asia/Calcutta') {
-                timezone = 'IST';
-            } else {
-                const formatter = new Intl.DateTimeFormat('en', {
-                    timeZoneName: 'short',
-                    timeZone: userTimezone
-                });
-                const parts = formatter.formatToParts(date);
-                let rawTimezone = parts.find(part => part.type === 'timeZoneName')?.value;
-                
-                if (rawTimezone && rawTimezone.includes('GMT+05:30')) {
-                    timezone = 'IST';
-                } else {
-                    timezone = rawTimezone || userTimezone;
-                }
-            }
+            // Extract city name only
+            const cityName = userTimeZone.split('/').pop().replace(/_/g, ' ');
+            locationDisplay = ` (${cityName})`;
         } else {
             // Use UTC time
-            dayName = days[date.getUTCDay()];
-            dayNum = date.getUTCDate();
-            monthName = months[date.getUTCMonth()];
-            yearNum = date.getUTCFullYear();
-            const utcHours = date.getUTCHours();
-            ampm = utcHours >= 12 ? 'PM' : 'AM';
-            displayHours = utcHours === 0 ? 12 : utcHours > 12 ? utcHours - 12 : utcHours;
-            timezone = 'UTC';
+            momentDate = date.utc();
+            locationDisplay = ' UTC';
         }
 
-        const formattedHour = displayHours.toString().padStart(2, '0');
-
-        return `${dayName} ${dayNum} ${monthName} ${yearNum} ${formattedHour} ${ampm} ${timezone}`;
+        return `${momentDate.format('ddd DD MMM hh:mm A')}${locationDisplay}`;
     };
 
     // Format date to display string for header display (UTC or local time)

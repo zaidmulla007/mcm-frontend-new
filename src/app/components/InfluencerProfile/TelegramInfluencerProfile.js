@@ -6,10 +6,13 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, ResponsiveContai
 import { FaEye } from "react-icons/fa";
 import { useLivePrice } from "./useLivePrice";
 import TelegramRecentActivities from "@/app/components/InfluencerProfile/TelegramRecentActivities";
+import moment from "moment-timezone";
+import { useTimezone } from "../../contexts/TimezoneContext";
 
 // Use global CSS class .text-to-purple from globals.css
 
 export default function TelegramInfluencerProfile({ channelId }) {
+  const { useLocalTime, formatDate } = useTimezone();
   const [activeTab, setActiveTab] = useState("overview");
   const [channelData, setChannelData] = useState(null);
   const [telegramLast5, setTelegramLast5] = useState([]);
@@ -123,7 +126,7 @@ export default function TelegramInfluencerProfile({ channelId }) {
           <RecommendationsTab channelData={channelData} />
         )}
         {activeTab === "recentActivities" && (
-          <TelegramRecentActivities channelID={channelId} channelData={channelData} telegramLast5={telegramLast5} />
+          <TelegramRecentActivities channelID={channelId} channelData={channelData} telegramLast5={telegramLast5} rank={channelData?.rank} />
         )}
       </div>
     </div>
@@ -2383,14 +2386,6 @@ function RecommendationsTab({ channelData }) {
     setCurrentPage(0);
     // Fetch with default values - no loading popup
     fetchRecommendations(false);
-  };
-  const formatDate = (dateStr) => {
-    if (!dateStr) return null;
-    const d = new Date(dateStr);
-    const day = String(d.getDate()).padStart(2, "0");
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const year = d.getFullYear();
-    return `${day}-${month}-${year}`;
   };
   if (loading) {
     return (
