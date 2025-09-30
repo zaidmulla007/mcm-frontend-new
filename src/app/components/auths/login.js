@@ -659,9 +659,15 @@ export default function Login() {
       } catch (error) {
         console.error('FetchOTP error:', error);
         
+        // Extract the actual error message from the API response
+        let errorMessage = 'Failed to send OTP. Please try again.';
+        if (error.message && error.message !== 'HTTP request failed') {
+          errorMessage = error.message;
+        }
+        
         Swal.fire({
           title: 'Error!',
-          text: error.message || 'Failed to send OTP. Please try again.',
+          text: errorMessage,
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
@@ -958,10 +964,10 @@ export default function Login() {
         return;
       }
 
-      if (!hasValidPhone && !hasValidEmail) {
+      if (!hasValidPhone) {
         Swal.fire({
           title: 'Error!',
-          text: 'Please enter a valid WhatsApp number or Email',
+          text: 'Please enter a valid WhatsApp number',
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
@@ -978,62 +984,48 @@ export default function Login() {
         if (hasValidPhone) {
           const fullPhoneNumber = `${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}`;
           otpRequests.push(
-            fetch('/api/sendEmail', {
+            fetch('/api/auth/fetchOTP', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                phoneNumber: fullPhoneNumber,
-                countryCode: selectedCountry.code,
-                type: 'phone'
+                username: fullPhoneNumber
               })
             })
           );
           sentTo.push('whatsapp');
         }
 
-        if (hasValidEmail) {
-          const otpCode = Math.floor(100000 + Math.random() * 900000);
-          otpRequests.push(
-            fetch('/api/sendEmail', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                to: formData.email,
-                subject: 'Your OTP Code',
-                text: `Your OTP code is: ${otpCode}`,
-                html: `<p>Your OTP code is: <strong>${otpCode}</strong></p>`,
-                type: 'email'
-              })
-            })
-          );
-          sentTo.push('email');
-        }
+        // Email OTP removed - only phone OTP for login using fetchOTP API
 
         const responses = await Promise.all(otpRequests);
 
-        if (responses.every(r => r.ok)) {
+        // Check both HTTP status and API response success
+        const responseDataArray = await Promise.all(
+          responses.map(async (response) => {
+            if (response.ok) {
+              return await response.json();
+            } else {
+              throw new Error('HTTP request failed');
+            }
+          })
+        );
+
+        // Check if all API responses have success: true
+        const allSuccessful = responseDataArray.every(data => data.success === true);
+
+        if (allSuccessful) {
           setIsOtpSent(true);
           setTimer(60);
           setOtpSentTo(sentTo.join('_'));
 
-          let message = '<div style="text-align: center;">OTP has been sent to:<br><br>';
-          if (hasValidPhone) {
-            message += `<div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;">
+          let message = `<div style="text-align: center;">OTP has been sent to:<br><br>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
               <svg style="width: 20px; height: 20px; fill: #10b981;" viewBox="0 0 24 24">
                 <path d="M17.472,14.382c-0.297-0.149-1.758-0.867-2.03-0.967c-0.273-0.099-0.471-0.148-0.67,0.15c-0.197,0.297-0.767,0.966-0.94,1.164c-0.173,0.199-0.347,0.223-0.644,0.075c-0.297-0.15-1.255-0.463-2.39-1.475c-0.883-0.788-1.48-1.761-1.653-2.059c-0.173-0.297-0.018-0.458,0.13-0.606c0.134-0.133,0.297-0.347,0.446-0.521C9.87,9.97,9.919,9.846,10.019,9.65c0.099-0.198,0.05-0.371-0.025-0.52C9.919,8.981,9.325,7.515,9.078,6.92c-0.241-0.58-0.487-0.5-0.669-0.51c-0.173-0.008-0.371-0.01-0.57-0.01c-0.198,0-0.52,0.074-0.792,0.372c-0.272,0.297-1.04,1.016-1.04,2.479c0,1.462,1.065,2.875,1.213,3.074c0.149,0.198,2.096,3.2,5.077,4.487c0.709,0.306,1.262,0.489,1.694,0.625c0.712,0.227,1.36,0.195,1.871,0.118c0.571-0.085,1.758-0.719,2.006-1.413c0.248-0.694,0.248-1.289,0.173-1.413C17.884,14.651,17.769,14.431,17.472,14.382z M12.057,21.785h-0.008c-1.784,0-3.525-0.481-5.052-1.389l-0.362-0.215l-3.754,0.984l1.005-3.671l-0.236-0.375c-0.99-1.575-1.511-3.393-1.511-5.26c0-5.445,4.43-9.875,9.88-9.875c2.64,0,5.124,1.03,6.988,2.898c1.865,1.867,2.893,4.352,2.892,6.993C21.899,17.354,17.469,21.785,12.057,21.785z M20.5,3.488C18.24,1.24,15.24,0.013,12.058,0C5.507,0,0.17,5.335,0.172,11.892c0,2.096,0.547,4.142,1.588,5.945L0,24l6.305-1.654c1.746,0.943,3.71,1.444,5.71,1.447h0.006c6.551,0,11.89-5.335,11.89-11.893C23.91,8.724,22.759,5.746,20.5,3.488z" />
               </svg>
               <span>WhatsApp: ${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}</span>
-            </div>`;
-          }
-          if (hasValidEmail) {
-            message += `<div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-              <svg style="width: 20px; height: 20px; fill: #a78bfa;" viewBox="0 0 24 24">
-                <path d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z" />
-              </svg>
-              <span>Email: ${formData.email}</span>
-            </div>`;
-          }
-          message += '</div>';
+            </div>
+          </div>`;
 
           Swal.fire({
             title: 'OTP Sent!',
@@ -1045,40 +1037,23 @@ export default function Login() {
             color: '#ffffff'
           });
         } else {
-          throw new Error('Failed to send OTP');
+          // Get error message from the first failed response
+          const errorMessage = responseDataArray.find(data => !data.success)?.message || 'Failed to send OTP';
+          throw new Error(errorMessage);
         }
       } catch (error) {
         console.error('Error sending OTP:', error);
-        setIsOtpSent(true);
-        setTimer(60);
-
-        let sentTo = [];
-        let message = '<div style="text-align: center;">OTP sent to:<br><br>';
-        if (formData.phoneNumber) {
-          sentTo.push('whatsapp');
-          message += `<div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;">
-            <svg style="width: 20px; height: 20px; fill: #10b981;" viewBox="0 0 24 24">
-              <path d="M17.472,14.382c-0.297-0.149-1.758-0.867-2.03-0.967c-0.273-0.099-0.471-0.148-0.67,0.15c-0.197,0.297-0.767,0.966-0.94,1.164c-0.173,0.199-0.347,0.223-0.644,0.075c-0.297-0.15-1.255-0.463-2.39-1.475c-0.883-0.788-1.48-1.761-1.653-2.059c-0.173-0.297-0.018-0.458,0.13-0.606c0.134-0.133,0.297-0.347,0.446-0.521C9.87,9.97,9.919,9.846,10.019,9.65c0.099-0.198,0.05-0.371-0.025-0.52C9.919,8.981,9.325,7.515,9.078,6.92c-0.241-0.58-0.487-0.5-0.669-0.51c-0.173-0.008-0.371-0.01-0.57-0.01c-0.198,0-0.52,0.074-0.792,0.372c-0.272,0.297-1.04,1.016-1.04,2.479c0,1.462,1.065,2.875,1.213,3.074c0.149,0.198,2.096,3.2,5.077,4.487c0.709,0.306,1.262,0.489,1.694,0.625c0.712,0.227,1.36,0.195,1.871,0.118c0.571-0.085,1.758-0.719,2.006-1.413c0.248-0.694,0.248-1.289,0.173-1.413C17.884,14.651,17.769,14.431,17.472,14.382z M12.057,21.785h-0.008c-1.784,0-3.525-0.481-5.052-1.389l-0.362-0.215l-3.754,0.984l1.005-3.671l-0.236-0.375c-0.99-1.575-1.511-3.393-1.511-5.26c0-5.445,4.43-9.875,9.88-9.875c2.64,0,5.124,1.03,6.988,2.898c1.865,1.867,2.893,4.352,2.892,6.993C21.899,17.354,17.469,21.785,12.057,21.785z M20.5,3.488C18.24,1.24,15.24,0.013,12.058,0C5.507,0,0.17,5.335,0.172,11.892c0,2.096,0.547,4.142,1.588,5.945L0,24l6.305-1.654c1.746,0.943,3.71,1.444,5.71,1.447h0.006c6.551,0,11.89-5.335,11.89-11.893C23.91,8.724,22.759,5.746,20.5,3.488z" />
-            </svg>
-            <span>WhatsApp: ${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}</span>
-          </div>`;
+        
+        // Extract the actual error message from the API response
+        let errorMessage = 'Failed to send OTP. Please try again.';
+        if (error.message && error.message !== 'HTTP request failed') {
+          errorMessage = error.message;
         }
-        if (formData.email) {
-          sentTo.push('email');
-          message += `<div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <svg style="width: 20px; height: 20px; fill: #a78bfa;" viewBox="0 0 24 24">
-              <path d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z" />
-            </svg>
-            <span>Email: ${formData.email}</span>
-          </div>`;
-        }
-        message += '</div>';
-        setOtpSentTo(sentTo.join('_'));
-
+        
         Swal.fire({
-          title: 'OTP Sent!',
-          html: message,
-          icon: 'success',
+          title: 'Error!',
+          text: errorMessage,
+          icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
           background: '#232042',
@@ -1170,10 +1145,10 @@ export default function Login() {
       }
     }
 
-    if (isLogin && !formData.phoneNumber && !formData.email) {
+    if (isLogin && !formData.phoneNumber) {
       Swal.fire({
         title: 'Warning!',
-        text: 'Please enter either WhatsApp number or Email',
+        text: 'Please enter WhatsApp number',
         icon: 'warning',
         confirmButtonText: 'OK',
         confirmButtonColor: '#8b5cf6',

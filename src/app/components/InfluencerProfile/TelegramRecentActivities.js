@@ -15,6 +15,10 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
   const [expandedTitles, setExpandedTitles] = useState({});
   const [expandedMarketing, setExpandedMarketing] = useState({});
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
   useEffect(() => {
     console.log("TelegramRecentActivities - channelData:", channelData);
     console.log("TelegramRecentActivities - channelID:", channelID);
@@ -67,6 +71,11 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
       setRecentPosts(formattedPosts);
     }
   }, [channelData, channelID, telegramLast5]);
+
+  // Reset current page when recentPosts change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [recentPosts]);
 
   // Force re-render when timezone changes
   useEffect(() => {
@@ -174,6 +183,53 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
     ).join(' ');
   };
 
+  // Pagination calculations
+  const totalPosts = recentPosts.length;
+  const totalPages = Math.ceil(totalPosts / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const visiblePosts = recentPosts.slice(startIndex, endIndex);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handlePrevious = () => {
+    if (currentPage > 1) {
+      handlePageChange(currentPage - 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentPage < totalPages) {
+      handlePageChange(currentPage + 1);
+    }
+  };
+
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxPagesToShow = 5;
+    const half = Math.floor(maxPagesToShow / 2);
+    let startPage = Math.max(1, currentPage - half);
+    let endPage = Math.min(totalPages, currentPage + half);
+
+    if (endPage - startPage < maxPagesToShow - 1) {
+      if (startPage === 1) {
+        endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+      } else {
+        startPage = Math.max(1, endPage - maxPagesToShow + 1);
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return pages;
+  };
+
   return (
     <div className="bg-white min-h-screen text-gray-900 p-4">
       <div className="max-w-6xl mx-auto">
@@ -190,7 +246,7 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
 
         {/* Posts */}
         <div className="flex gap-4 overflow-x-auto pb-6">
-          {recentPosts.map((post, index) => (
+          {visiblePosts.map((post, index) => (
             <div
               key={post.id}
               className="w-80 flex-shrink-0 bg-white rounded-xl overflow-hidden border border-gray-800 shadow-lg"
@@ -468,6 +524,171 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
             </div>
           ))}
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex flex-col items-center mt-8 space-y-4">
+            {/* Pagination Info */}
+            <div className="text-sm text-gray-400 text-center">
+              Showing {startIndex + 1} to {Math.min(endIndex, totalPosts)} of {totalPosts} posts
+            </div>
+
+            {/* Mobile Pagination - Show only on small screens */}
+            <div className="flex sm:hidden items-center justify-center space-x-1 w-full">
+              {/* First Button - Mobile */}
+              <button
+                onClick={() => handlePageChange(1)}
+                disabled={currentPage === 1}
+                className={`px-2 py-2 rounded-lg font-medium text-xs transition-all duration-200 ${currentPage === 1
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 hover:border-blue-500'
+                  }`}
+              >
+                ‹‹
+              </button>
+
+              {/* Previous Button - Mobile */}
+              <button
+                onClick={handlePrevious}
+                disabled={currentPage === 1}
+                className={`px-2 py-2 rounded-lg font-medium text-xs transition-all duration-200 ${currentPage === 1
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 hover:border-blue-500'
+                  }`}
+              >
+                ‹
+              </button>
+
+              {/* Current Page Info */}
+              <div className="flex items-center space-x-2 px-2">
+                <span className="text-xs text-gray-600">Page</span>
+                <span className="px-2 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded text-xs font-medium">
+                  {currentPage}
+                </span>
+                <span className="text-xs text-gray-600">of {totalPages}</span>
+              </div>
+
+              {/* Next Button - Mobile */}
+              <button
+                onClick={handleNext}
+                disabled={currentPage === totalPages}
+                className={`px-2 py-2 rounded-lg font-medium text-xs transition-all duration-200 ${currentPage === totalPages
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 hover:border-blue-500'
+                  }`}
+              >
+                ›
+              </button>
+
+              {/* Last Button - Mobile */}
+              <button
+                onClick={() => handlePageChange(totalPages)}
+                disabled={currentPage === totalPages}
+                className={`px-2 py-2 rounded-lg font-medium text-xs transition-all duration-200 ${currentPage === totalPages
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 hover:border-blue-500'
+                  }`}
+              >
+                ››
+              </button>
+            </div>
+
+            {/* Desktop/Tablet Pagination - Show on medium screens and up */}
+            <div className="hidden sm:flex items-center space-x-1 md:space-x-2 flex-wrap justify-center">
+              {/* First Button - Desktop */}
+              <button
+                onClick={() => handlePageChange(1)}
+                disabled={currentPage === 1}
+                className={`px-2 md:px-4 py-2 rounded-lg font-medium text-xs md:text-sm transition-all duration-200 ${currentPage === 1
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 hover:border-blue-500'
+                  }`}
+              >
+                &lt;&lt;
+              </button>
+
+              {/* Previous Button - Desktop */}
+              <button
+                onClick={handlePrevious}
+                disabled={currentPage === 1}
+                className={`px-2 md:px-4 py-2 rounded-lg font-medium text-xs md:text-sm transition-all duration-200 ${currentPage === 1
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 hover:border-blue-500'
+                  }`}
+              >
+                &lt;
+              </button>
+
+              {/* First Page */}
+              {getPageNumbers()[0] > 1 && (
+                <>
+                  <button
+                    onClick={() => handlePageChange(1)}
+                    className="px-2 md:px-4 py-2 rounded-lg font-medium text-xs md:text-sm bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 hover:border-blue-500 transition-all duration-200"
+                  >
+                    1
+                  </button>
+                  {getPageNumbers()[0] > 2 && (
+                    <span className="text-gray-500 text-xs">...</span>
+                  )}
+                </>
+              )}
+
+              {/* Page Numbers */}
+              {getPageNumbers().map((page) => (
+                <button
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  className={`px-2 md:px-4 py-2 rounded-lg font-medium text-xs md:text-sm transition-all duration-200 ${currentPage === page
+                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg'
+                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 hover:border-blue-500'
+                    }`}
+                >
+                  {page}
+                </button>
+              ))}
+
+              {/* Last Page */}
+              {getPageNumbers()[getPageNumbers().length - 1] < totalPages && (
+                <>
+                  {getPageNumbers()[getPageNumbers().length - 1] < totalPages - 1 && (
+                    <span className="text-gray-500 text-xs">...</span>
+                  )}
+                  <button
+                    onClick={() => handlePageChange(totalPages)}
+                    className="px-2 md:px-4 py-2 rounded-lg font-medium text-xs md:text-sm bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 hover:border-blue-500 transition-all duration-200"
+                  >
+                    {totalPages}
+                  </button>
+                </>
+              )}
+
+              {/* Next Button - Desktop */}
+              <button
+                onClick={handleNext}
+                disabled={currentPage === totalPages}
+                className={`px-2 md:px-4 py-2 rounded-lg font-medium text-xs md:text-sm transition-all duration-200 ${currentPage === totalPages
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 hover:border-blue-500'
+                  }`}
+              >
+                &gt;
+              </button>
+
+              {/* Last Button - Desktop */}
+              <button
+                onClick={() => handlePageChange(totalPages)}
+                disabled={currentPage === totalPages}
+                className={`px-2 md:px-4 py-2 rounded-lg font-medium text-xs md:text-sm transition-all duration-200 ${currentPage === totalPages
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 hover:border-blue-500'
+                  }`}
+              >
+                &gt;&gt;
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

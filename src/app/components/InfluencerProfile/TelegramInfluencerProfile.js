@@ -6,7 +6,7 @@ import GaugeComponent from "react-gauge-component";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, ResponsiveContainer } from 'recharts';
 import { FaEye } from "react-icons/fa";
 import { useLivePrice } from "./useLivePrice";
-import TelegramRecentActivities from "@/app/components/InfluencerProfile/TelegramRecentActivities";
+import TelegramRecentActivities from "@/app/components/InfluencerProfile/telegramrecentactivities";
 import moment from "moment-timezone";
 import { useTimezone } from "../../contexts/TimezoneContext";
 

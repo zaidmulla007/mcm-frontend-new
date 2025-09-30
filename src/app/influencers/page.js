@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { getYearOptions, getQuarterOptions, getDynamicTimeframeOptions } from "../../../utils/dateFilterUtils";
 
 const platforms = [
@@ -33,6 +34,7 @@ const influencerList = [
 ];
 
 export default function InfluencersPage() {
+  const router = useRouter();
   const [selectedPlatform, setSelectedPlatform] = useState("youtube");
   const [youtubeInfluencers, setYoutubeInfluencers] = useState([]);
   const [telegramInfluencers, setTelegramInfluencers] = useState([]);
@@ -50,75 +52,125 @@ export default function InfluencersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
 
-  useEffect(() => {
-    async function fetchYouTubeData() {
-      setLoading(true);
-      setError(null);
-      try {
-        // Build query parameters according to API specification
-        const params = new URLSearchParams({
-          sentiment: selectedSentiment,
-          timeframe: selectedTimeframe,
-          type: selectedType,
-          year: selectedYear,
-          quarter: selectedQuarter
-        });
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [initialLoad, setInitialLoad] = useState(true);
 
-        const res = await fetch(`/api/youtube-data?${params.toString()}`
-        );
-        const data = await res.json();
-        if (data.success && Array.isArray(data.results)) {
-          setYoutubeInfluencers(data.results);
-        } else {
-          setYoutubeInfluencers([]);
-        }
-      } catch (err) {
-        setError("Failed to fetch YouTube data");
+  // Memoize API parameters
+  const apiParams = useMemo(() => ({
+    sentiment: selectedSentiment,
+    timeframe: selectedTimeframe,
+    type: selectedType,
+    year: selectedYear,
+    quarter: selectedQuarter
+  }), [selectedSentiment, selectedTimeframe, selectedType, selectedYear, selectedQuarter]);
+
+  // Memoized API call functions
+  const fetchYouTubeData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams(apiParams);
+      const res = await fetch(`/api/youtube-data?${params.toString()}`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.results)) {
+        setYoutubeInfluencers(data.results);
+      } else {
         setYoutubeInfluencers([]);
-      } finally {
-        setLoading(false);
       }
+    } catch (err) {
+      setError("Failed to fetch YouTube data");
+      setYoutubeInfluencers([]);
+    } finally {
+      setLoading(false);
+      setInitialLoad(false);
     }
+  }, [apiParams]);
 
-    async function fetchTelegramData() {
-      setLoading(true);
-      setError(null);
-      try {
-        // Build query parameters according to API specification
-        const params = new URLSearchParams({
-          sentiment: selectedSentiment,
-          timeframe: selectedTimeframe,
-          type: selectedType,
-          year: selectedYear,
-          quarter: selectedQuarter
-        });
-
-        const res = await fetch(`/api/telegram-data?${params.toString()}`);
-        const data = await res.json();
-        if (data.success && Array.isArray(data.results)) {
-          setTelegramInfluencers(data.results);
-        } else {
-          setTelegramInfluencers([]);
-        }
-      } catch (err) {
-        setError("Failed to fetch Telegram data");
+  const fetchTelegramData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams(apiParams);
+      const res = await fetch(`/api/telegram-data?${params.toString()}`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.results)) {
+        setTelegramInfluencers(data.results);
+      } else {
         setTelegramInfluencers([]);
-      } finally {
-        setLoading(false);
       }
+    } catch (err) {
+      setError("Failed to fetch Telegram data");
+      setTelegramInfluencers([]);
+    } finally {
+      setLoading(false);
+      setInitialLoad(false);
     }
+  }, [apiParams]);
 
-    if (selectedPlatform === "youtube") {
-      fetchYouTubeData();
-    } else if (selectedPlatform === "telegram") {
-      fetchTelegramData();
-    }
-  }, [selectedSentiment, selectedTimeframe, selectedType, selectedYear, selectedQuarter, selectedPlatform]);
+  useEffect(() => {
+
+    // Add a small delay to allow page to render first
+    const timer = setTimeout(() => {
+      if (selectedPlatform === "youtube") {
+        fetchYouTubeData();
+      } else if (selectedPlatform === "telegram") {
+        fetchTelegramData();
+      }
+    }, 100); // 100ms delay for immediate page render
+
+    return () => clearTimeout(timer);
+  }, [selectedPlatform, fetchYouTubeData, fetchTelegramData]);
 
   // Reset current page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedSentiment, selectedTimeframe, selectedType, selectedYear, selectedQuarter, selectedPlatform]);
+
+  // Search functionality
+  useEffect(() => {
+    if (searchQuery.trim().length > 0) {
+      const currentInfluencers = selectedPlatform === "youtube" ? youtubeInfluencers : telegramInfluencers;
+      const searchTerm = searchQuery.toLowerCase().trim();
+      
+      const filtered = currentInfluencers.filter((influencer) => {
+        if (selectedPlatform === "telegram") {
+          // For Telegram, search by channel_id since influencer_name is often "N/A"
+          const channelId = influencer.channel_id?.toLowerCase() || "";
+          return channelId.includes(searchTerm);
+        } else {
+          // For YouTube, search by influencer_name
+          const influencerName = influencer.influencer_name?.toLowerCase() || "";
+          return influencerName.includes(searchTerm);
+        }
+      });
+      
+      // Sort results by relevance (exact matches first, then partial matches)
+      const sortedResults = filtered.sort((a, b) => {
+        const aText = selectedPlatform === "telegram" ? (a.channel_id || "").toLowerCase() : (a.influencer_name || "").toLowerCase();
+        const bText = selectedPlatform === "telegram" ? (b.channel_id || "").toLowerCase() : (b.influencer_name || "").toLowerCase();
+        
+        const aExact = aText === searchTerm;
+        const bExact = bText === searchTerm;
+        const aStarts = aText.startsWith(searchTerm);
+        const bStarts = bText.startsWith(searchTerm);
+        
+        if (aExact && !bExact) return -1;
+        if (!aExact && bExact) return 1;
+        if (aStarts && !bStarts) return -1;
+        if (!aStarts && bStarts) return 1;
+        
+        // If both are similar relevance, sort by rank (lower rank = higher position)
+        return (a.rank || 999) - (b.rank || 999);
+      });
+      
+      setSearchResults(sortedResults.slice(0, 10)); // Limit to 10 results for performance
+    } else {
+      setSearchResults([]);
+    }
+  }, [searchQuery, youtubeInfluencers, telegramInfluencers, selectedPlatform]);
 
   // API valid values
   const sentimentOptions = [
@@ -296,6 +348,103 @@ export default function InfluencersPage() {
             <div className="bg-[#232042] rounded-2xl p-6 border border-[#35315a]">
               <h3 className="text-lg font-semibold text-purple-300 mb-4">Filters & Rankings</h3>
 
+              {/* Search Row */}
+              <div className="mb-4 relative">
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm text-gray-300 font-medium">Search Influencer:</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        if (e.target.value.trim()) {
+                          setShowSearchResults(true);
+                        } else {
+                          setShowSearchResults(false);
+                          setSearchResults([]);
+                        }
+                      }}
+                      onFocus={() => {
+                        if (searchQuery.trim()) {
+                          setShowSearchResults(true);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        // Delay hiding to allow for clicks on results
+                        setTimeout(() => {
+                          if (!e.currentTarget.contains(document.activeElement)) {
+                            setShowSearchResults(false);
+                          }
+                        }, 200);
+                      }}
+                      placeholder={selectedPlatform === "telegram" ? "Type influencer name" : "Type influencer name"}
+                      className="w-full bg-[#35315a] border border-[#4a456b] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => {
+                          setSearchQuery("");
+                          setShowSearchResults(false);
+                          setSearchResults([]);
+                        }}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                      >
+                        ✕
+                      </button>
+                    )}
+                    
+                    {/* Search Results Dropdown */}
+                    {showSearchResults && searchResults.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-[#35315a] border border-[#4a456b] rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto">
+                        {searchResults.map((result) => (
+                          <button
+                            key={result.channel_id}
+                            onClick={() => {
+                              // Navigate to influencer dashboard
+                              window.location.href = selectedPlatform === "youtube" 
+                                ? `/influencers/${result.channel_id}`
+                                : `/telegram-influencer/${result.channel_id}`;
+                            }}
+                            className="w-full text-left px-4 py-3 hover:bg-[#4a456b] transition-colors border-b border-[#4a456b] last:border-b-0 flex items-center gap-3"
+                          >
+                            {result.channel_thumbnails?.high?.url ? (
+                              <Image
+                                src={result.channel_thumbnails.high.url}
+                                alt={result.influencer_name || "Channel"}
+                                width={32}
+                                height={32}
+                                className="w-8 h-8 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center">
+                                <span className="text-xs font-bold text-white">
+                                  {selectedPlatform === "telegram" 
+                                    ? (result.channel_id ? result.channel_id.match(/\b\w/g)?.join("") || "?" : "?")
+                                    : (result.influencer_name ? result.influencer_name.match(/\b\w/g)?.join("") || "?" : "?")
+                                  }
+                                </span>
+                              </div>
+                            )}
+                            <div className="flex-1">
+                              <div className="text-white font-medium">
+                                {selectedPlatform === "telegram" 
+                                  ? (result.channel_id ? result.channel_id.replace(/_/g, " ") : "Unknown")
+                                  : (result.influencer_name ? result.influencer_name.replace(/_/g, " ") : "Unknown")
+                                }
+                              </div>
+                              <div className="text-xs text-gray-400">
+                                Rank {result.rank}
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               {/* First Row */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                 <div className="flex flex-col gap-2">
@@ -394,9 +543,36 @@ export default function InfluencersPage() {
 
       {/* Influencer Cards */}
       <section className="max-w-5xl mx-auto px-4">
-        {loading ? (
-          <div className="text-center text-gray-400 py-8">
-            Loading {selectedPlatform === "youtube" ? "YouTube" : "Telegram"} influencers...
+        {(loading || initialLoad) ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {Array.from({ length: 9 }).map((_, i) => (
+              <div
+                key={`skeleton-${i}`}
+                className="bg-[#232042] rounded-2xl p-8 flex flex-col items-center shadow-lg animate-pulse relative min-h-[200px]"
+              >
+                {/* Placeholder rank badge */}
+                <div className="absolute top-4 right-4 w-16 h-6 bg-[#35315a] rounded-full" />
+                {/* Placeholder avatar */}
+                <div className="w-28 h-28 rounded-full bg-gradient-to-br from-purple-400/50 to-blue-400/50 mb-6 shadow-lg" />
+                {/* Placeholder name */}
+                <div className="h-5 w-32 bg-[#35315a] rounded mb-4" />
+                {/* Placeholder stats */}
+                <div className="grid grid-cols-3 gap-3 w-full mt-auto">
+                  <div className="bg-[#35315a]/30 rounded-lg p-3">
+                    <div className="h-3 w-12 bg-[#35315a] rounded mb-1 mx-auto" />
+                    <div className="h-4 w-8 bg-[#35315a] rounded mx-auto" />
+                  </div>
+                  <div className="bg-[#35315a]/30 rounded-lg p-3">
+                    <div className="h-3 w-12 bg-[#35315a] rounded mb-1 mx-auto" />
+                    <div className="h-4 w-8 bg-[#35315a] rounded mx-auto" />
+                  </div>
+                  <div className="bg-[#35315a]/30 rounded-lg p-3">
+                    <div className="h-3 w-12 bg-[#35315a] rounded mb-1 mx-auto" />
+                    <div className="h-4 w-8 bg-[#35315a] rounded mx-auto" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : error ? (
           <div className="text-center text-red-400 py-8">{error}</div>
@@ -509,33 +685,7 @@ export default function InfluencersPage() {
                     )}
                   </Link>
                 ))
-                : Array.from({
-                  length: selectedPlatform === "youtube" ? 6 : selectedPlatform === "telegram" ? 6 : 3,
-                }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="bg-[#232042] rounded-2xl p-8 flex flex-col items-center shadow-lg animate-pulse relative min-h-[200px]"
-                  >
-                    {/* Placeholder rank badge */}
-                    <div className="absolute top-4 right-4 w-12 h-5 bg-[#35315a] rounded-full" />
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 mb-6 shadow-lg" />
-                    <div className="h-5 w-32 bg-[#35315a] rounded mb-4" />
-                    <div className="grid grid-cols-3 gap-3 w-full mt-auto">
-                      <div className="bg-[#35315a]/30 rounded-lg p-3">
-                        <div className="h-3 w-12 bg-[#35315a] rounded mb-1 mx-auto" />
-                        <div className="h-4 w-8 bg-[#35315a] rounded mx-auto" />
-                      </div>
-                      <div className="bg-[#35315a]/30 rounded-lg p-3">
-                        <div className="h-3 w-12 bg-[#35315a] rounded mb-1 mx-auto" />
-                        <div className="h-4 w-8 bg-[#35315a] rounded mx-auto" />
-                      </div>
-                      <div className="bg-[#35315a]/30 rounded-lg p-3">
-                        <div className="h-3 w-12 bg-[#35315a] rounded mb-1 mx-auto" />
-                        <div className="h-4 w-8 bg-[#35315a] rounded mx-auto" />
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                : null}
             </div>
 
             {/* Pagination Controls */}
