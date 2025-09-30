@@ -20,17 +20,17 @@ export default function RecentActivityTab({ channelID, channelData, youtubeLast5
     console.log("RecentActivities - channelData.youtube_last_5:", channelData?.youtube_last_5);
     console.log("RecentActivities - channelData.last5:", channelData?.last5);
     console.log("RecentActivities - youtubeLast5 prop:", youtubeLast5);
-    
+
     // Priority: 1) youtubeLast5 prop, 2) channelData.youtube_last_5, 3) channelData.last5
-    const videosData = youtubeLast5?.length 
+    const videosData = youtubeLast5?.length
       ? youtubeLast5
-      : (channelData?.youtube_last_5?.length 
-        ? channelData.youtube_last_5 
+      : (channelData?.youtube_last_5?.length
+        ? channelData.youtube_last_5
         : channelData?.youtubeLast5);
-    
+
     if (videosData && videosData.length > 0) {
       console.log("RecentActivities - videosData:", videosData);
-      
+
       const formattedPosts = videosData.map((video, index) => {
         console.log(`Video ${index + 1} mentioned:`, video.mentioned);
         const coinRecommendations = (video.mentioned || []).map((coin) => {
@@ -49,7 +49,7 @@ export default function RecentActivityTab({ channelID, channelData, youtubeLast5
           };
         });
         console.log(`Final coinRecommendations for video ${index + 1}:`, coinRecommendations);
-        
+
         return {
           id: (index + 1),
           title: video.title,
@@ -171,7 +171,7 @@ export default function RecentActivityTab({ channelID, channelData, youtubeLast5
   // Format sentiment - capitalize each word
   const formatSentiment = (sentiment) => {
     if (!sentiment) return 'N/A';
-    return sentiment.replace('_', ' ').split(' ').map(word => 
+    return sentiment.replace('_', ' ').split(' ').map(word =>
       word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
     ).join(' ');
   };
@@ -179,7 +179,7 @@ export default function RecentActivityTab({ channelID, channelData, youtubeLast5
   // Format holding period - capitalize each word and remove hyphens
   const formatHoldingPeriod = (term) => {
     if (!term || term.toLowerCase() === 'no outlook') return 'Not Specified';
-    return term.replace(/-/g, ' ').split(' ').map(word => 
+    return term.replace(/-/g, ' ').split(' ').map(word =>
       word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
     ).join(' ');
   };
@@ -189,11 +189,11 @@ export default function RecentActivityTab({ channelID, channelData, youtubeLast5
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900">
-            {channelData?.influencer_name || "Influencer"} 
+            {channelData?.influencer_name || "Influencer"}
           </h1>
           {rank && (
             <div className="text-xl font-semibold text-white-600 mt-2">
-              Rank : {rank}
+              Rank (180 days/Overall) : {rank}
             </div>
           )}
         </div>
@@ -305,14 +305,27 @@ export default function RecentActivityTab({ channelID, channelData, youtubeLast5
                     {expandedSummaries[post.id] ? '−' : '+'}
                   </button>
                 </div>
-                {expandedSummaries[post.id] && (
-                  <div className="min-h-[96px] mb-2">
-                    <div className="text-xs text-gray-600 leading-tight">
-                      {post.summary || "No summary available"}
-                    </div>
+
+                <div className="min-h-[96px] mb-2">
+                  <div
+                    className={`text-xs text-gray-600 leading-tight transition-all duration-300 ${expandedSummaries[post.id] ? '' : 'line-clamp-4'
+                      }`}
+                  >
+                    {post.summary || "No summary available"}
                   </div>
-                )}
+
+                  {/* Read more / Read less toggle */}
+                  {post.summary && (
+                    <button
+                      onClick={() => toggleSummary(post.id)}
+                      className="mt-1 text-blue-500 hover:text-blue-700 text-xs font-semibold"
+                    >
+                      {expandedSummaries[post.id] ? 'Read less' : 'Read more'}
+                    </button>
+                  )}
+                </div>
               </div>
+
 
               {/* Coins Analysis */}
               <div
@@ -337,44 +350,55 @@ export default function RecentActivityTab({ channelID, channelData, youtubeLast5
                       </thead>
                       <tbody>
                         {(() => {
-                          const coins = expandedPosts[post.id]
-                            ? post.coinRecommendations || []
-                            : (post.coinRecommendations || []).slice(0, 5);
+                          const allCoins = post.coinRecommendations || [];
+                          const displayCoins = expandedPosts[post.id] 
+                            ? allCoins
+                            : allCoins.slice(0, 5);
                           
-                          return coins.map((coin, i) => {
+                          const rows = [];
                           
-                          return (
-                            <tr key={i} className="border-b border-gray-800/50">
-                              <td className="py-1 pr-2 text-center">
-                                {coin ? (
+                          // First, add rows for actual coins with borders
+                          displayCoins.forEach((coin, i) => {
+                            rows.push(
+                              <tr key={i} className="border-b border-gray-800/50">
+                                <td className="py-1 pr-2 text-center">
                                   <span className="text-gray-900" title={coin.symbol}>
                                     {formatCoinName(coin.name || coin.name)}
                                   </span>
-                                ) : (
-                                  <span className="text-transparent">-</span>
-                                )}
-                              </td>
-                              <td className="py-1 pr-2 text-center">
-                                {coin ? (
+                                </td>
+                                <td className="py-1 pr-2 text-center">
                                   <span className={getSentimentColor(coin.sentiment || 'neutral')}>
                                     {formatSentiment(coin.sentiment)}
                                   </span>
-                                ) : (
-                                  <span className="text-transparent">-</span>
-                                )}
-                              </td>
-                              <td className="py-1 text-center">
-                                {coin ? (
+                                </td>
+                                <td className="py-1 text-center">
                                   <span className="text-gray-700">
                                     {formatHoldingPeriod(coin.term)}
                                   </span>
-                                ) : (
+                                </td>
+                              </tr>
+                            );
+                          });
+                          
+                          // Add invisible placeholder rows to maintain fixed height (no borders)
+                          const actualCoinCount = expandedPosts[post.id] ? allCoins.length : Math.min(allCoins.length, 5);
+                          for (let i = actualCoinCount; i < 5; i++) {
+                            rows.push(
+                              <tr key={`placeholder-${i}`} className="">
+                                <td className="py-1 pr-2 text-center">
                                   <span className="text-transparent">-</span>
-                                )}
-                              </td>
-                            </tr>
-                          );
-                        });
+                                </td>
+                                <td className="py-1 pr-2 text-center">
+                                  <span className="text-transparent">-</span>
+                                </td>
+                                <td className="py-1 text-center">
+                                  <span className="text-transparent">-</span>
+                                </td>
+                              </tr>
+                            );
+                          }
+                          
+                          return rows;
                         })()}
                       </tbody>
                     </table>

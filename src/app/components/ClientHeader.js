@@ -28,6 +28,7 @@ export default function ClientHeader() {
     dateEnd: ''
   });
   const [showDropdown, setShowDropdown] = useState(false);
+  const [userCity, setUserCity] = useState('');
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -45,7 +46,14 @@ export default function ClientHeader() {
         dateEnd: localStorage.getItem('dateEnd') || ''
       });
     }
-  }, [pathname]); // Re-check when route changes
+    
+    // Get user's city based on timezone
+    if (useLocalTime) {
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const city = timezone.split('/').pop()?.replace(/_/g, ' ') || 'Local';
+      setUserCity(city);
+    }
+  }, [pathname, useLocalTime]); // Re-check when route changes or timezone changes
 
   useEffect(() => {
     // Close dropdown when clicking outside
@@ -109,29 +117,34 @@ export default function ClientHeader() {
           })}
         </nav>
         
-        {/* Timezone Toggle in Navbar */}
-        <div className="hidden md:flex items-center gap-2 ml-8">
-          <button
-            onClick={toggleTimezone}
-            className={`text-xs px-3 py-1 rounded-full transition ${
-              useLocalTime
-                ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                : 'bg-gray-500/20 text-white border border-gray-500/30 hover:bg-gray-500/30'
-            }`}
-          >
-            Local Time
-          </button>
-          <button
-            onClick={toggleTimezone}
-            className={`text-xs px-3 py-1 rounded-full transition ${
-              !useLocalTime
-                ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                : 'bg-gray-500/20 text-white border border-gray-500/30 hover:bg-gray-500/30'
-            }`}
-          >
-            Default UTC
-          </button>
-        </div>
+        {/* Timezone Toggle in Navbar - Only show when logged in */}
+        {isLoggedIn && (
+          <div className="hidden md:flex items-center gap-2 ml-8">
+            <button
+              onClick={toggleTimezone}
+              className={`text-xs px-3 py-1 rounded-full transition flex flex-col items-center ${
+                useLocalTime
+                  ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                  : 'bg-gray-500/20 text-white border border-gray-500/30 hover:bg-gray-500/30'
+              }`}
+            >
+              <span>Local Time</span>
+              {useLocalTime && userCity && (
+                <span className="text-[10px] opacity-80 mt-0.5">{userCity}</span>
+              )}
+            </button>
+            <button
+              onClick={toggleTimezone}
+              className={`text-xs px-3 py-1 rounded-full transition ${
+                !useLocalTime
+                  ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                  : 'bg-gray-500/20 text-white border border-gray-500/30 hover:bg-gray-500/30'
+              }`}
+            >
+              Default UTC
+            </button>
+          </div>
+        )}
 
         {/* Search + Auth */}
         <div className="flex items-center gap-4 ml-auto">
@@ -200,13 +213,16 @@ export default function ClientHeader() {
                       <div className="flex gap-2">
                         <button
                           onClick={toggleTimezone}
-                          className={`text-xs px-2 py-1 rounded transition ${
+                          className={`text-xs px-2 py-1 rounded transition flex flex-col items-center ${
                             useLocalTime
                               ? 'bg-blue-500/20 text-blue-400'
                               : 'bg-gray-500/20 text-white hover:bg-gray-500/30'
                           }`}
                         >
-                          Local Time
+                          <span>Local Time</span>
+                          {useLocalTime && userCity && (
+                            <span className="text-[10px] opacity-80 mt-0.5">{userCity}</span>
+                          )}
                         </button>
                         <button
                           onClick={toggleTimezone}

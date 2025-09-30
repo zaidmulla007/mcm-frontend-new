@@ -517,7 +517,7 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData, chan
                         {expandedRecommendations && (
                             <tr className="border-b border-gray-100 light-dropdown ">
                                 <td className="py-3 px-4 text-to-purple font-semibold text-sm pl-8">
-                                    Moonshots
+                                    Hyperactivity
                                 </td>
                                 {dynamicColumns.map((column) => {
                                     const hyperactiveMetrics = calculateHyperactiveYearMetrics(column.key);
@@ -536,7 +536,7 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData, chan
                         {expandedRecommendations && (
                             <tr className="border-b border-gray-100 light-dropdown ">
                                 <td className="py-3 px-4 text-to-purple font-semibold text-sm pl-8">
-                                    Without Moonshots
+                                    Non Hyperactivity
                                 </td>
                                 {dynamicColumns.map((column) => {
                                     const normalMetrics = calculateNormalYearMetrics(column.key);
@@ -628,7 +628,7 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData, chan
                         {expandedWinLoss && (
                             <tr className="light-hyper-activity-row light-dropdown ">
                                 <td className="light-hyper-activity-header">
-                                    Moonshots
+                                    Hyperactivity
                                 </td>
                                 {dynamicColumns.map((column) => {
                                     const hyperactiveMetrics = calculateHyperactiveYearMetrics(column.key);
@@ -686,7 +686,7 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData, chan
                         {expandedWinLoss && (
                             <tr className="light-without-hyper-row light-dropdown ">
                                 <td className="light-without-hyper-header">
-                                    Without Moonshots
+                                    Non Hyperactivity
                                 </td>
                                 {dynamicColumns.map((column) => {
                                     const normalMetrics = calculateNormalYearMetrics(column.key);
@@ -821,7 +821,7 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData, chan
                         {expandedAverageReturn && (
                             <tr className="border-b border-gray-100 light-dropdown ">
                                 <td className="py-3 px-4 text-to-purple font-semibold text-sm pl-8">
-                                   Moonshots
+                                   Hyperactivity
                                 </td>
 
                                 {dynamicColumns.map((column) => {
@@ -882,7 +882,7 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData, chan
                         {expandedAverageReturn && (
                             <tr className="border-b border-gray-100 light-dropdown ">
                                 <td className="py-3 px-4 text-to-purple font-semibold text-sm pl-8">
-                                    Without Moonshots
+                                    Non Hyperactivity
                                 </td>
 
                                 {dynamicColumns.map((column) => {

@@ -1,5 +1,5 @@
 "use client";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState, Fragment } from "react";
 import axios from "../../api/axios";
 import { useTimezone } from "../../contexts/TimezoneContext";
@@ -43,6 +43,7 @@ export default function InfluencerProfilePage() {
   const [selectedPeriod, setSelectedPeriod] = useState("");
   const [selectedMetricsYear, setSelectedMetricsYear] = useState(new Date().getFullYear().toString());
   const params = useParams();
+  const searchParams = useSearchParams();
   const channelID = params.id;
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
@@ -115,6 +116,15 @@ export default function InfluencerProfilePage() {
       getChannelData();
     }
   }, [channelID]);
+
+  // Handle tab query parameter
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && TABS.find(t => t.value === tabParam)) {
+      setTab(tabParam);
+    }
+  }, [searchParams]);
+
   const quarterLabels = {
     q1: "Jan - Mar (Q1)",
     q2: "Apr - Jun (Q2)",
@@ -1674,17 +1684,17 @@ export default function InfluencerProfilePage() {
                 {(() => {
                   // Prepare data for charts
                   const currentYear = new Date().getFullYear().toString();
-                  
+
                   // Extract data from API - based on console logs, data is directly under channelData
                   const overallData = channelData?.Yearly || {};
                   const moonshotsData = channelData?.hyperactive?.Yearly || {};
                   const normalData = channelData?.normal?.Yearly || {};
-                  
+
                   // Debug logs
                   console.log('Debug - overallData sample:', overallData['2023']);
                   console.log('Debug - moonshotsData sample:', moonshotsData['2023']);
                   console.log('Debug - normalData sample:', normalData['2023']);
-                  
+
                   // Helper function to transform API data to chart format
                   const transformYearlyData = (yearlyData) => {
                     if (!yearlyData) return [];
@@ -1710,14 +1720,14 @@ export default function InfluencerProfilePage() {
                       data: transformYearlyData(overallData)
                     },
                     {
-                      key: 'without_moonshots',
-                      label: 'Without Moonshots',
-                      data: transformYearlyData(normalData)
+                      key: 'with_moonshots',
+                      label: 'Hyperactivity',
+                      data: transformYearlyData(moonshotsData)
                     },
                     {
-                      key: 'with_moonshots',
-                      label: 'Moonshots',
-                      data: transformYearlyData(moonshotsData)
+                      key: 'without_moonshots',
+                      label: 'Non Hyperactivity',
+                      data: transformYearlyData(normalData)
                     },
                   ];
                   // Format data for charts
@@ -1737,7 +1747,7 @@ export default function InfluencerProfilePage() {
                   const explanations = [
                     {
                       title: "Understanding the Categories",
-                      content: "Overall represents the total recommendations across all types. With Moonshots includes recommendations that are considered high-risk, high-reward opportunities. Without Moonshots excludes these high-risk recommendations."
+                      content: "Overall represents the total recommendations across all types.Hyperactivity includes recommendations that are considered high-risk, high-reward opportunities. Non Hyperactivity excludes these high-risk recommendations."
                     }
                   ];
                   return (

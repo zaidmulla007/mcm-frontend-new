@@ -556,7 +556,7 @@ export default function Login() {
       return;
     }
 
-    // For login, validate phone number and send OTP if needed
+    // For login, validate phone number and call fetchOTP API
     if (isLogin) {
       if (!formData.phoneNumber) {
         Swal.fire({
@@ -592,6 +592,82 @@ export default function Login() {
           color: '#ffffff'
         });
         return;
+      }
+
+      // Call fetchOTP API for login
+      const fullPhoneNumber = `${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}`;
+      
+      try {
+        const response = await fetch('/api/auth/fetchOTP', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username: fullPhoneNumber
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+
+          if (data.success) {
+            // Store all the response data in localStorage
+            localStorage.setItem('accessToken', data.accessToken);
+            localStorage.setItem('userId', data._id);
+            localStorage.setItem('username', data.user.username);
+            localStorage.setItem('email', data.user.email);
+            localStorage.setItem('roles', JSON.stringify(data.user.roles));
+            localStorage.setItem('user', JSON.stringify(data.user));
+            localStorage.setItem('dbUser', JSON.stringify(data.dbUser));
+            localStorage.setItem('message', data.message);
+
+            // Store additional user details
+            if (data.user) {
+              localStorage.setItem('userName', data.user.name || '');
+              localStorage.setItem('userFirstName', data.user.fname || '');
+              localStorage.setItem('userLastName', data.user.lname || '');
+              localStorage.setItem('userStatus', data.user.status || '');
+              localStorage.setItem('userMobile', data.user.mobile || '');
+              localStorage.setItem('userEmail', data.user.email || '');
+              localStorage.setItem('userData', JSON.stringify(data.user));
+              localStorage.setItem('dateStart', data.user.dateStart || '');
+              localStorage.setItem('dateEnd', data.user.dateEnd || '');
+            }
+
+            // Show OTP input
+            setIsOtpSent(true);
+            setTimer(60);
+            setOtpSentTo('whatsapp');
+            
+            Swal.fire({
+              title: 'OTP Sent!',
+              text: data.message,
+              icon: 'success',
+              confirmButtonText: 'OK',
+              confirmButtonColor: '#8b5cf6',
+              background: '#232042',
+              color: '#ffffff'
+            });
+          } else {
+            throw new Error(data.message || 'Failed to send OTP');
+          }
+        } else {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to send OTP');
+        }
+      } catch (error) {
+        console.error('FetchOTP error:', error);
+        
+        Swal.fire({
+          title: 'Error!',
+          text: error.message || 'Failed to send OTP. Please try again.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#8b5cf6',
+          background: '#232042',
+          color: '#ffffff'
+        });
       }
     }
   };

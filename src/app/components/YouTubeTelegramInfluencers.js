@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import moment from "moment-timezone";
+import Link from "next/link";
 // Custom timezone abbreviations mapping
 const timeZoneAbbreviations = {
     // India
@@ -100,6 +101,7 @@ export default function YouTubeTelegramInfluencers() {
     const [expandedMarketing, setExpandedMarketing] = useState({});
     const [hoveredPost, setHoveredPost] = useState(null);
     const [apiData, setApiData] = useState(null);
+
 
     // Toggle summary expansion
     const toggleSummary = (postId) => {
@@ -228,6 +230,7 @@ export default function YouTubeTelegramInfluencers() {
 
         return {
             id: isYoutube ? item.youtube_oid : item.telegram_oid,
+            channelID: item.channelID,
             title: isYoutube ? item.title : (item.message ? (item.message.substring(0, 50) + (item.message.length > 50 ? '...' : '')) : "No title"),
             date: item.publishedAt,
             publishedAt: item.publishedAt,
@@ -464,15 +467,58 @@ export default function YouTubeTelegramInfluencers() {
 
                             {/* Post Header */}
                             <div className="p-3 border-b border-gray-700">
-                                <div className="text-sm font-bold text-white-400 mb-2">Name : {post.channel_name}
+                                {/* Influencer Name Link */}
+                                <div className="text-sm font-bold text-white-400 mb-2">
+                                    Name : 
+                                    <a
+                                        href={
+                                            post.platform === "YouTube"
+                                                ? `/influencers/${post.channelID}`
+                                                : `/telegram-influencer/${post.channelID}`
+                                        }
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="ml-1 text-white-400 hover:text-white hover:underline cursor-pointer transition-colors duration-200"
+                                    >
+                                        {post.channel_name}
+                                    </a>
                                 </div>
-                                <div className="text-sm font-bold text-white-400 mb-2">Rank : {post.rank}
+                                
+                                {/* Rank Link */}
+                                <div className="text-sm font-bold text-white-400 mb-2">
+                                    Rank (180 days/Overall): 
+                                    <a
+                                        href={
+                                            post.platform === "YouTube"
+                                                ? `/influencers/${post.channelID}`
+                                                : `/telegram-influencer/${post.channelID}`
+                                        }
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="ml-1 text-white-400 hover:text-white hover:underline cursor-pointer transition-colors duration-200"
+                                    >
+                                        {post.rank}
+                                    </a>
                                 </div>
+                                
+                                {/* Post Title Link */}
                                 <div className="min-h-[40px] mb-2">
-                                    <div className={`text-sm font-medium text-white ${expandedTitles[post.id] ? '' : 'line-clamp-2'}`} title={post.title}>
-                                        {post.title}
-                                    </div>
+                                    <a
+                                        href={
+                                            post.platform === "YouTube"
+                                                ? `/influencers/${post.channelID}?tab=recentActivities`
+                                                : `/telegram-influencer/${post.channelID}?tab=recentActivities`
+                                        }
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="block text-white-400 hover:text-white hover:underline cursor-pointer transition-colors duration-200"
+                                    >
+                                        <div className={`text-sm font-medium ${expandedTitles[post.id] ? '' : 'line-clamp-2'}`} title={post.title}>
+                                            {post.title}
+                                        </div>
+                                    </a>
                                 </div>
+                                
                                 <div className="h-6 mb-2">
                                     {post.title.length > 80 && (
                                         <button
@@ -557,14 +603,27 @@ export default function YouTubeTelegramInfluencers() {
                                         {expandedSummaries[post.id] ? '−' : '+'}
                                     </button>
                                 </div>
-                                {expandedSummaries[post.id] && (
-                                    <div className="min-h-[96px] mb-2">
-                                        <div className="text-xs text-gray-300 leading-tight">
-                                            {post.summary || "No summary available"}
-                                        </div>
+
+                                <div className="min-h-[96px] mb-2">
+                                    <div
+                                        className={`text-xs text-gray-300 leading-tight transition-all duration-300 ${expandedSummaries[post.id] ? '' : 'line-clamp-4'
+                                            }`}
+                                    >
+                                        {post.summary || "No summary available"}
                                     </div>
-                                )}
+
+                                    {/* Read more / Read less */}
+                                    {post.summary && (
+                                        <button
+                                            onClick={() => toggleSummary(post.id)}
+                                            className="mt-1 text-blue-400 hover:text-blue-300 text-xs font-semibold"
+                                        >
+                                            {expandedSummaries[post.id] ? 'Read less' : 'Read more'}
+                                        </button>
+                                    )}
+                                </div>
                             </div>
+
 
 
                             {/* Coins Analysis */}

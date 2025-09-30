@@ -19,14 +19,14 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
     console.log("TelegramRecentActivities - channelData:", channelData);
     console.log("TelegramRecentActivities - channelID:", channelID);
     console.log("TelegramRecentActivities - telegramLast5 prop:", telegramLast5);
-    
+
     // Priority: 1) telegramLast5 prop, 2) channelData.telegram_last_5, 3) channelData.last5 (for backward compatibility)
-    const messagesData = telegramLast5?.length 
+    const messagesData = telegramLast5?.length
       ? telegramLast5
-      : (channelData?.telegram_last_5?.length 
-        ? channelData.telegram_last_5 
+      : (channelData?.telegram_last_5?.length
+        ? channelData.telegram_last_5
         : (channelData?.telegramLast5 || null));
-    
+
     if (messagesData) {
       const formattedPosts = messagesData.map((message, index) => ({
         id: index + 1,
@@ -46,8 +46,8 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
           price: coin.price
         })),
         messageUrl: `https://t.me/${message.channelID || channelID}/${message.messageID}`,
-        outlook: message.mentioned && message.mentioned.length > 0 ? 
-          message.mentioned[0].cryptoRecommendationType || message.mentioned[0].view || "short-term" : 
+        outlook: message.mentioned && message.mentioned.length > 0 ?
+          message.mentioned[0].cryptoRecommendationType || message.mentioned[0].view || "short-term" :
           "short-term",
         actionableInsights: message.actionableInsights,
         buyingPriceZone: message.buyingPriceZone,
@@ -161,7 +161,7 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
   // Format sentiment - capitalize each word
   const formatSentiment = (sentiment) => {
     if (!sentiment) return 'N/A';
-    return sentiment.replace('_', ' ').split(' ').map(word => 
+    return sentiment.replace('_', ' ').split(' ').map(word =>
       word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
     ).join(' ');
   };
@@ -169,7 +169,7 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
   // Format holding period - capitalize each word and remove hyphens
   const formatHoldingPeriod = (term) => {
     if (!term || term.toLowerCase() === 'no outlook') return 'Not Specified';
-    return term.replace(/-/g, ' ').split(' ').map(word => 
+    return term.replace(/-/g, ' ').split(' ').map(word =>
       word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
     ).join(' ');
   };
@@ -183,7 +183,7 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
           </h1>
           {rank && (
             <div className="text-xl font-semibold text-white-600 mt-2">
-              Rank : {rank}
+              Rank (180 days/Overall) : {rank}
             </div>
           )}
         </div>
@@ -299,14 +299,27 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
                     {expandedSummaries[post.id] ? '−' : '+'}
                   </button>
                 </div>
-                {expandedSummaries[post.id] && (
-                  <div className="min-h-[96px] mb-2">
-                    <div className="text-xs text-gray-600 leading-tight">
-                      {post.summary || "No summary available"}
-                    </div>
+
+                <div className="min-h-[96px] mb-2">
+                  <div
+                    className={`text-xs text-gray-600 leading-tight transition-all duration-300 ${expandedSummaries[post.id] ? '' : 'line-clamp-4'
+                      }`}
+                  >
+                    {post.summary || "No summary available"}
                   </div>
-                )}
+
+                  {/* Read more / Read less */}
+                  {post.summary && (
+                    <button
+                      onClick={() => toggleSummary(post.id)}
+                      className="mt-1 text-blue-500 hover:text-blue-700 text-xs font-semibold"
+                    >
+                      {expandedSummaries[post.id] ? 'Read less' : 'Read more'}
+                    </button>
+                  )}
+                </div>
               </div>
+
 
               {/* Coins Analysis */}
               <div
@@ -334,7 +347,7 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
                           const coins = expandedPosts[post.id]
                             ? post.coinRecommendations || []
                             : (post.coinRecommendations || []).slice(0, 5);
-                          
+
                           const rows = [];
                           for (let i = 0; i < 5; i++) {
                             const coin = coins[i];

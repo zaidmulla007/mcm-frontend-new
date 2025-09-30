@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, Fragment } from "react";
+import { useSearchParams } from "next/navigation";
 import TelegramInfluencerProfileHeader from "./TelegramInfluencerProfileHeader";
 import GaugeComponent from "react-gauge-component";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, ResponsiveContainer } from 'recharts';
@@ -13,11 +14,19 @@ import { useTimezone } from "../../contexts/TimezoneContext";
 
 export default function TelegramInfluencerProfile({ channelId }) {
   const { useLocalTime, formatDate } = useTimezone();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("overview");
   const [channelData, setChannelData] = useState(null);
   const [telegramLast5, setTelegramLast5] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const tabs = [
+    { id: "overview", label: "Overview" },
+    { id: "performance", label: "Performance Summary" },
+    { id: "recommendations", label: "Recommendations" },
+    { id: "recentActivities", label: "Recent Activities" }
+  ];
 
   // Fetch Telegram data
   useEffect(() => {
@@ -33,7 +42,7 @@ export default function TelegramInfluencerProfile({ channelId }) {
         }
 
         const data = await response.json();
-        
+
         let last5 = data?.telegram_last_5 || [];
 
         if (!data) throw new Error("No data found in response");
@@ -51,12 +60,13 @@ export default function TelegramInfluencerProfile({ channelId }) {
     fetchTelegramData();
   }, [channelId]);
 
-  const tabs = [
-    { id: "overview", label: "Overview" },
-    { id: "performance", label: "Performance Summary" },
-    { id: "recommendations", label: "Recommendations" },
-    { id: "recentActivities", label: "Recent Activities" }
-  ];
+  // Handle tab query parameter
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && tabs.find(t => t.id === tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   if (loading) {
     return (
@@ -123,7 +133,7 @@ export default function TelegramInfluencerProfile({ channelId }) {
           <PerformanceTab channelData={channelData} />
         )}
         {activeTab === "recommendations" && (
-          <RecommendationsTab channelData={channelData} />
+          <RecommendationsTab channelData={channelData} formatDate={formatDate} />
         )}
         {activeTab === "recentActivities" && (
           <TelegramRecentActivities channelID={channelId} channelData={channelData} telegramLast5={telegramLast5} rank={channelData?.rank} />
@@ -614,12 +624,12 @@ function OverviewTab({ channelData }) {
               },
               {
                 key: 'with_moonshots',
-                label: 'With Moonshots',
+                label: 'Hyperactivity',
                 data: transformData(moonshotsData)
               },
               {
                 key: 'without_moonshots',
-                label: 'Without Moonshots',
+                label: 'Non Hyperactivity',
                 data: transformData(normalData)
               }
             ];
@@ -634,7 +644,7 @@ function OverviewTab({ channelData }) {
             const explanations = [
               {
                 title: "Understanding the Categories",
-                content: "Overall represents the total recommendations across all types. With Moonshots includes recommendations that are considered high-risk, high-reward opportunities. Without Moonshots excludes these high-risk recommendations."
+                content: "Overall represents the total recommendations across all types. Hyperactivity includes recommendations that are considered high-risk, high-reward opportunities. Non Hyperactivity excludes these high-risk recommendations."
               }
             ];
 
@@ -1810,7 +1820,7 @@ function PerformanceTab({ channelData }) {
             {expandedRecommendations && (
               <tr className="border-b border-gray-100 light-dropdown">
                 <td className="py-3 px-4 text-to-purple font-semibold text-sm pl-8">
-                  Moonshots
+                  Hyperactivity
                 </td>
                 {dynamicColumns.map((column) => {
                   const metrics = calculateYearMetrics(column.key);
@@ -1831,7 +1841,7 @@ function PerformanceTab({ channelData }) {
             {expandedRecommendations && (
               <tr className="border-b border-gray-100 light-dropdown">
                 <td className="py-3 px-4 text-to-purple font-semibold text-sm pl-8">
-                  Without Moonshots
+                  Non Hyperactivity
                 </td>
                 {dynamicColumns.map((column) => {
                   const metrics = calculateYearMetrics(column.key);
@@ -1925,7 +1935,7 @@ function PerformanceTab({ channelData }) {
             {expandedWinLoss && (
               <tr className="border-b border-gray-100 light-dropdown">
                 <td className="py-3 px-4 text-to-purple font-semibold text-sm pl-8">
-                  Moonshots
+                  Hyperactivity
                 </td>
                 {dynamicColumns.map((column) => {
                   const metrics = calculateYearMetrics(column.key);
@@ -1980,7 +1990,7 @@ function PerformanceTab({ channelData }) {
             {expandedWinLoss && (
               <tr className="border-b border-gray-100 light-dropdown">
                 <td className="py-3 px-4 text-to-purple font-semibold text-sm pl-8">
-                  Without Moonshots
+                  Non Hyperactivity
                 </td>
                 {dynamicColumns.map((column) => {
                   const metrics = calculateYearMetrics(column.key);
@@ -2111,7 +2121,7 @@ function PerformanceTab({ channelData }) {
             {expandedAverageReturn && (
               <tr className="border-b border-gray-100 light-dropdown">
                 <td className="py-3 px-4 text-to-purple font-semibold text-sm pl-8">
-                  Moonshots
+                  Hyperactivity
                 </td>
                 {dynamicColumns.map((column) => {
                   const metrics = calculateYearMetrics(column.key);
@@ -2169,7 +2179,7 @@ function PerformanceTab({ channelData }) {
             {expandedAverageReturn && (
               <tr className="border-b border-gray-100 light-dropdown">
                 <td className="py-3 px-4 text-to-purple font-semibold text-sm pl-8">
-                  Without Moonshots
+                  Non Hyperactivity
                 </td>
                 {dynamicColumns.map((column) => {
                   const metrics = calculateYearMetrics(column.key);
@@ -2230,7 +2240,7 @@ function PerformanceTab({ channelData }) {
 }
 
 // Recommendations Tab Component
-function RecommendationsTab({ channelData }) {
+function RecommendationsTab({ channelData, formatDate }) {
   const [recommendationsData, setRecommendationsData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
@@ -2927,6 +2937,6 @@ function RecommendationsTab({ channelData }) {
         </div>
       )}
     </div>
-    
+
   );
 }

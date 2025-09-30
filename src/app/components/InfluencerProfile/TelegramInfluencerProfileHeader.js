@@ -120,7 +120,7 @@ export default function TelegramInfluencerProfileHeader({ channelData }) {
               </div>
 
               {/* Message Counts */}
-              <div className="flex flex-col sm:flex-row gap-4 text-sm text-gray-400 mt-3">
+              {/* <div className="flex flex-col sm:flex-row gap-4 text-sm text-gray-400 mt-3">
                 <div className="flex items-center gap-2">
                   <span>📊 Total Posts:</span>
                   <span className="text-white font-semibold">
@@ -139,10 +139,10 @@ export default function TelegramInfluencerProfileHeader({ channelData }) {
                     {(channelData.results?.Overall?.total_coins || 0).toLocaleString()}
                   </span>
                 </div>
-              </div>
+              </div> */}
 
               {/* Sentiment Distribution */}
-              <div className="flex flex-col sm:flex-row gap-4 text-sm text-gray-400 mt-2">
+              {/* <div className="flex flex-col sm:flex-row gap-4 text-sm text-gray-400 mt-2">
                 <div className="flex items-center gap-2">
                   <span>📈 Bullish Calls:</span>
                   <span className="text-green-400 font-semibold">
@@ -161,7 +161,7 @@ export default function TelegramInfluencerProfileHeader({ channelData }) {
                     {(channelData.results?.Overall?.neutral_count || 0).toLocaleString()}
                   </span>
                 </div>
-              </div>
+              </div> */}
             </div>
 
             {/* Heart Icon for Desktop View */}

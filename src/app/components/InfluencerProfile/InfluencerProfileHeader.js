@@ -143,7 +143,7 @@ export default function InfluencerProfileHeader({ channelData }) {
                 </div>
               </div>
               {/* Video Counts */}
-              <div className="flex flex-col sm:flex-row gap-4 text-sm text-gray-400 mt-3">
+              {/* <div className="flex flex-col sm:flex-row gap-4 text-sm text-gray-400 mt-3">
                 <div className="flex items-center gap-2">
                   <span>📊 Total No of Videos:</span>
                   <span className="text-white font-semibold">
@@ -156,7 +156,7 @@ export default function InfluencerProfileHeader({ channelData }) {
                     {(channelData.crypto_related || 0).toLocaleString()}
                   </span>
                 </div>
-              </div>
+              </div> */}
             </div>
             {/* Heart Icon for Desktop View */}
             <div className="hidden md:flex flex-col items-center md:items-end relative">
