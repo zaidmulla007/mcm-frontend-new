@@ -429,6 +429,7 @@ export default function Login() {
     return password.length >= 8;
   };
 
+
   const handleSendOtp = async () => {
     // For signup, validate form and show OTP input
     if (!isLogin) {
@@ -484,84 +485,117 @@ export default function Login() {
         return;
       }
 
-      // All validations passed, call signup API
-      const fullPhoneNumber = `${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}`;
+      // All validations passed, show confirmation dialog
+      const fullPhoneNumber = `${selectedCountry.dial_code}${formData.phoneNumber}`;
       
-      try {
-        const response = await fetch('/api/auth/signup', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            fname: formData.firstName,
-            lname: formData.lastName,
-            phonenumber: fullPhoneNumber,
-            email: formData.email,
-            username: fullPhoneNumber
-          })
-        });
+      Swal.fire({
+        title: 'Confirm Details',
+        html: `
+          <div style="text-align: left; padding: 20px;">
+            <p style="font-size: 16px; margin-bottom: 15px; color: #fff;">Please confirm your details:</p>
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+              <p style="margin: 5px 0; font-size: 14px;"><strong>Email:</strong> ${formData.email}</p>
+              <p style="margin: 5px 0; font-size: 14px;"><strong>WhatsApp:</strong> ${fullPhoneNumber}</p>
+            </div>
+            <p style="font-size: 14px; color: #ccc;">OTP will be sent to your WhatsApp number</p>
+          </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes! Send OTP',
+        cancelButtonText: 'No! Edit Details',
+        confirmButtonColor: '#8b5cf6',
+        cancelButtonColor: '#6b7280',
+        background: '#232042',
+        color: '#ffffff'
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          // User confirmed, proceed with API call
+          const apiPhoneNumber = `${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}`;
+          
+          try {
+            const response = await fetch('/api/auth/signup', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                fname: formData.firstName,
+                lname: formData.lastName,
+                phonenumber: apiPhoneNumber,
+                email: formData.email,
+                username: apiPhoneNumber
+              })
+            });
 
-        if (response.ok) {
-          const data = await response.json();
+            if (response.ok) {
+              const data = await response.json();
 
-          if (data.success) {
-            // Store user data in localStorage after signup
-            localStorage.setItem('accessToken', data.accessToken);
-            localStorage.setItem('userId', data._id);
-            localStorage.setItem('username', data.user.username);
-            localStorage.setItem('email', data.user.email);
-            localStorage.setItem('roles', JSON.stringify(data.roles));
-            localStorage.setItem('user', JSON.stringify(data.user));
-            localStorage.setItem('dbRole', JSON.stringify(data.dbRole));
-            localStorage.setItem('message', data.message);
+              if (data.success) {
+                // Store user data in localStorage after signup
+                localStorage.setItem('accessToken', data.accessToken);
+                localStorage.setItem('userId', data._id);
+                localStorage.setItem('username', data.user.username);
+                localStorage.setItem('email', data.user.email);
+                localStorage.setItem('roles', JSON.stringify(data.roles));
+                localStorage.setItem('user', JSON.stringify(data.user));
+                localStorage.setItem('dbRole', JSON.stringify(data.dbRole));
+                localStorage.setItem('message', data.message);
 
-            // Show OTP input after successful signup
-            setIsOtpSent(true);
-            setTimer(60);
+                // Show OTP input after successful signup
+                setIsOtpSent(true);
+                setTimer(60);
+                setOtpSentTo('whatsapp');
+                
+                Swal.fire({
+                  title: 'OTP Sent!',
+                  text: `Please enter the OTP sent to your WhatsApp number ${selectedCountry.dial_code}${formData.phoneNumber}`,
+                  icon: 'success',
+                  confirmButtonText: 'OK',
+                  confirmButtonColor: '#8b5cf6',
+                  background: '#232042',
+                  color: '#ffffff'
+                });
+              } else {
+                throw new Error(data.message || 'Signup failed');
+              }
+            } else {
+              // Parse error response
+              const errorData = await response.json();
+              throw new Error(errorData.message || 'Signup failed');
+            }
+          } catch (error) {
+            console.error('Signup error:', error);
+            
+            // Try to parse additional error details if available
+            let errorMessage = error.message || 'Please try again';
             
             Swal.fire({
-              title: '🎉 Registration Successful!',
-              text: `Welcome ${formData.firstName}! Please enter the OTP sent to your WhatsApp.`,
-              icon: 'success',
+              title: 'Signup Failed!',
+              text: errorMessage,
+              icon: 'error',
               confirmButtonText: 'OK',
               confirmButtonColor: '#8b5cf6',
               background: '#232042',
               color: '#ffffff'
             });
-          } else {
-            throw new Error(data.message || 'Signup failed');
           }
-        } else {
-          // Parse error response
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Signup failed');
         }
-      } catch (error) {
-        console.error('Signup error:', error);
-        
-        // Try to parse additional error details if available
-        let errorMessage = error.message || 'Please try again';
-        
-        Swal.fire({
-          title: 'Signup Failed!',
-          text: errorMessage,
-          icon: 'error',
-          confirmButtonText: 'OK',
-          confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff'
-        });
-      }
+        // If user cancels, do nothing - let them edit details
+      });
       return;
     }
 
-    // For login, validate phone number and call fetchOTP API
+    // For login, validate phone number or email and call fetchOTP API
     if (isLogin) {
-      if (!formData.phoneNumber) {
+      const hasValidPhone = formData.phoneNumber && validatePhoneNumber(formData.phoneNumber, selectedCountry.code);
+      const hasValidEmail = formData.email && validateEmail(formData.email);
+
+      // Check if either phone or email is provided
+      if (!formData.phoneNumber && !formData.email) {
         Swal.fire({
-          title: 'Phone Number Required!',
-          text: 'Please enter your phone number to proceed with login.',
+          title: 'Input Required!',
+          text: 'Please enter your phone number or email to proceed with login.',
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
@@ -571,11 +605,12 @@ export default function Login() {
         return;
       }
 
-      if (!validatePhoneNumber(formData.phoneNumber, selectedCountry.code)) {
+      // Validate phone number if provided
+      if (formData.phoneNumber && !hasValidPhone) {
         const lengths = getPhoneNumberLength(selectedCountry.code);
         const phoneLength = formData.phoneNumber.length;
         let errorMessage = `Please enter a valid ${selectedCountry.name} phone number.`;
-        
+
         if (phoneLength < lengths.min) {
           errorMessage = `Phone number should have at least ${lengths.min} digits for ${selectedCountry.name}.`;
         } else if (phoneLength > lengths.max) {
@@ -594,9 +629,28 @@ export default function Login() {
         return;
       }
 
-      // Call fetchOTP API for login
-      const fullPhoneNumber = `${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}`;
-      
+      // Validate email if provided
+      if (formData.email && !hasValidEmail) {
+        Swal.fire({
+          title: 'Invalid Email!',
+          text: 'Please enter a valid email address.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#8b5cf6',
+          background: '#232042',
+          color: '#ffffff'
+        });
+        return;
+      }
+
+      // Determine username based on what user entered
+      let username;
+      if (hasValidPhone) {
+        username = `${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}`;
+      } else if (hasValidEmail) {
+        username = formData.email;
+      }
+
       try {
         const response = await fetch('/api/auth/fetchOTP', {
           method: 'POST',
@@ -604,70 +658,68 @@ export default function Login() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            username: fullPhoneNumber
+            username: username
           })
         });
 
-        if (response.ok) {
-          const data = await response.json();
+        const data = await response.json();
 
-          if (data.success) {
-            // Store all the response data in localStorage
-            localStorage.setItem('accessToken', data.accessToken);
-            localStorage.setItem('userId', data._id);
-            localStorage.setItem('username', data.user.username);
-            localStorage.setItem('email', data.user.email);
-            localStorage.setItem('roles', JSON.stringify(data.user.roles));
-            localStorage.setItem('user', JSON.stringify(data.user));
-            localStorage.setItem('dbUser', JSON.stringify(data.dbUser));
-            localStorage.setItem('message', data.message);
+        if (data.success) {
+          // Store all the response data in localStorage
+          localStorage.setItem('accessToken', data.accessToken);
+          localStorage.setItem('userId', data._id);
+          localStorage.setItem('username', data.user.username);
+          localStorage.setItem('email', data.user.email);
+          localStorage.setItem('roles', JSON.stringify(data.user.roles));
+          localStorage.setItem('user', JSON.stringify(data.user));
+          localStorage.setItem('dbUser', JSON.stringify(data.dbUser));
+          localStorage.setItem('message', data.message);
 
-            // Store additional user details
-            if (data.user) {
-              localStorage.setItem('userName', data.user.name || '');
-              localStorage.setItem('userFirstName', data.user.fname || '');
-              localStorage.setItem('userLastName', data.user.lname || '');
-              localStorage.setItem('userStatus', data.user.status || '');
-              localStorage.setItem('userMobile', data.user.mobile || '');
-              localStorage.setItem('userEmail', data.user.email || '');
-              localStorage.setItem('userData', JSON.stringify(data.user));
-              localStorage.setItem('dateStart', data.user.dateStart || '');
-              localStorage.setItem('dateEnd', data.user.dateEnd || '');
-            }
-
-            // Show OTP input
-            setIsOtpSent(true);
-            setTimer(60);
-            setOtpSentTo('whatsapp');
-            
-            Swal.fire({
-              title: 'OTP Sent!',
-              text: data.message,
-              icon: 'success',
-              confirmButtonText: 'OK',
-              confirmButtonColor: '#8b5cf6',
-              background: '#232042',
-              color: '#ffffff'
-            });
-          } else {
-            throw new Error(data.message || 'Failed to send OTP');
+          // Store additional user details
+          if (data.user) {
+            localStorage.setItem('userName', data.user.name || '');
+            localStorage.setItem('userFirstName', data.user.fname || '');
+            localStorage.setItem('userLastName', data.user.lname || '');
+            localStorage.setItem('userStatus', data.user.status || '');
+            localStorage.setItem('userMobile', data.user.mobile || '');
+            localStorage.setItem('userEmail', data.user.email || '');
+            localStorage.setItem('userData', JSON.stringify(data.user));
+            localStorage.setItem('dateStart', data.user.dateStart || '');
+            localStorage.setItem('dateEnd', data.user.dateEnd || '');
           }
+
+          // Show OTP input
+          setIsOtpSent(true);
+          setTimer(60);
+          setOtpSentTo('whatsapp');
+
+          Swal.fire({
+            title: 'OTP Sent!',
+            text: data.message,
+            icon: 'success',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#8b5cf6',
+            background: '#232042',
+            color: '#ffffff'
+          });
         } else {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to send OTP');
+          // Show error message from API for unregistered users
+          Swal.fire({
+            title: 'Login Failed!',
+            text: data.message || 'We could not log you in, please check your credentials.',
+            icon: 'error',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#8b5cf6',
+            background: '#232042',
+            color: '#ffffff'
+          });
         }
       } catch (error) {
         console.error('FetchOTP error:', error);
-        
-        // Extract the actual error message from the API response
-        let errorMessage = 'Failed to send OTP. Please try again.';
-        if (error.message && error.message !== 'HTTP request failed') {
-          errorMessage = error.message;
-        }
-        
+
         Swal.fire({
           title: 'Error!',
-          text: errorMessage,
+          text: 'Something went wrong. Please try again.',
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
@@ -753,7 +805,7 @@ export default function Login() {
           throw new Error('Login failed');
         }
       } else {
-        // For signup verification, use signin API with phone + OTP
+        // For signup verification, just verify OTP with signin API (signup already done)
         const response = await fetch('/api/auth/signin', {
           method: 'POST',
           headers: {
@@ -933,7 +985,21 @@ export default function Login() {
       const hasValidPhone = formData.phoneNumber && validatePhoneNumber(formData.phoneNumber, selectedCountry.code);
       const hasValidEmail = formData.email && validateEmail(formData.email);
 
-      // Check if user entered phone but it's invalid
+      // Check if either phone or email is provided
+      if (!formData.phoneNumber && !formData.email) {
+        Swal.fire({
+          title: 'Input Required!',
+          text: 'Please enter your phone number or email to proceed with login.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#8b5cf6',
+          background: '#232042',
+          color: '#ffffff'
+        });
+        return;
+      }
+
+      // Validate phone number if provided
       if (formData.phoneNumber && !hasValidPhone) {
         const lengths = getPhoneNumberLength(selectedCountry.code);
         const phoneLength = formData.phoneNumber.length;
@@ -964,10 +1030,11 @@ export default function Login() {
         return;
       }
 
-      if (!hasValidPhone) {
+      // Validate email if provided
+      if (formData.email && !hasValidEmail) {
         Swal.fire({
-          title: 'Error!',
-          text: 'Please enter a valid WhatsApp number',
+          title: 'Invalid Email!',
+          text: 'Please enter a valid email address.',
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
@@ -977,55 +1044,57 @@ export default function Login() {
         return;
       }
 
+      // Determine username based on what user entered
+      let username;
+      let sentTo = '';
+      let displayValue = '';
+
+      if (hasValidPhone) {
+        username = `${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}`;
+        sentTo = 'whatsapp';
+        displayValue = `${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}`;
+      } else if (hasValidEmail) {
+        username = formData.email;
+        sentTo = 'email';
+        displayValue = formData.email;
+      }
+
       try {
-        const otpRequests = [];
-        let sentTo = [];
-
-        if (hasValidPhone) {
-          const fullPhoneNumber = `${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}`;
-          otpRequests.push(
-            fetch('/api/auth/fetchOTP', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                username: fullPhoneNumber
-              })
-            })
-          );
-          sentTo.push('whatsapp');
-        }
-
-        // Email OTP removed - only phone OTP for login using fetchOTP API
-
-        const responses = await Promise.all(otpRequests);
-
-        // Check both HTTP status and API response success
-        const responseDataArray = await Promise.all(
-          responses.map(async (response) => {
-            if (response.ok) {
-              return await response.json();
-            } else {
-              throw new Error('HTTP request failed');
-            }
+        const response = await fetch('/api/auth/fetchOTP', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: username
           })
-        );
+        });
 
-        // Check if all API responses have success: true
-        const allSuccessful = responseDataArray.every(data => data.success === true);
+        const data = await response.json();
 
-        if (allSuccessful) {
+        if (data.success) {
           setIsOtpSent(true);
           setTimer(60);
-          setOtpSentTo(sentTo.join('_'));
+          setOtpSentTo(sentTo);
 
-          let message = `<div style="text-align: center;">OTP has been sent to:<br><br>
-            <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-              <svg style="width: 20px; height: 20px; fill: #10b981;" viewBox="0 0 24 24">
-                <path d="M17.472,14.382c-0.297-0.149-1.758-0.867-2.03-0.967c-0.273-0.099-0.471-0.148-0.67,0.15c-0.197,0.297-0.767,0.966-0.94,1.164c-0.173,0.199-0.347,0.223-0.644,0.075c-0.297-0.15-1.255-0.463-2.39-1.475c-0.883-0.788-1.48-1.761-1.653-2.059c-0.173-0.297-0.018-0.458,0.13-0.606c0.134-0.133,0.297-0.347,0.446-0.521C9.87,9.97,9.919,9.846,10.019,9.65c0.099-0.198,0.05-0.371-0.025-0.52C9.919,8.981,9.325,7.515,9.078,6.92c-0.241-0.58-0.487-0.5-0.669-0.51c-0.173-0.008-0.371-0.01-0.57-0.01c-0.198,0-0.52,0.074-0.792,0.372c-0.272,0.297-1.04,1.016-1.04,2.479c0,1.462,1.065,2.875,1.213,3.074c0.149,0.198,2.096,3.2,5.077,4.487c0.709,0.306,1.262,0.489,1.694,0.625c0.712,0.227,1.36,0.195,1.871,0.118c0.571-0.085,1.758-0.719,2.006-1.413c0.248-0.694,0.248-1.289,0.173-1.413C17.884,14.651,17.769,14.431,17.472,14.382z M12.057,21.785h-0.008c-1.784,0-3.525-0.481-5.052-1.389l-0.362-0.215l-3.754,0.984l1.005-3.671l-0.236-0.375c-0.99-1.575-1.511-3.393-1.511-5.26c0-5.445,4.43-9.875,9.88-9.875c2.64,0,5.124,1.03,6.988,2.898c1.865,1.867,2.893,4.352,2.892,6.993C21.899,17.354,17.469,21.785,12.057,21.785z M20.5,3.488C18.24,1.24,15.24,0.013,12.058,0C5.507,0,0.17,5.335,0.172,11.892c0,2.096,0.547,4.142,1.588,5.945L0,24l6.305-1.654c1.746,0.943,3.71,1.444,5.71,1.447h0.006c6.551,0,11.89-5.335,11.89-11.893C23.91,8.724,22.759,5.746,20.5,3.488z" />
-              </svg>
-              <span>WhatsApp: ${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}</span>
-            </div>
-          </div>`;
+          let message;
+          if (sentTo === 'whatsapp') {
+            message = `<div style="text-align: center;">OTP has been sent to:<br><br>
+              <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <svg style="width: 20px; height: 20px; fill: #10b981;" viewBox="0 0 24 24">
+                  <path d="M17.472,14.382c-0.297-0.149-1.758-0.867-2.03-0.967c-0.273-0.099-0.471-0.148-0.67,0.15c-0.197,0.297-0.767,0.966-0.94,1.164c-0.173,0.199-0.347,0.223-0.644,0.075c-0.297-0.15-1.255-0.463-2.39-1.475c-0.883-0.788-1.48-1.761-1.653-2.059c-0.173-0.297-0.018-0.458,0.13-0.606c0.134-0.133,0.297-0.347,0.446-0.521C9.87,9.97,9.919,9.846,10.019,9.65c0.099-0.198,0.05-0.371-0.025-0.52C9.919,8.981,9.325,7.515,9.078,6.92c-0.241-0.58-0.487-0.5-0.669-0.51c-0.173-0.008-0.371-0.01-0.57-0.01c-0.198,0-0.52,0.074-0.792,0.372c-0.272,0.297-1.04,1.016-1.04,2.479c0,1.462,1.065,2.875,1.213,3.074c0.149,0.198,2.096,3.2,5.077,4.487c0.709,0.306,1.262,0.489,1.694,0.625c0.712,0.227,1.36,0.195,1.871,0.118c0.571-0.085,1.758-0.719,2.006-1.413c0.248-0.694,0.248-1.289,0.173-1.413C17.884,14.651,17.769,14.431,17.472,14.382z M12.057,21.785h-0.008c-1.784,0-3.525-0.481-5.052-1.389l-0.362-0.215l-3.754,0.984l1.005-3.671l-0.236-0.375c-0.99-1.575-1.511-3.393-1.511-5.26c0-5.445,4.43-9.875,9.88-9.875c2.64,0,5.124,1.03,6.988,2.898c1.865,1.867,2.893,4.352,2.892,6.993C21.899,17.354,17.469,21.785,12.057,21.785z M20.5,3.488C18.24,1.24,15.24,0.013,12.058,0C5.507,0,0.17,5.335,0.172,11.892c0,2.096,0.547,4.142,1.588,5.945L0,24l6.305-1.654c1.746,0.943,3.71,1.444,5.71,1.447h0.006c6.551,0,11.89-5.335,11.89-11.893C23.91,8.724,22.759,5.746,20.5,3.488z" />
+                </svg>
+                <span>WhatsApp: ${displayValue}</span>
+              </div>
+            </div>`;
+          } else {
+            message = `<div style="text-align: center;">OTP has been sent to:<br><br>
+              <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <svg style="width: 20px; height: 20px; fill: #8b5cf6;" viewBox="0 0 24 24">
+                  <path d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z" />
+                </svg>
+                <span>Email: ${displayValue}</span>
+              </div>
+            </div>`;
+          }
 
           Swal.fire({
             title: 'OTP Sent!',
@@ -1037,22 +1106,25 @@ export default function Login() {
             color: '#ffffff'
           });
         } else {
-          // Get error message from the first failed response
-          const errorMessage = responseDataArray.find(data => !data.success)?.message || 'Failed to send OTP';
-          throw new Error(errorMessage);
+          // Get error message from API
+          const errorMessage = data?.message || 'We could not log you in, please check your credentials.';
+
+          Swal.fire({
+            title: 'Login Failed!',
+            text: errorMessage,
+            icon: 'error',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#8b5cf6',
+            background: '#232042',
+            color: '#ffffff'
+          });
         }
       } catch (error) {
         console.error('Error sending OTP:', error);
-        
-        // Extract the actual error message from the API response
-        let errorMessage = 'Failed to send OTP. Please try again.';
-        if (error.message && error.message !== 'HTTP request failed') {
-          errorMessage = error.message;
-        }
-        
+
         Swal.fire({
           title: 'Error!',
-          text: errorMessage,
+          text: 'Something went wrong. Please try again.',
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
@@ -1145,10 +1217,10 @@ export default function Login() {
       }
     }
 
-    if (isLogin && !formData.phoneNumber) {
+    if (isLogin && !formData.phoneNumber && !formData.email) {
       Swal.fire({
         title: 'Warning!',
-        text: 'Please enter WhatsApp number',
+        text: 'Please enter WhatsApp number or Email',
         icon: 'warning',
         confirmButtonText: 'OK',
         confirmButtonColor: '#8b5cf6',
@@ -1217,7 +1289,8 @@ export default function Login() {
                   placeholder="First Name *"
                   value={formData.firstName}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400"
+                  readOnly={isOtpSent}
+                  className={`w-full px-4 py-3 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400 ${isOtpSent ? 'opacity-50 cursor-not-allowed' : ''}`}
                   required
                 />
               </div>
@@ -1228,7 +1301,8 @@ export default function Login() {
                   placeholder="Last Name *"
                   value={formData.lastName}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400"
+                  readOnly={isOtpSent}
+                  className={`w-full px-4 py-3 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400 ${isOtpSent ? 'opacity-50 cursor-not-allowed' : ''}`}
                   required
                 />
               </div>
@@ -1240,7 +1314,8 @@ export default function Login() {
                   value={formData.email}
                   onChange={handleInputChange}
                   onBlur={handleEmailBlur}
-                  className="w-full px-4 py-3 pl-12 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400"
+                  readOnly={isOtpSent}
+                  className={`w-full px-4 py-3 pl-12 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400 ${isOtpSent ? 'opacity-50 cursor-not-allowed' : ''}`}
                   required
                 />
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-400">
@@ -1252,15 +1327,16 @@ export default function Login() {
                   <div className="relative" ref={dropdownRef}>
                     <button
                       type="button"
-                      onClick={() => setShowCountryDropdown(!showCountryDropdown)}
-                      className="flex items-center gap-2 px-3 py-3 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white hover:bg-purple-500/10"
+                      onClick={() => !isOtpSent && setShowCountryDropdown(!showCountryDropdown)}
+                      disabled={isOtpSent}
+                      className={`flex items-center gap-2 px-3 py-3 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white ${isOtpSent ? 'opacity-50 cursor-not-allowed' : 'hover:bg-purple-500/10'}`}
                     >
                       <span className="text-xl">{selectedCountry.flag}</span>
                       <span>{selectedCountry.dial_code}</span>
                       <FaChevronDown className="text-xs" />
                     </button>
 
-                    {showCountryDropdown && (
+                    {showCountryDropdown && !isOtpSent && (
                       <div className="absolute top-full mt-1 left-0 w-64 max-h-60 overflow-y-auto bg-[#232042] border border-purple-500/30 rounded-lg shadow-lg z-50">
                         <input
                           type="text"
@@ -1316,7 +1392,8 @@ export default function Login() {
                       value={formData.phoneNumber}
                       onChange={handleInputChange}
                       onBlur={handlePhoneBlur}
-                      className="w-full px-4 py-3 pr-12 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400"
+                      readOnly={isOtpSent}
+                      className={`w-full px-4 py-3 pr-12 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400 ${isOtpSent ? 'opacity-50 cursor-not-allowed' : ''}`}
                       required
                     />
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500">
@@ -1340,15 +1417,16 @@ export default function Login() {
                   <div className="relative" ref={dropdownRef}>
                     <button
                       type="button"
-                      onClick={() => setShowCountryDropdown(!showCountryDropdown)}
-                      className="flex items-center gap-2 px-3 py-3 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white hover:bg-purple-500/10"
+                      onClick={() => !(formData.email && formData.email.length > 0) && !isOtpSent && setShowCountryDropdown(!showCountryDropdown)}
+                      disabled={formData.email && formData.email.length > 0 || isOtpSent}
+                      className={`flex items-center gap-2 px-3 py-3 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white ${formData.email && formData.email.length > 0 || isOtpSent ? 'opacity-50 cursor-not-allowed' : 'hover:bg-purple-500/10'}`}
                     >
                       <span className="text-xl">{selectedCountry.flag}</span>
                       <span>{selectedCountry.dial_code}</span>
                       <FaChevronDown className="text-xs" />
                     </button>
 
-                    {showCountryDropdown && (
+                    {showCountryDropdown && !(formData.email && formData.email.length > 0) && (
                       <div className="absolute top-full mt-1 left-0 w-64 max-h-60 overflow-y-auto bg-[#232042] border border-purple-500/30 rounded-lg shadow-lg z-50">
                         <input
                           type="text"
