@@ -1,32 +1,110 @@
 "use client"; // Add this at the top if using Next.js 13+ with app router
 import Image from "next/image";
 import { FaTrophy, FaHeart, FaRegHeart } from "react-icons/fa";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
+import { favoritesAPI } from "../../api/favorites/route";
 
 export default function InfluencerProfileHeader({ channelData }) {
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [userId, setUserId] = useState(null);
 
-  const handleFavoriteClick = () => {
-    const newFavoriteState = !isFavorite;
-    setIsFavorite(newFavoriteState);
-
-    // Show SweetAlert with layout colors based on action
-    Swal.fire({
-      title: newFavoriteState ? 'Added to favourites' : 'Removed from favourite list',
-      icon: newFavoriteState ? 'success' : 'info',
-      background: '#232042',
-      color: '#ffffff',
-      confirmButtonColor: '#8b5cf6',
-      timer: 2000,
-      timerProgressBar: true,
-      showConfirmButton: false,
-      toast: true,
-      position: 'top-end',
-      customClass: {
-        popup: 'colored-toast'
+  // Get userId from localStorage
+  useEffect(() => {
+    try {
+      const userDataString = localStorage.getItem('userData');
+      if (userDataString) {
+        const userData = JSON.parse(userDataString);
+        setUserId(userData._id || userData.user?._id);
       }
-    });
+    } catch (error) {
+      console.error('Error parsing userData:', error);
+    }
+  }, []);
+
+  // Check if item is already in favorites on component mount
+  useEffect(() => {
+    const checkFavoriteStatus = async () => {
+      if (!userId) return;
+      
+      try {
+        const favorites = await favoritesAPI.getAllFavorites(userId);
+        if (favorites.success && favorites.results) {
+          const isCurrentlyFavorite = favorites.results.some(
+            fav => fav.favouriteId === channelData._id && fav.medium === "YOUTUBE"
+          );
+          setIsFavorite(isCurrentlyFavorite);
+        }
+      } catch (error) {
+        console.error("Error checking favorite status:", error);
+      }
+    };
+
+    if (channelData?._id && userId) {
+      checkFavoriteStatus();
+    }
+  }, [channelData?._id, userId]);
+
+  const handleFavoriteClick = async () => {
+    if (isLoading || !userId) return;
+    
+    setIsLoading(true);
+    const newFavoriteState = !isFavorite;
+    
+    try {
+      const requestData = {
+        op: newFavoriteState ? "ADD" : "DEL",
+        medium: "YOUTUBE",
+        userId: userId,
+        favouriteId: channelData._id,
+        favouriteType: "INFLUENCER"
+      };
+
+      const response = await favoritesAPI.toggleFavorite(requestData);
+      
+      if (response.success) {
+        setIsFavorite(newFavoriteState);
+        
+        // Show SweetAlert with layout colors based on action
+        Swal.fire({
+          title: newFavoriteState ? 'Added to favourites' : 'Removed from favourite list',
+          icon: newFavoriteState ? 'success' : 'info',
+          background: '#232042',
+          color: '#ffffff',
+          confirmButtonColor: '#8b5cf6',
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end',
+          customClass: {
+            popup: 'colored-toast'
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      // Show error message
+      Swal.fire({
+        title: 'Error',
+        text: 'Failed to update favorite status. Please try again.',
+        icon: 'error',
+        background: '#232042',
+        color: '#ffffff',
+        confirmButtonColor: '#8b5cf6',
+        timer: 3000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end',
+        customClass: {
+          popup: 'colored-toast'
+        }
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
   return (
     <section className="w-full bg-gradient-to-br from-purple-400/10 to-blue-400/10 border-b border-[#232042] mb-3 py-5">
@@ -63,10 +141,13 @@ export default function InfluencerProfileHeader({ channelData }) {
                   {/* Heart Icon Button - Mobile View Only */}
                   <button
                     onClick={handleFavoriteClick}
-                    className="md:hidden focus:outline-none transition-all duration-300 hover:scale-110 flex-shrink-0"
+                    disabled={isLoading}
+                    className={`md:hidden focus:outline-none transition-all duration-300 hover:scale-110 flex-shrink-0 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
                   >
-                    {isFavorite ? (
+                    {isLoading ? (
+                      <div className="animate-spin w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full"></div>
+                    ) : isFavorite ? (
                       <FaHeart className="text-red-500" size={24} />
                     ) : (
                       <FaRegHeart className="text-gray-400" size={24} />
@@ -164,17 +245,20 @@ export default function InfluencerProfileHeader({ channelData }) {
                 {/* Heart Icon Button - Desktop View Only */}
                 <button
                   onClick={handleFavoriteClick}
-                  className="focus:outline-none transition-all duration-300 hover:scale-110 flex-shrink-0 p-3 rounded-full bg-white/5 border border-gray-600 hover:bg-white/10"
+                  disabled={isLoading}
+                  className={`focus:outline-none transition-all duration-300 hover:scale-110 flex-shrink-0 p-3 rounded-full bg-white/5 border border-gray-600 hover:bg-white/10 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
                 >
-                  {isFavorite ? (
+                  {isLoading ? (
+                    <div className="animate-spin w-8 h-8 border-2 border-gray-400 border-t-transparent rounded-full"></div>
+                  ) : isFavorite ? (
                     <FaHeart className="text-red-500" size={32} />
                   ) : (
                     <FaRegHeart className="text-gray-400" size={32} />
                   )}
                 </button>
                 <span className="text-sm text-gray-400">
-                  {isFavorite ? "Added to Favorites" : "Add to Favorites"}
+                  {isLoading ? "Processing..." : isFavorite ? "Added to Favorites" : "Add to Favorites"}
                 </span>
               </div>
             </div>

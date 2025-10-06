@@ -8,7 +8,8 @@ import { useTimezone } from "../contexts/TimezoneContext";
 
 const navLinks = [
   { name: "Home", href: "/" },
-  { name: "Influencers", href: "/influencers" },
+  { name: "Influencers Rank", href: "/influencers" },
+  { name: "Influencer Search", href: "/influencer-search" },
   { name: "Leaderboard", href: "/leaderboard" },
   { name: "About", href: "/about" },
   { name: "Contact", href: "/contact" },
@@ -46,7 +47,7 @@ export default function ClientHeader() {
         dateEnd: localStorage.getItem('dateEnd') || ''
       });
     }
-    
+
     // Get user's city based on timezone
     if (useLocalTime) {
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -116,35 +117,37 @@ export default function ClientHeader() {
             );
           })}
         </nav>
-        
+
         {/* Timezone Toggle in Navbar - Only show when logged in */}
         {isLoggedIn && (
           <div className="hidden md:flex items-center gap-2 ml-8">
+            {/* Default UTC first */}
             <button
               onClick={toggleTimezone}
-              className={`text-xs px-3 py-1 rounded-full transition flex flex-col items-center ${
-                useLocalTime
+              className={`text-xs px-3 py-1 rounded-full transition ${!useLocalTime
                   ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                   : 'bg-gray-500/20 text-white border border-gray-500/30 hover:bg-gray-500/30'
-              }`}
+                }`}
+            >
+              Default UTC
+            </button>
+
+            {/* Local Time second */}
+            <button
+              onClick={toggleTimezone}
+              className={`text-xs px-3 py-1 rounded-full transition flex flex-col items-center ${useLocalTime
+                  ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                  : 'bg-gray-500/20 text-white border border-gray-500/30 hover:bg-gray-500/30'
+                }`}
             >
               <span>Local Time</span>
               {useLocalTime && userCity && (
                 <span className="text-[10px] opacity-80 mt-0.5">{userCity}</span>
               )}
             </button>
-            <button
-              onClick={toggleTimezone}
-              className={`text-xs px-3 py-1 rounded-full transition ${
-                !useLocalTime
-                  ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                  : 'bg-gray-500/20 text-white border border-gray-500/30 hover:bg-gray-500/30'
-              }`}
-            >
-              Default UTC
-            </button>
           </div>
         )}
+
 
         {/* Search + Auth */}
         <div className="flex items-center gap-4 ml-auto">
@@ -213,11 +216,10 @@ export default function ClientHeader() {
                       <div className="flex gap-2">
                         <button
                           onClick={toggleTimezone}
-                          className={`text-xs px-2 py-1 rounded transition flex flex-col items-center ${
-                            useLocalTime
+                          className={`text-xs px-2 py-1 rounded transition flex flex-col items-center ${useLocalTime
                               ? 'bg-blue-500/20 text-blue-400'
                               : 'bg-gray-500/20 text-white hover:bg-gray-500/30'
-                          }`}
+                            }`}
                         >
                           <span>Local Time</span>
                           {useLocalTime && userCity && (
@@ -226,11 +228,10 @@ export default function ClientHeader() {
                         </button>
                         <button
                           onClick={toggleTimezone}
-                          className={`text-xs px-2 py-1 rounded transition ${
-                            !useLocalTime
+                          className={`text-xs px-2 py-1 rounded transition ${!useLocalTime
                               ? 'bg-blue-500/20 text-blue-400'
                               : 'bg-gray-500/20 text-white hover:bg-gray-500/30'
-                          }`}
+                            }`}
                         >
                           Default UTC
                         </button>

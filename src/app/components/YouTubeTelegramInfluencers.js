@@ -469,7 +469,7 @@ export default function YouTubeTelegramInfluencers() {
                             <div className="p-3 border-b border-gray-700">
                                 {/* Influencer Name Link */}
                                 <div className="text-sm font-bold text-white-400 mb-2">
-                                    Name : 
+                                    Name :
                                     <a
                                         href={
                                             post.platform === "YouTube"
@@ -483,16 +483,25 @@ export default function YouTubeTelegramInfluencers() {
                                         {post.channel_name}
                                     </a>
                                 </div>
-                                
-                                {/* Rank Link */}
-                                <div className="text-sm font-bold text-white-400 mb-2">
-                                    Rank (180 days/Overall): 
+
+                                {/* Rank Link (simple) */}
+                                <div className="text-sm font-bold text-white-400 mb-2 flex items-center gap-2">
+                                    Rank 
+                                    <span className="sr-only">Rank (180 days / Overall)</span>
+                                    <button
+                                        type="button"
+                                        title="180 days / Overall"
+                                        className="inline-flex items-center gap-2 focus:outline-none"
+                                        aria-label="Rank info: 180 days / Overall"
+                                    >
+                                        {/* Eye icon */}
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.5 12s3.5-7.5 9.5-7.5S21.5 12 21.5 12s-3.5 7.5-9.5 7.5S2.5 12 2.5 12z" />
+                                            <circle cx="12" cy="12" r="3" />
+                                        </svg>
+                                    </button> : 
                                     <a
-                                        href={
-                                            post.platform === "YouTube"
-                                                ? `/influencers/${post.channelID}`
-                                                : `/telegram-influencer/${post.channelID}`
-                                        }
+                                        href={post.platform === "YouTube" ? `/influencers/${post.channelID}` : `/telegram-influencer/${post.channelID}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="ml-1 text-white-400 hover:text-white hover:underline cursor-pointer transition-colors duration-200"
@@ -500,7 +509,8 @@ export default function YouTubeTelegramInfluencers() {
                                         {post.rank}
                                     </a>
                                 </div>
-                                
+
+
                                 {/* Post Title Link */}
                                 <div className="min-h-[40px] mb-2">
                                     <a
@@ -518,7 +528,7 @@ export default function YouTubeTelegramInfluencers() {
                                         </div>
                                     </a>
                                 </div>
-                                
+
                                 <div className="h-6 mb-2">
                                     {post.title.length > 80 && (
                                         <button

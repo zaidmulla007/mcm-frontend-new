@@ -231,7 +231,7 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
   };
 
   return (
-    <div className="bg-white min-h-screen text-gray-900 p-4">
+    <div className="bg-white min-h-screen rounded-xl text-gray-900 p-4">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900">
