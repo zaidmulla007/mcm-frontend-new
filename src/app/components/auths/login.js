@@ -546,17 +546,8 @@ export default function Login() {
               const data = await response.json();
 
               if (data.success) {
-                // Store user data in localStorage after signup
-                localStorage.setItem('accessToken', data.accessToken);
-                localStorage.setItem('userId', data._id);
-                localStorage.setItem('username', data.user.username);
-                localStorage.setItem('email', data.user.email);
-                localStorage.setItem('roles', JSON.stringify(data.roles));
-                localStorage.setItem('user', JSON.stringify(data.user));
-                localStorage.setItem('dbRole', JSON.stringify(data.dbRole));
-                localStorage.setItem('message', data.message);
-
-                // Show OTP input after successful signup
+                // DON'T store user data yet - only store after OTP verification
+                // Just show OTP input after successful signup
                 setIsOtpSent(true);
                 setTimer(60);
                 setOtpSentTo('whatsapp');
@@ -909,87 +900,82 @@ export default function Login() {
     } catch (error) {
       console.error('Error verifying OTP:', error);
 
-      // For login errors, show appropriate message
+      // Show error message for both login and signup
       if (isLogin) {
         Swal.fire({
           title: 'Login Failed!',
-          text: 'Invalid OTP or credentials. Please try again.',
+          text: 'Invalid OTP. Please try again.',
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
           background: '#232042',
           color: '#ffffff'
         });
-        return;
-      }
-
-      if (!isLogin) {
-        const today = new Date();
-        const dateString = today.toLocaleDateString('en-US', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        });
-
-        Swal.fire({
-          title: '🎉 Thank You!',
-          html: `
-            <div style="text-align: center; padding: 20px;">
-              <h2 style="color: #8b5cf6; margin-bottom: 20px;">Welcome to MCM</h2>
-              <p style="font-size: 18px; margin-bottom: 15px;">
-                Thank you for joining us, <strong>${formData.firstName} ${formData.lastName}</strong>!
-              </p>
-              <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                          padding: 20px; 
-                          border-radius: 15px; 
-                          margin: 20px 0;
-                          box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);">
-                <p style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">
-                  ✨ Your Subscription Starts Today ✨
-                </p>
-                <p style="font-size: 18px;">
-                  ${dateString}
-                </p>
-              </div>
-              <p style="font-size: 16px; margin-top: 20px;">
-                Get ready to explore amazing features!
-              </p>
-            </div>
-          `,
-          icon: 'success',
-          confirmButtonText: 'Start Exploring',
-          confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff',
-          showConfetti: true
-        }).then((result) => {
-          if (result.isConfirmed) {
-            router.push('/influencers');
-          }
-        });
       } else {
+        // For signup, show OTP error (not success!)
         Swal.fire({
-          title: 'Success!',
-          text: 'Login successful!',
-          icon: 'success',
-          confirmButtonText: 'Continue',
+          title: 'Verification Failed!',
+          text: 'Invalid OTP. Please check and try again.',
+          icon: 'error',
+          confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
           background: '#232042',
           color: '#ffffff'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            router.push('/influencers');
-          }
         });
       }
     }
   };
 
 
-  const handleResendOtp = () => {
-    if (timer === 0) {
+  const handleResendOtp = async () => {
+    // Remove timer check - allow resend anytime
+    if (isLogin) {
+      // For login, call fetchOTP API
       handleSendOtpForLogin();
+    } else {
+      // For signup, resend OTP by calling fetchOTP API
+      const fullPhoneNumber = `${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}`;
+
+      try {
+        const response = await fetch('/api/auth/fetchOTP', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username: fullPhoneNumber
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          setTimer(60);
+
+          Swal.fire({
+            title: 'OTP Resent!',
+            text: 'A new OTP has been sent to your WhatsApp number.',
+            icon: 'success',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#8b5cf6',
+            background: '#232042',
+            color: '#ffffff'
+          });
+        } else {
+          throw new Error(data.message || 'Failed to resend OTP');
+        }
+      } catch (error) {
+        console.error('Resend OTP error:', error);
+        Swal.fire({
+          title: 'Error!',
+          text: error.message || 'Failed to resend OTP. Please try again.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#8b5cf6',
+          background: '#232042',
+          color: '#ffffff'
+        });
+      }
     }
   };
 
@@ -1813,17 +1799,13 @@ export default function Login() {
                 required
               />
               <div className="text-center">
-                {timer > 0 ? (
-                  <p className="text-sm text-gray-400">Resend OTP in {timer}s</p>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleResendOtp}
-                    className="text-sm text-purple-400 hover:text-purple-300 transition"
-                  >
-                    Resend OTP
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  className="text-sm text-purple-400 hover:text-purple-300 transition"
+                >
+                  Resend OTP
+                </button>
               </div>
             </div>
           )}
