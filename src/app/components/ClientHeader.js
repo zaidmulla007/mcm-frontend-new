@@ -70,8 +70,20 @@ export default function ClientHeader() {
   const handleLogout = () => {
     // Clear all localStorage items
     localStorage.clear();
+
+    // Reset all states
     setIsLoggedIn(false);
     setShowDropdown(false);
+    setUserInfo({
+      firstName: '',
+      lastName: '',
+      email: '',
+      mobile: '',
+      dateStart: '',
+      dateEnd: ''
+    });
+
+    // Redirect to login page
     router.push('/login');
   };
 

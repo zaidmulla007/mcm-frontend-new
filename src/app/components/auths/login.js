@@ -19,6 +19,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const dropdownRef = useRef(null);
+  const contactDropdownRef = useRef(null);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -29,6 +30,16 @@ export default function Login() {
     confirmPassword: ''
   });
   const [canSendOtp, setCanSendOtp] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [contactForm, setContactForm] = useState({
+    userEmail: '',
+    whatsappNumber: '',
+    alternateEmail: '',
+    message: ''
+  });
+  const [contactCountry, setContactCountry] = useState(countryCodes.find(c => c.code === "IN"));
+  const [showContactCountryDropdown, setShowContactCountryDropdown] = useState(false);
+  const [searchContactCountry, setSearchContactCountry] = useState("");
   const router = useRouter();
 
   const handleEmailBlur = () => {
@@ -89,6 +100,9 @@ export default function Login() {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowCountryDropdown(false);
+      }
+      if (contactDropdownRef.current && !contactDropdownRef.current.contains(event.target)) {
+        setShowContactCountryDropdown(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -466,7 +480,7 @@ export default function Login() {
         const lengths = getPhoneNumberLength(selectedCountry.code);
         const phoneLength = formData.phoneNumber.length;
         let errorMessage = `Please enter a valid ${selectedCountry.name} phone number.`;
-        
+
         if (phoneLength < lengths.min) {
           errorMessage = `Phone number should have at least ${lengths.min} digits for ${selectedCountry.name}.`;
         } else if (phoneLength > lengths.max) {
@@ -487,7 +501,7 @@ export default function Login() {
 
       // All validations passed, show confirmation dialog
       const fullPhoneNumber = `${selectedCountry.dial_code}${formData.phoneNumber}`;
-      
+
       Swal.fire({
         title: 'Confirm Details',
         html: `
@@ -512,7 +526,7 @@ export default function Login() {
         if (result.isConfirmed) {
           // User confirmed, proceed with API call
           const apiPhoneNumber = `${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}`;
-          
+
           try {
             const response = await fetch('/api/auth/signup', {
               method: 'POST',
@@ -546,7 +560,7 @@ export default function Login() {
                 setIsOtpSent(true);
                 setTimer(60);
                 setOtpSentTo('whatsapp');
-                
+
                 Swal.fire({
                   title: 'OTP Sent!',
                   text: `Please enter the OTP sent to your WhatsApp number ${selectedCountry.dial_code}${formData.phoneNumber}`,
@@ -566,10 +580,10 @@ export default function Login() {
             }
           } catch (error) {
             console.error('Signup error:', error);
-            
+
             // Try to parse additional error details if available
             let errorMessage = error.message || 'Please try again';
-            
+
             Swal.fire({
               title: 'Signup Failed!',
               text: errorMessage,
@@ -828,7 +842,7 @@ export default function Login() {
             localStorage.setItem('email', data.email);
             localStorage.setItem('roles', JSON.stringify(data.roles));
             localStorage.setItem('user', JSON.stringify(data.user));
-            
+
             // Store additional user details
             if (data.user) {
               localStorage.setItem('userName', data.user.name || '');
@@ -1135,6 +1149,262 @@ export default function Login() {
     } else {
       // For signup, use the existing handleSendOtp function
       handleSendOtp();
+    }
+  };
+
+  const handleContactEmailBlur = () => {
+    if (contactForm.userEmail && contactForm.userEmail.length > 0 && !validateEmail(contactForm.userEmail)) {
+      let errorMessage = 'Please enter a valid email address';
+
+      if (!contactForm.userEmail.includes('@')) {
+        errorMessage = 'Email address must contain @ symbol';
+      } else if (!contactForm.userEmail.includes('.')) {
+        errorMessage = 'Email must include a domain extension (e.g., .com, .org)';
+      } else if (contactForm.userEmail.endsWith('@')) {
+        errorMessage = 'Please complete the email address after @';
+      } else if (contactForm.userEmail.endsWith('.')) {
+        errorMessage = 'Please complete the domain extension';
+      } else if (contactForm.userEmail.includes('..')) {
+        errorMessage = 'Email cannot contain consecutive dots';
+      } else if (contactForm.userEmail.includes('@.')) {
+        errorMessage = 'Email cannot have a dot immediately after @';
+      }
+
+      Swal.fire({
+        title: 'Invalid Email!',
+        text: errorMessage,
+        icon: 'warning',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#8b5cf6',
+        background: '#232042',
+        color: '#ffffff'
+      });
+    }
+  };
+
+  const handleContactAlternateEmailBlur = () => {
+    if (contactForm.alternateEmail && contactForm.alternateEmail.length > 0 && !validateEmail(contactForm.alternateEmail)) {
+      let errorMessage = 'Please enter a valid alternate email address';
+
+      if (!contactForm.alternateEmail.includes('@')) {
+        errorMessage = 'Alternate email must contain @ symbol';
+      } else if (!contactForm.alternateEmail.includes('.')) {
+        errorMessage = 'Alternate email must include a domain extension (e.g., .com, .org)';
+      } else if (contactForm.alternateEmail.endsWith('@')) {
+        errorMessage = 'Please complete the alternate email after @';
+      } else if (contactForm.alternateEmail.endsWith('.')) {
+        errorMessage = 'Please complete the domain extension';
+      } else if (contactForm.alternateEmail.includes('..')) {
+        errorMessage = 'Alternate email cannot contain consecutive dots';
+      } else if (contactForm.alternateEmail.includes('@.')) {
+        errorMessage = 'Alternate email cannot have a dot immediately after @';
+      }
+
+      Swal.fire({
+        title: 'Invalid Alternate Email!',
+        text: errorMessage,
+        icon: 'warning',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#8b5cf6',
+        background: '#232042',
+        color: '#ffffff'
+      });
+    }
+  };
+
+  const handleContactPhoneChange = (e) => {
+    const cleaned = e.target.value.replace(/\D/g, '');
+    const lengths = getPhoneNumberLength(contactCountry.code);
+
+    if (cleaned.length > lengths.max) {
+      Swal.fire({
+        title: 'Phone Number Too Long!',
+        text: `${contactCountry.name} takes only ${lengths.max} digits. You cannot enter more than ${lengths.max} digits.`,
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#8b5cf6',
+        background: '#232042',
+        color: '#ffffff',
+        timer: 3000,
+        timerProgressBar: true
+      });
+      return;
+    }
+
+    setContactForm({ ...contactForm, whatsappNumber: cleaned });
+  };
+
+  const handleContactPhoneBlur = (e) => {
+    const currentPhoneNumber = e.target.value.replace(/\D/g, '');
+
+    if (currentPhoneNumber && currentPhoneNumber.length > 0) {
+      const lengths = getPhoneNumberLength(contactCountry.code);
+      const phoneLength = currentPhoneNumber.length;
+
+      if (phoneLength < lengths.min) {
+        Swal.fire({
+          title: 'Incomplete Phone Number!',
+          text: `${contactCountry.name} phone numbers require ${lengths.min === lengths.max ? 'exactly' : 'at least'} ${lengths.min} digits. You entered only ${phoneLength} digits.`,
+          icon: 'warning',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#8b5cf6',
+          background: '#232042',
+          color: '#ffffff'
+        });
+      }
+    }
+  };
+
+  const handleContactSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validate required fields (alternate email is optional)
+    if (!contactForm.userEmail || !contactForm.whatsappNumber || !contactForm.message) {
+      Swal.fire({
+        title: 'Missing Information!',
+        text: 'Please fill in all required fields',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#8b5cf6',
+        background: '#232042',
+        color: '#ffffff'
+      });
+      return;
+    }
+
+    // Validate email format
+    if (!validateEmail(contactForm.userEmail)) {
+      Swal.fire({
+        title: 'Invalid Email!',
+        text: 'Please enter a valid email address',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#8b5cf6',
+        background: '#232042',
+        color: '#ffffff'
+      });
+      return;
+    }
+
+    // Validate phone number
+    if (!validatePhoneNumber(contactForm.whatsappNumber, contactCountry.code)) {
+      const lengths = getPhoneNumberLength(contactCountry.code);
+      const phoneLength = contactForm.whatsappNumber.length;
+      let errorMessage = `Please enter a valid ${contactCountry.name} phone number.`;
+
+      if (phoneLength < lengths.min) {
+        errorMessage = `Phone number should have at least ${lengths.min} digits for ${contactCountry.name}.`;
+      } else if (phoneLength > lengths.max) {
+        errorMessage = `Phone number should have maximum ${lengths.max} digits for ${contactCountry.name}.`;
+      }
+
+      Swal.fire({
+        title: 'Invalid Phone Number!',
+        text: errorMessage,
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#8b5cf6',
+        background: '#232042',
+        color: '#ffffff'
+      });
+      return;
+    }
+
+    // Validate alternate email only if provided
+    if (contactForm.alternateEmail && !validateEmail(contactForm.alternateEmail)) {
+      Swal.fire({
+        title: 'Invalid Alternate Email!',
+        text: 'Please enter a valid alternate email address',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#8b5cf6',
+        background: '#232042',
+        color: '#ffffff'
+      });
+      return;
+    }
+
+    // Show loading
+    Swal.fire({
+      title: 'Sending...',
+      text: 'Please wait while we send your message',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      allowEnterKey: false,
+      showConfirmButton: false,
+      background: '#232042',
+      color: '#ffffff',
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    try {
+      // Send email through API
+      const fullPhoneNumber = `${contactCountry.dial_code}${contactForm.whatsappNumber}`;
+
+      const response = await fetch('/api/Email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: 'admin@mcm.com',
+          from: contactForm.userEmail,
+          subject: `Contact Support - Message from ${contactForm.userEmail}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h2 style="color: #8b5cf6; margin-bottom: 20px;">New Support Request</h2>
+              <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <p style="margin: 10px 0;"><strong>Email:</strong> ${contactForm.userEmail}</p>
+                <p style="margin: 10px 0;"><strong>WhatsApp Number:</strong> ${fullPhoneNumber}</p>
+                ${contactForm.alternateEmail ? `<p style="margin: 10px 0;"><strong>Alternate Email:</strong> ${contactForm.alternateEmail}</p>` : ''}
+              </div>
+              <div style="background: #ffffff; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
+                <h3 style="color: #374151; margin-top: 0;">Message:</h3>
+                <p style="color: #4b5563; line-height: 1.6; white-space: pre-wrap;">${contactForm.message}</p>
+              </div>
+              <div style="margin-top: 20px; padding: 15px; background: #fef3c7; border-radius: 8px;">
+                <p style="margin: 0; color: #92400e; font-size: 14px;">
+                  <strong>Reply to:</strong> ${contactForm.userEmail}
+                </p>
+              </div>
+            </div>
+          `,
+          text: `New Support Request\n\nEmail: ${contactForm.userEmail}\nWhatsApp Number: ${fullPhoneNumber}${contactForm.alternateEmail ? `\nAlternate Email: ${contactForm.alternateEmail}` : ''}\n\nMessage:\n${contactForm.message}\n\nReply to: ${contactForm.userEmail}`
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        Swal.fire({
+          title: 'Message Sent!',
+          text: 'Your message has been sent to support successfully. We will get back to you soon.',
+          icon: 'success',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#8b5cf6',
+          background: '#232042',
+          color: '#ffffff'
+        });
+
+        // Close modal and reset form
+        setShowContactModal(false);
+        setContactForm({ userEmail: '', whatsappNumber: '', alternateEmail: '', message: '' });
+      } else {
+        throw new Error(data.message || 'Failed to send message');
+      }
+    } catch (error) {
+      console.error('Contact support error:', error);
+      Swal.fire({
+        title: 'Error!',
+        text: error.message || 'Failed to send message. Please try again later.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#8b5cf6',
+        background: '#232042',
+        color: '#ffffff'
+      });
     }
   };
 
@@ -1607,8 +1877,179 @@ export default function Login() {
               {isLogin ? 'Sign Up' : 'Login'}
             </button>
           </p>
+
+          {isLogin && (
+            <div className="mt-4">
+              <button
+                type="button"
+                onClick={() => setShowContactModal(true)}
+                className="text-gray-400 hover:text-purple-400 transition inline-flex items-center gap-2"
+              >
+                <span>Contact Support</span>
+                <FaEnvelope size={16} />
+              </button>
+            </div>
+          )}
         </div>
       </motion.div>
+
+      {/* Contact Support Modal */}
+      {showContactModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <motion.div
+            className="bg-[#232042] rounded-2xl p-6 shadow-lg w-full max-w-md max-h-[90vh] overflow-y-auto"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                Contact Support
+              </h3>
+              <button
+                onClick={() => {
+                  setShowContactModal(false);
+                  setContactForm({ userEmail: '', whatsappNumber: '', alternateEmail: '', message: '' });
+                }}
+                className="text-gray-400 hover:text-white transition text-xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleContactSubmit} className="space-y-3">
+              <div>
+                <label className="text-xs text-gray-400 block mb-1">Enter Email <span className="text-red-400">*</span></label>
+                <div className="relative">
+                  <input
+                    type="email"
+                    value={contactForm.userEmail}
+                    onChange={(e) => setContactForm({ ...contactForm, userEmail: e.target.value })}
+                    onBlur={handleContactEmailBlur}
+                    placeholder="your.email@example.com"
+                    className="w-full px-3 py-2 pl-10 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400 text-sm"
+                    required
+                  />
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-400">
+                    <FaEnvelope size={16} />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs text-gray-400 block mb-1">Enter WhatsApp Number <span className="text-red-400">*</span></label>
+                <div className="flex gap-2">
+                  <div className="relative" ref={contactDropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setShowContactCountryDropdown(!showContactCountryDropdown)}
+                      className="flex items-center gap-1 px-2 py-2 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white hover:bg-purple-500/10 text-sm"
+                    >
+                      <span className="text-base">{contactCountry.flag}</span>
+                      <span className="text-xs">{contactCountry.dial_code}</span>
+                      <FaChevronDown className="text-xs" />
+                    </button>
+
+                    {showContactCountryDropdown && (
+                      <div className="absolute top-full mt-1 left-0 w-64 max-h-60 overflow-y-auto bg-[#232042] border border-purple-500/30 rounded-lg shadow-lg z-50">
+                        <input
+                          type="text"
+                          placeholder="Search country..."
+                          value={searchContactCountry}
+                          onChange={(e) => setSearchContactCountry(e.target.value)}
+                          className="w-full px-3 py-2 bg-[#19162b] border-b border-purple-500/30 text-white placeholder-gray-400 focus:outline-none text-sm"
+                        />
+                        {countryCodes.filter(country =>
+                          country.name.toLowerCase().includes(searchContactCountry.toLowerCase()) ||
+                          country.dial_code.includes(searchContactCountry)
+                        ).map((country) => (
+                          <button
+                            key={country.code}
+                            type="button"
+                            onClick={() => {
+                              setContactCountry(country);
+                              setShowContactCountryDropdown(false);
+                              setSearchContactCountry("");
+                            }}
+                            className="w-full px-3 py-2 text-left hover:bg-purple-500/20 transition flex items-center gap-2 text-sm"
+                          >
+                            <span className="text-base">{country.flag}</span>
+                            <span className="flex-1">{country.name}</span>
+                            <span className="text-gray-400 text-xs">{country.dial_code}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="relative flex-1">
+                    <input
+                      type="tel"
+                      value={contactForm.whatsappNumber}
+                      onChange={handleContactPhoneChange}
+                      onBlur={handleContactPhoneBlur}
+                      placeholder="1234567890"
+                      className="w-full px-3 py-2 pr-10 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400 text-sm"
+                      required
+                    />
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500">
+                      <FaWhatsapp size={16} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs text-gray-400 block mb-1">Alternate Email (Optional)</label>
+                <div className="relative">
+                  <input
+                    type="email"
+                    value={contactForm.alternateEmail}
+                    onChange={(e) => setContactForm({ ...contactForm, alternateEmail: e.target.value })}
+                    onBlur={handleContactAlternateEmailBlur}
+                    placeholder="alternate.email@example.com"
+                    className="w-full px-3 py-2 pl-10 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400 text-sm"
+                  />
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-400">
+                    <FaEnvelope size={16} />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs text-gray-400 block mb-1">Message <span className="text-red-400">*</span></label>
+                <textarea
+                  value={contactForm.message}
+                  onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                  placeholder="Write your message here..."
+                  rows="3"
+                  className="w-full px-3 py-2 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400 resize-none text-sm"
+                  required
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowContactModal(false);
+                    setContactForm({ userEmail: '', whatsappNumber: '', registeredEmail: '', message: '' });
+                  }}
+                  className="flex-1 px-4 py-2 rounded-lg font-semibold bg-gray-600 hover:bg-gray-700 transition text-sm"
+                >
+                  Close
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 rounded-lg font-semibold bg-gradient-to-r from-purple-500 to-blue-500 hover:scale-105 transition shadow-lg text-sm"
+                >
+                  Send
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
