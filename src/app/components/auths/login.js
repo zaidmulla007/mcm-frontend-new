@@ -550,11 +550,11 @@ export default function Login() {
                 // Just show OTP input after successful signup
                 setIsOtpSent(true);
                 setTimer(60);
-                setOtpSentTo('whatsapp');
+                setOtpSentTo('both');
 
                 Swal.fire({
                   title: 'OTP Sent!',
-                  text: `Please enter the OTP sent to your WhatsApp number ${selectedCountry.dial_code}${formData.phoneNumber}`,
+                  text: `Please enter the OTP sent to your WhatsApp number ${selectedCountry.dial_code}${formData.phoneNumber} and email ${formData.email}`,
                   icon: 'success',
                   confirmButtonText: 'OK',
                   confirmButtonColor: '#8b5cf6',
@@ -752,6 +752,7 @@ export default function Login() {
     }
 
     const fullPhoneNumber = formData.phoneNumber ? `${selectedCountry.dial_code.replace('+', '')}${formData.phoneNumber}` : '';
+    const username = fullPhoneNumber || formData.email;
 
     try {
       // For login, use the actual API endpoint
@@ -762,7 +763,7 @@ export default function Login() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            username: fullPhoneNumber,
+            username: username,
             password: otp
           })
         });
@@ -817,7 +818,7 @@ export default function Login() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            username: fullPhoneNumber,
+            username: username,
             password: otp
           })
         });
@@ -943,7 +944,8 @@ export default function Login() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            username: fullPhoneNumber
+            username: fullPhoneNumber,
+            email: formData.email
           })
         });
 
@@ -954,7 +956,7 @@ export default function Login() {
 
           Swal.fire({
             title: 'OTP Resent!',
-            text: 'A new OTP has been sent to your WhatsApp number.',
+            text: `A new OTP has been sent to your WhatsApp number ${selectedCountry.dial_code}${formData.phoneNumber} and email ${formData.email}`,
             icon: 'success',
             confirmButtonText: 'OK',
             confirmButtonColor: '#8b5cf6',
