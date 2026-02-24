@@ -60,7 +60,7 @@ export async function GET(request) {
     );
   } catch (error) {
     console.error('Error fetching YouTube Telegram DataTable data:', error);
-    
+
     let errorMessage = 'Failed to fetch YouTube Telegram DataTable data';
     let statusCode = 500;
 

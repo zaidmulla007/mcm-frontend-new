@@ -2,13 +2,40 @@
 
 import { motion } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Swal from "sweetalert2";
 import { FaWhatsapp, FaChevronDown, FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import { countryCodes } from "../../data/countryCodes";
+import axios from "axios";
+
+// List of valid email domains
+const VALID_EMAIL_DOMAINS = [
+  // Major providers
+  'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'live.com',
+  'icloud.com', 'me.com', 'aol.com', 'protonmail.com', 'proton.me', 'mail.com',
+  // Other popular providers
+  'zoho.com', 'yandex.com', 'gmx.com', 'tutanota.com', 'fastmail.com',
+  'hushmail.com', 'inbox.com', 'msn.com', 'yahoo.co.uk', 'yahoo.co.in',
+  // Regional providers
+  'mail.ru', 'yandex.ru', 'rambler.ru', '163.com', 'qq.com', '126.com',
+  'sina.com', 'sohu.com', 'rediffmail.com', 'yahoo.co.jp', 'naver.com',
+  'daum.net', 'web.de', 'gmx.de', 't-online.de', 'orange.fr', 'laposte.net',
+  'free.fr', 'libero.it', 'tiscali.it', 'terra.com.br', 'uol.com.br',
+  'bol.com.br', 'telstra.com', 'bigpond.com',
+  // ISP providers
+  'comcast.net', 'verizon.net', 'att.net', 'sbcglobal.net', 'bellsouth.net',
+  'charter.net', 'cox.net', 'earthlink.net', 'btinternet.com', 'virginmedia.com',
+  'sky.com', 'ntlworld.com',
+  // Privacy-focused
+  'mailfence.com', 'posteo.de', 'runbox.com', 'countermail.com',
+  // Legacy providers
+  'juno.com', 'netscape.net', 'lycos.com', 'excite.com', 'rocketmail.com'
+];
 
 export default function Login() {
-  const [isLogin, setIsLogin] = useState(true);
+  const searchParams = useSearchParams();
+  const showSignUp = searchParams.get('signup') === 'true';
+  const [isLogin, setIsLogin] = useState(!showSignUp); // If signup=true, show Sign Up form
   const [otpSentTo, setOtpSentTo] = useState(""); // tracks where OTP was sent: "whatsapp", "email", or "both"
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
@@ -21,6 +48,12 @@ export default function Login() {
   const dropdownRef = useRef(null);
   const contactDropdownRef = useRef(null);
 
+  // OTP Retry and User ID tracking
+  const [otpRetryCount, setOtpRetryCount] = useState(0);
+  const [userId, setUserId] = useState(null);
+  const [isSignupPending, setIsSignupPending] = useState(false);
+  const intervalRef = useRef(null);
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -28,6 +61,14 @@ export default function Login() {
     email: '',
     password: '',
     confirmPassword: ''
+  });
+  const [fieldErrors, setFieldErrors] = useState({
+    firstName: false,
+    lastName: false,
+    phoneNumber: false,
+    email: false,
+    password: false,
+    confirmPassword: false
   });
   const [canSendOtp, setCanSendOtp] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
@@ -58,6 +99,9 @@ export default function Login() {
         errorMessage = 'Email cannot contain consecutive dots';
       } else if (formData.email.includes('@.')) {
         errorMessage = 'Email cannot have a dot immediately after @';
+      } else if (!isValidEmailDomain(formData.email)) {
+        const domain = formData.email.split('@')[1];
+        errorMessage = `Invalid email domain "${domain}". Please use a valid email.`;
       }
 
       Swal.fire({
@@ -66,8 +110,8 @@ export default function Login() {
         icon: 'warning',
         confirmButtonText: 'OK',
         confirmButtonColor: '#8b5cf6',
-        background: '#232042',
-        color: '#ffffff'
+        background: '#ffffff',
+        color: '#000000'
       });
     }
   };
@@ -88,13 +132,154 @@ export default function Login() {
           icon: 'warning',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff'
+          background: '#ffffff',
+          color: '#000000'
         });
       }
       // Don't show any alert if the number is valid (within min and max range)
     }
   };
+
+  // Watch for URL parameter changes and update form type
+  useEffect(() => {
+    const showSignUp = searchParams.get('signup') === 'true';
+    setIsLogin(!showSignUp);
+
+    // Cleanup function when switching forms
+    const cleanup = async () => {
+      // Stop polling
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+
+      // Delete pending signup if exists
+      if (userId && isSignupPending) {
+        try {
+          await axios.delete(`/api/auth/deletePendingSignup/${userId}`);
+        } catch (error) {
+          console.error('Error cleaning up on form switch:', error);
+        }
+      }
+
+      // Clear temporary user_id from localStorage
+      localStorage.removeItem('user_id');
+    };
+
+    cleanup();
+
+    // Reset form state when switching between login and signup
+    setIsOtpSent(false);
+    setOtp("");
+    setTimer(0);
+    setOtpRetryCount(0); // Reset retry count
+    setUserId(null); // Reset userId
+    setIsSignupPending(false); // Reset signup pending status
+    // Clear all form data when switching between login and signup
+    setFormData({
+      firstName: '',
+      lastName: '',
+      phoneNumber: '',
+      email: '',
+      password: '',
+      confirmPassword: ''
+    });
+    // Reset field errors
+    setFieldErrors({
+      firstName: false,
+      lastName: false,
+      phoneNumber: false,
+      email: false,
+      password: false,
+      confirmPassword: false
+    });
+  }, [searchParams]);
+
+  // Restore userId from localStorage on component mount and check signup status
+  useEffect(() => {
+    const storedUserId = localStorage.getItem('user_id');
+
+    if (storedUserId && !isLogin) {
+      // User has a pending signup, restore the userId and check status
+      setUserId(storedUserId);
+
+      // Immediately check signup status on mount/refresh
+      const checkStatus = async () => {
+        try {
+          const response = await axios.get(`/api/auth/checkSignupStatus/${storedUserId}`);
+          if (response.data.success) {
+            if (response.data.signup_pending) {
+              // Signup is still pending, set the flag to start polling
+              setIsSignupPending(true);
+              setIsOtpSent(true); // Show OTP input
+            } else {
+              // Signup is complete, clear the temporary user_id
+              localStorage.removeItem('user_id');
+              setUserId(null);
+              setIsSignupPending(false);
+            }
+          }
+        } catch (error) {
+          console.error('Error checking signup status on mount:', error);
+          // If there's an error, clear the stored user_id
+          localStorage.removeItem('user_id');
+          setUserId(null);
+        }
+      };
+
+      checkStatus();
+    }
+  }, []); // Run only once on component mount
+
+  // Polling and cleanup useEffect for signup monitoring
+  useEffect(() => {
+    if (!userId || !isSignupPending) {
+      return;
+    }
+
+    // Start polling every 1 second
+    intervalRef.current = setInterval(async () => {
+      try {
+        const response = await axios.get(`/api/auth/checkSignupStatus/${userId}`);
+        if (response.data.success && !response.data.signup_pending) {
+          // Signup complete, stop polling
+          clearInterval(intervalRef.current);
+          setIsSignupPending(false);
+        }
+      } catch (error) {
+        console.error('Error checking signup status:', error);
+      }
+    }, 1000);
+
+    // Cleanup function for when user navigates away or component unmounts
+    const handleBeforeUnload = async () => {
+      if (userId && isSignupPending) {
+        // Use sendBeacon for reliable cleanup on page close/refresh
+        const blob = new Blob(
+          [JSON.stringify({ id: userId })],
+          { type: 'application/json' }
+        );
+        navigator.sendBeacon(`/api/auth/deletePendingSignup/${userId}`, blob);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Cleanup on unmount (navigation within app)
+    return async () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+
+      if (userId && isSignupPending) {
+        try {
+          await axios.delete(`/api/auth/deletePendingSignup/${userId}`);
+        } catch (error) {
+          console.error('Error cleaning up:', error);
+        }
+      }
+    };
+  }, [userId, isSignupPending]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -118,9 +303,67 @@ export default function Login() {
     }
   }, [timer]);
 
+  // Heartbeat/Keep-Alive system for pending signups
+  useEffect(() => {
+    if (!userId || !isSignupPending) {
+      return;
+    }
+
+    // Start polling every 1 second to check signup status
+    intervalRef.current = setInterval(async () => {
+      try {
+        const response = await axios.get(`/api/auth/checkSignupStatus/${userId}`);
+        if (response.data.success && !response.data.signup_pending) {
+          // Signup complete, stop polling
+          clearInterval(intervalRef.current);
+          setIsSignupPending(false);
+        }
+      } catch (error) {
+        console.error('Error checking signup status:', error);
+      }
+    }, 1000);
+
+    // Cleanup function for when user navigates away or component unmounts
+    const handleBeforeUnload = async () => {
+      if (userId && isSignupPending) {
+        // Use sendBeacon for reliable cleanup on page close/refresh
+        const blob = new Blob(
+          [JSON.stringify({ id: userId })],
+          { type: 'application/json' }
+        );
+        navigator.sendBeacon(`/api/auth/deletePendingSignup/${userId}`, blob);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Cleanup on unmount (navigation within app)
+    return async () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+
+      if (userId && isSignupPending) {
+        try {
+          await axios.delete(`/api/auth/deletePendingSignup/${userId}`);
+        } catch (error) {
+          console.error('Error cleaning up pending signup:', error);
+        }
+      }
+    };
+  }, [userId, isSignupPending]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     let newFormData;
+
+    // Enforce max length for name fields
+    if (name === "firstName" || name === "lastName") {
+      if (value.length > 100) {
+        return;
+      }
+    }
 
     if (name === "phoneNumber") {
       const cleaned = value.replace(/\D/g, '');
@@ -135,8 +378,8 @@ export default function Login() {
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff',
+          background: '#ffffff',
+          color: '#000000',
           timer: 3000,
           timerProgressBar: true
         });
@@ -178,6 +421,14 @@ export default function Login() {
     }
 
     setFormData(newFormData);
+
+    // Clear error for the field being edited
+    if (fieldErrors[name]) {
+      setFieldErrors({
+        ...fieldErrors,
+        [name]: false
+      });
+    }
 
     // Check if all required fields are filled for signup
     if (!isLogin) {
@@ -418,6 +669,16 @@ export default function Login() {
     return phoneLength >= lengths.min && phoneLength <= lengths.max;
   };
 
+  // Function to validate if email domain is in the allowed list
+  const isValidEmailDomain = (email) => {
+    if (!email || !email.includes('@')) return false;
+
+    const domain = email.split('@')[1]?.toLowerCase();
+    if (!domain) return false;
+
+    return VALID_EMAIL_DOMAINS.includes(domain);
+  };
+
   const validateEmail = (email) => {
     // More comprehensive email validation
     const emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
@@ -436,7 +697,11 @@ export default function Login() {
     if (localPart.length > 64) return false; // Max local part length
     if (domain.length > 253) return false; // Max domain length
 
-    return emailRegex.test(email);
+    // Check basic email format
+    if (!emailRegex.test(email)) return false;
+
+    // Check if domain is in the allowed list
+    return isValidEmailDomain(email);
   };
 
   const validatePassword = (password) => {
@@ -447,16 +712,87 @@ export default function Login() {
   const handleSendOtp = async () => {
     // For signup, validate form and show OTP input
     if (!isLogin) {
-      // Validate all required fields
-      if (!formData.firstName || !formData.lastName || !formData.phoneNumber) {
+      // Check each field individually and show specific error
+      if (!formData.firstName || formData.firstName.trim().length < 2) {
+        setFieldErrors({
+          firstName: true,
+          lastName: false,
+          phoneNumber: false,
+          email: false,
+          password: false,
+          confirmPassword: false
+        });
         Swal.fire({
-          title: 'Error!',
-          text: 'Please fill all required fields',
-          icon: 'error',
+          title: !formData.firstName ? 'First Name Missing!' : 'First Name Too Short!',
+          text: !formData.firstName ? 'Please enter your First Name' : 'First Name must be at least 2 characters',
+          icon: 'warning',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff'
+          background: '#ffffff',
+          color: '#000000'
+        });
+        return;
+      }
+
+      if (!formData.lastName || formData.lastName.trim().length < 2) {
+        setFieldErrors({
+          firstName: false,
+          lastName: true,
+          phoneNumber: false,
+          email: false,
+          password: false,
+          confirmPassword: false
+        });
+        Swal.fire({
+          title: !formData.lastName ? 'Last Name Missing!' : 'Last Name Too Short!',
+          text: !formData.lastName ? 'Please enter your Last Name' : 'Last Name must be at least 2 characters',
+          icon: 'warning',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#8b5cf6',
+          background: '#ffffff',
+          color: '#000000'
+        });
+        return;
+      }
+
+      if (!formData.email) {
+        setFieldErrors({
+          firstName: false,
+          lastName: false,
+          phoneNumber: false,
+          email: true,
+          password: false,
+          confirmPassword: false
+        });
+        Swal.fire({
+          title: 'Email Missing!',
+          text: 'Please enter your Email address',
+          icon: 'warning',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#8b5cf6',
+          background: '#ffffff',
+          color: '#000000'
+        });
+        return;
+      }
+
+      if (!formData.phoneNumber) {
+        setFieldErrors({
+          firstName: false,
+          lastName: false,
+          phoneNumber: true,
+          email: false,
+          password: false,
+          confirmPassword: false
+        });
+        Swal.fire({
+          title: 'Phone Number Missing!',
+          text: 'Please enter your WhatsApp Phone Number',
+          icon: 'warning',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#8b5cf6',
+          background: '#ffffff',
+          color: '#000000'
         });
         return;
       }
@@ -469,8 +805,8 @@ export default function Login() {
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff'
+          background: '#ffffff',
+          color: '#000000'
         });
         return;
       }
@@ -493,8 +829,8 @@ export default function Login() {
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff'
+          background: '#ffffff',
+          color: '#000000'
         });
         return;
       }
@@ -506,12 +842,12 @@ export default function Login() {
         title: 'Confirm Details',
         html: `
           <div style="text-align: left; padding: 20px;">
-            <p style="font-size: 16px; margin-bottom: 15px; color: #fff;">Please confirm your details:</p>
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+            <p style="font-size: 16px; margin-bottom: 15px; color: #000000;">Please confirm your details:</p>
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px; border-radius: 10px; margin-bottom: 15px; color: #ffffff;">
               <p style="margin: 5px 0; font-size: 14px;"><strong>Email:</strong> ${formData.email}</p>
               <p style="margin: 5px 0; font-size: 14px;"><strong>WhatsApp:</strong> ${fullPhoneNumber}</p>
             </div>
-            <p style="font-size: 14px; color: #ccc;">OTP will be sent to your WhatsApp number</p>
+            <p style="font-size: 14px; color: #6b7280;">OTP will be sent to your WhatsApp number and Email</p>
           </div>
         `,
         icon: 'question',
@@ -520,8 +856,8 @@ export default function Login() {
         cancelButtonText: 'No! Edit Details',
         confirmButtonColor: '#8b5cf6',
         cancelButtonColor: '#6b7280',
-        background: '#232042',
-        color: '#ffffff'
+        background: '#ffffff',
+        color: '#000000'
       }).then(async (result) => {
         if (result.isConfirmed) {
           // User confirmed, proceed with API call
@@ -546,6 +882,14 @@ export default function Login() {
               const data = await response.json();
 
               if (data.success) {
+                // Store userId and set signup pending status for heartbeat system
+                setUserId(data._id);
+                setIsSignupPending(true);
+                setOtpRetryCount(0); // Reset retry count for new signup
+
+                // Store user_id in localStorage for persistence across page refreshes
+                localStorage.setItem('user_id', data._id);
+
                 // DON'T store user data yet - only store after OTP verification
                 // Just show OTP input after successful signup
                 setIsOtpSent(true);
@@ -554,12 +898,12 @@ export default function Login() {
 
                 Swal.fire({
                   title: 'OTP Sent!',
-                  text: `Please enter the OTP sent to your WhatsApp number ${selectedCountry.dial_code}${formData.phoneNumber} and email ${formData.email}`,
+                  text: `Please enter the OTP sent to your WhatsApp number ${selectedCountry.dial_code}${formData.phoneNumber} and Email ${formData.email}`,
                   icon: 'success',
                   confirmButtonText: 'OK',
                   confirmButtonColor: '#8b5cf6',
-                  background: '#232042',
-                  color: '#ffffff'
+                  background: '#ffffff',
+                  color: '#000000'
                 });
               } else {
                 throw new Error(data.message || 'Signup failed');
@@ -581,8 +925,8 @@ export default function Login() {
               icon: 'error',
               confirmButtonText: 'OK',
               confirmButtonColor: '#8b5cf6',
-              background: '#232042',
-              color: '#ffffff'
+              background: '#ffffff',
+              color: '#000000'
             });
           }
         }
@@ -604,8 +948,8 @@ export default function Login() {
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff'
+          background: '#ffffff',
+          color: '#000000'
         });
         return;
       }
@@ -628,8 +972,8 @@ export default function Login() {
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff'
+          background: '#ffffff',
+          color: '#000000'
         });
         return;
       }
@@ -638,12 +982,12 @@ export default function Login() {
       if (formData.email && !hasValidEmail) {
         Swal.fire({
           title: 'Invalid Email!',
-          text: 'Please enter a valid email address.',
+          text: 'Please enter a valid Email address.',
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff'
+          background: '#ffffff',
+          color: '#000000'
         });
         return;
       }
@@ -693,6 +1037,9 @@ export default function Login() {
             localStorage.setItem('dateEnd', data.user.dateEnd || '');
           }
 
+          // Reset retry count for login OTP
+          setOtpRetryCount(0);
+
           // Show OTP input
           setIsOtpSent(true);
           setTimer(60);
@@ -704,8 +1051,8 @@ export default function Login() {
             icon: 'success',
             confirmButtonText: 'OK',
             confirmButtonColor: '#8b5cf6',
-            background: '#232042',
-            color: '#ffffff'
+            background: '#ffffff',
+            color: '#000000'
           });
         } else {
           // Show error message from API for unregistered users
@@ -715,8 +1062,8 @@ export default function Login() {
             icon: 'error',
             confirmButtonText: 'OK',
             confirmButtonColor: '#8b5cf6',
-            background: '#232042',
-            color: '#ffffff'
+            background: '#ffffff',
+            color: '#000000'
           });
         }
       } catch (error) {
@@ -728,8 +1075,8 @@ export default function Login() {
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff'
+          background: '#ffffff',
+          color: '#000000'
         });
       }
     }
@@ -745,8 +1092,8 @@ export default function Login() {
         icon: 'error',
         confirmButtonText: 'OK',
         confirmButtonColor: '#8b5cf6',
-        background: '#232042',
-        color: '#ffffff'
+        background: '#ffffff',
+        color: '#000000'
       });
       return;
     }
@@ -770,6 +1117,32 @@ export default function Login() {
 
         if (response.ok) {
           const data = await response.json();
+
+          // Check for CONTACT_SUPPORT message (3 failed attempts)
+          if (data.message === 'CONTACT_SUPPORT') {
+            Swal.fire({
+              title: 'Account Disabled!',
+              html: `
+                <div style="text-align: center; padding: 20px;">
+                  <p style="font-size: 16px; margin-bottom: 15px; color: #000000;">
+                    Your account has been disabled due to multiple failed OTP attempts.
+                  </p>
+                  <p style="font-size: 14px; color: #6b7280;">
+                    Please contact support to regain access to your account.
+                  </p>
+                </div>
+              `,
+              icon: 'error',
+              confirmButtonText: 'Contact Support',
+              confirmButtonColor: '#8b5cf6',
+              background: '#ffffff',
+              color: '#000000'
+            }).then(() => {
+              // Show contact support modal
+              setShowContactModal(true);
+            });
+            return;
+          }
 
           // Store all user data in localStorage
           if (data.success) {
@@ -798,14 +1171,15 @@ export default function Login() {
             title: 'Success!',
             text: 'Login successful!',
             icon: 'success',
-            confirmButtonText: 'Continue',
             confirmButtonColor: '#8b5cf6',
-            background: '#232042',
-            color: '#ffffff'
-          }).then((result) => {
-            if (result.isConfirmed) {
-              router.push('/influencers');
-            }
+            background: '#ffffff',
+            color: '#000000',
+            timer: 3000,
+            timerProgressBar: true,
+            showConfirmButton: false
+          }).then(() => {
+            window.dispatchEvent(new Event('authChange'));
+            router.push('/');
           });
         } else {
           throw new Error('Login failed');
@@ -826,8 +1200,58 @@ export default function Login() {
         if (response.ok) {
           const data = await response.json();
 
+          // Check for CONTACT_SUPPORT message (3 failed attempts)
+          if (data.message === 'CONTACT_SUPPORT') {
+            // Stop heartbeat polling
+            setIsSignupPending(false);
+            if (intervalRef.current) {
+              clearInterval(intervalRef.current);
+            }
+
+            // Delete pending signup
+            if (userId) {
+              try {
+                await axios.delete(`/api/auth/deletePendingSignup/${userId}`);
+              } catch (error) {
+                console.error('Error deleting pending signup:', error);
+              }
+            }
+
+            Swal.fire({
+              title: 'Account Disabled!',
+              html: `
+                <div style="text-align: center; padding: 20px;">
+                  <p style="font-size: 16px; margin-bottom: 15px; color: #000000;">
+                    Your account has been disabled due to multiple failed OTP attempts.
+                  </p>
+                  <p style="font-size: 14px; color: #6b7280;">
+                    Please contact support to complete your registration.
+                  </p>
+                </div>
+              `,
+              icon: 'error',
+              confirmButtonText: 'Contact Support',
+              confirmButtonColor: '#8b5cf6',
+              background: '#ffffff',
+              color: '#000000'
+            }).then(() => {
+              // Show contact support modal
+              setShowContactModal(true);
+            });
+            return;
+          }
+
           // Store all user data in localStorage
           if (data.success) {
+            // Stop heartbeat polling - signup is complete
+            setIsSignupPending(false);
+            if (intervalRef.current) {
+              clearInterval(intervalRef.current);
+            }
+
+            // Clear temporary user_id now that signup is complete
+            localStorage.removeItem('user_id');
+
             localStorage.setItem('accessToken', data.accessToken);
             localStorage.setItem('userId', data.id);
             localStorage.setItem('username', data.username);
@@ -863,14 +1287,15 @@ export default function Login() {
             html: `
               <div style="text-align: center; padding: 20px;">
                 <h2 style="color: #8b5cf6; margin-bottom: 20px;">Welcome to MCM!</h2>
-                <p style="font-size: 18px; margin-bottom: 15px;">
+                <p style="font-size: 18px; margin-bottom: 15px; color: #000000;">
                   Thank you for joining us, <strong>${formData.firstName} ${formData.lastName}</strong>!
                 </p>
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                            padding: 20px; 
-                            border-radius: 15px; 
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            padding: 20px;
+                            border-radius: 15px;
                             margin: 20px 0;
-                            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);">
+                            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+                            color: #ffffff;">
                   <p style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">
                     ✨ Your Subscription Starts Today ✨
                   </p>
@@ -878,21 +1303,22 @@ export default function Login() {
                     ${dateString}
                   </p>
                 </div>
-                <p style="font-size: 16px; margin-top: 20px;">
+                <p style="font-size: 16px; margin-top: 20px; color: #000000;">
                   Get ready to explore amazing features!
                 </p>
               </div>
             `,
             icon: 'success',
-            confirmButtonText: 'Start Exploring',
             confirmButtonColor: '#8b5cf6',
-            background: '#232042',
-            color: '#ffffff',
-            showConfetti: true
-          }).then((result) => {
-            if (result.isConfirmed) {
-              router.push('/influencers');
-            }
+            background: '#ffffff',
+            color: '#000000',
+            showConfetti: true,
+            timer: 3000,
+            timerProgressBar: true,
+            showConfirmButton: false
+          }).then(() => {
+            window.dispatchEvent(new Event('authChange'));
+            router.push('/');
           });
         } else {
           throw new Error('Failed to verify OTP');
@@ -901,27 +1327,73 @@ export default function Login() {
     } catch (error) {
       console.error('Error verifying OTP:', error);
 
-      // Show error message for both login and signup
+      // Increment retry count
+      const newRetryCount = otpRetryCount + 1;
+      setOtpRetryCount(newRetryCount);
+
+      // Check if max retries reached (3 attempts)
+      if (newRetryCount >= 3) {
+        // Stop heartbeat polling
+        setIsSignupPending(false);
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+
+        // Delete pending signup if in signup mode
+        if (!isLogin && userId) {
+          try {
+            await axios.delete(`/api/auth/deletePendingSignup/${userId}`);
+          } catch (deleteError) {
+            console.error('Error deleting pending signup:', deleteError);
+          }
+        }
+
+        Swal.fire({
+          title: 'Too Many Failed Attempts!',
+          html: `
+            <div style="text-align: center; padding: 20px;">
+              <p style="font-size: 16px; margin-bottom: 15px; color: #000000;">
+                You have exceeded the maximum number of OTP attempts (3).
+              </p>
+              <p style="font-size: 14px; color: #6b7280;">
+                Please contact support for assistance.
+              </p>
+            </div>
+          `,
+          icon: 'error',
+          confirmButtonText: 'Contact Support',
+          confirmButtonColor: '#8b5cf6',
+          background: '#ffffff',
+          color: '#000000'
+        }).then(() => {
+          // Show contact support modal
+          setShowContactModal(true);
+        });
+        return;
+      }
+
+      // Show error message for both login and signup with remaining attempts
+      const remainingAttempts = 3 - newRetryCount;
       if (isLogin) {
         Swal.fire({
           title: 'Login Failed!',
-          text: 'Invalid OTP. Please try again.',
+          text: `Invalid OTP. You have ${remainingAttempts} attempt${remainingAttempts > 1 ? 's' : ''} remaining.`,
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff'
+          background: '#ffffff',
+          color: '#000000'
         });
       } else {
         // For signup, show OTP error (not success!)
         Swal.fire({
           title: 'Verification Failed!',
-          text: 'Invalid OTP. Please check and try again.',
+          text: `Invalid OTP. You have ${remainingAttempts} attempt${remainingAttempts > 1 ? 's' : ''} remaining.`,
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff'
+          background: '#ffffff',
+          color: '#000000'
         });
       }
     }
@@ -929,7 +1401,14 @@ export default function Login() {
 
 
   const handleResendOtp = async () => {
-    // Remove timer check - allow resend anytime
+    // Check if timer is still running
+    if (timer > 0) {
+      return;
+    }
+
+    // Reset retry count when resending OTP
+    setOtpRetryCount(0);
+
     if (isLogin) {
       // For login, call fetchOTP API
       handleSendOtpForLogin();
@@ -956,12 +1435,24 @@ export default function Login() {
 
           Swal.fire({
             title: 'OTP Resent!',
-            text: `A new OTP has been sent to your WhatsApp number ${selectedCountry.dial_code}${formData.phoneNumber} and email ${formData.email}`,
+            text: `A new OTP has been sent to your WhatsApp number ${selectedCountry.dial_code}${formData.phoneNumber} and Email ${formData.email}`,
             icon: 'success',
             confirmButtonText: 'OK',
             confirmButtonColor: '#8b5cf6',
-            background: '#232042',
-            color: '#ffffff'
+            background: '#ffffff',
+            color: '#000000'
+          });
+        } else if (data.message === 'CONTACT_SUPPORT') {
+          Swal.fire({
+            title: 'Maximum Retries Reached',
+            text: 'Your 3 OTP attempts are over. Please contact support.',
+            icon: 'error',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#8b5cf6',
+            background: '#ffffff',
+            color: '#000000'
+          }).then(() => {
+            setShowContactModal(true);
           });
         } else {
           throw new Error(data.message || 'Failed to resend OTP');
@@ -974,8 +1465,8 @@ export default function Login() {
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff'
+          background: '#ffffff',
+          color: '#000000'
         });
       }
     }
@@ -991,12 +1482,12 @@ export default function Login() {
       if (!formData.phoneNumber && !formData.email) {
         Swal.fire({
           title: 'Input Required!',
-          text: 'Please enter your phone number or email to proceed with login.',
+          text: 'Please enter your phone number or Email to proceed with login.',
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff'
+          background: '#ffffff',
+          color: '#000000'
         });
         return;
       }
@@ -1026,8 +1517,8 @@ export default function Login() {
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff'
+          background: '#ffffff',
+          color: '#000000'
         });
         return;
       }
@@ -1036,12 +1527,12 @@ export default function Login() {
       if (formData.email && !hasValidEmail) {
         Swal.fire({
           title: 'Invalid Email!',
-          text: 'Please enter a valid email address.',
+          text: 'Please enter a valid Email address.',
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff'
+          background: '#ffffff',
+          color: '#000000'
         });
         return;
       }
@@ -1073,6 +1564,9 @@ export default function Login() {
         const data = await response.json();
 
         if (data.success) {
+          // Reset retry count when OTP is sent
+          setOtpRetryCount(0);
+
           setIsOtpSent(true);
           setTimer(60);
           setOtpSentTo(sentTo);
@@ -1104,8 +1598,20 @@ export default function Login() {
             icon: 'success',
             confirmButtonText: 'OK',
             confirmButtonColor: '#8b5cf6',
-            background: '#232042',
-            color: '#ffffff'
+            background: '#ffffff',
+            color: '#000000'
+          });
+        } else if (data.message === 'CONTACT_SUPPORT') {
+          Swal.fire({
+            title: 'Maximum Retries Reached',
+            text: 'Your 3 OTP attempts are over. Please contact support.',
+            icon: 'error',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#8b5cf6',
+            background: '#ffffff',
+            color: '#000000'
+          }).then(() => {
+            setShowContactModal(true);
           });
         } else {
           // Get error message from API
@@ -1117,8 +1623,8 @@ export default function Login() {
             icon: 'error',
             confirmButtonText: 'OK',
             confirmButtonColor: '#8b5cf6',
-            background: '#232042',
-            color: '#ffffff'
+            background: '#ffffff',
+            color: '#000000'
           });
         }
       } catch (error) {
@@ -1130,8 +1636,8 @@ export default function Login() {
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff'
+          background: '#ffffff',
+          color: '#000000'
         });
       }
     } else {
@@ -1142,20 +1648,23 @@ export default function Login() {
 
   const handleContactEmailBlur = () => {
     if (contactForm.userEmail && contactForm.userEmail.length > 0 && !validateEmail(contactForm.userEmail)) {
-      let errorMessage = 'Please enter a valid email address';
+      let errorMessage = 'Please enter a valid Email address';
 
       if (!contactForm.userEmail.includes('@')) {
         errorMessage = 'Email address must contain @ symbol';
       } else if (!contactForm.userEmail.includes('.')) {
         errorMessage = 'Email must include a domain extension (e.g., .com, .org)';
       } else if (contactForm.userEmail.endsWith('@')) {
-        errorMessage = 'Please complete the email address after @';
+        errorMessage = 'Please complete the Email address after @';
       } else if (contactForm.userEmail.endsWith('.')) {
         errorMessage = 'Please complete the domain extension';
       } else if (contactForm.userEmail.includes('..')) {
         errorMessage = 'Email cannot contain consecutive dots';
       } else if (contactForm.userEmail.includes('@.')) {
         errorMessage = 'Email cannot have a dot immediately after @';
+      } else if (!isValidEmailDomain(contactForm.userEmail)) {
+        const domain = contactForm.userEmail.split('@')[1];
+        errorMessage = `Invalid Email domain "${domain}". Please use a valid Email provider like Gmail, Yahoo, Outlook, etc.`;
       }
 
       Swal.fire({
@@ -1164,28 +1673,31 @@ export default function Login() {
         icon: 'warning',
         confirmButtonText: 'OK',
         confirmButtonColor: '#8b5cf6',
-        background: '#232042',
-        color: '#ffffff'
+        background: '#ffffff',
+        color: '#000000'
       });
     }
   };
 
   const handleContactAlternateEmailBlur = () => {
     if (contactForm.alternateEmail && contactForm.alternateEmail.length > 0 && !validateEmail(contactForm.alternateEmail)) {
-      let errorMessage = 'Please enter a valid alternate email address';
+      let errorMessage = 'Please enter a valid alternate Email address';
 
       if (!contactForm.alternateEmail.includes('@')) {
-        errorMessage = 'Alternate email must contain @ symbol';
+        errorMessage = 'Alternate Email must contain @ symbol';
       } else if (!contactForm.alternateEmail.includes('.')) {
-        errorMessage = 'Alternate email must include a domain extension (e.g., .com, .org)';
+        errorMessage = 'Alternate Email must include a domain extension (e.g., .com, .org)';
       } else if (contactForm.alternateEmail.endsWith('@')) {
         errorMessage = 'Please complete the alternate email after @';
       } else if (contactForm.alternateEmail.endsWith('.')) {
         errorMessage = 'Please complete the domain extension';
       } else if (contactForm.alternateEmail.includes('..')) {
-        errorMessage = 'Alternate email cannot contain consecutive dots';
+        errorMessage = 'Alternate Email cannot contain consecutive dots';
       } else if (contactForm.alternateEmail.includes('@.')) {
-        errorMessage = 'Alternate email cannot have a dot immediately after @';
+        errorMessage = 'Alternate Email cannot have a dot immediately after @';
+      } else if (!isValidEmailDomain(contactForm.alternateEmail)) {
+        const domain = contactForm.alternateEmail.split('@')[1];
+        errorMessage = `Invalid Email domain "${domain}". Please use a valid Email provider like Gmail, Yahoo, Outlook, etc.`;
       }
 
       Swal.fire({
@@ -1194,8 +1706,8 @@ export default function Login() {
         icon: 'warning',
         confirmButtonText: 'OK',
         confirmButtonColor: '#8b5cf6',
-        background: '#232042',
-        color: '#ffffff'
+        background: '#ffffff',
+        color: '#000000'
       });
     }
   };
@@ -1211,8 +1723,8 @@ export default function Login() {
         icon: 'error',
         confirmButtonText: 'OK',
         confirmButtonColor: '#8b5cf6',
-        background: '#232042',
-        color: '#ffffff',
+        background: '#ffffff',
+        color: '#000000',
         timer: 3000,
         timerProgressBar: true
       });
@@ -1236,8 +1748,8 @@ export default function Login() {
           icon: 'warning',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff'
+          background: '#ffffff',
+          color: '#000000'
         });
       }
     }
@@ -1254,8 +1766,8 @@ export default function Login() {
         icon: 'error',
         confirmButtonText: 'OK',
         confirmButtonColor: '#8b5cf6',
-        background: '#232042',
-        color: '#ffffff'
+        background: '#ffffff',
+        color: '#000000'
       });
       return;
     }
@@ -1268,8 +1780,8 @@ export default function Login() {
         icon: 'error',
         confirmButtonText: 'OK',
         confirmButtonColor: '#8b5cf6',
-        background: '#232042',
-        color: '#ffffff'
+        background: '#ffffff',
+        color: '#000000'
       });
       return;
     }
@@ -1292,8 +1804,8 @@ export default function Login() {
         icon: 'error',
         confirmButtonText: 'OK',
         confirmButtonColor: '#8b5cf6',
-        background: '#232042',
-        color: '#ffffff'
+        background: '#ffffff',
+        color: '#000000'
       });
       return;
     }
@@ -1302,12 +1814,12 @@ export default function Login() {
     if (contactForm.alternateEmail && !validateEmail(contactForm.alternateEmail)) {
       Swal.fire({
         title: 'Invalid Alternate Email!',
-        text: 'Please enter a valid alternate email address',
+        text: 'Please enter a valid alternate Email address',
         icon: 'error',
         confirmButtonText: 'OK',
         confirmButtonColor: '#8b5cf6',
-        background: '#232042',
-        color: '#ffffff'
+        background: '#ffffff',
+        color: '#000000'
       });
       return;
     }
@@ -1320,46 +1832,28 @@ export default function Login() {
       allowEscapeKey: false,
       allowEnterKey: false,
       showConfirmButton: false,
-      background: '#232042',
-      color: '#ffffff',
+      background: '#ffffff',
+      color: '#000000',
       didOpen: () => {
         Swal.showLoading();
       }
     });
 
     try {
-      // Send email through API
+      // Format phone number with country code
       const fullPhoneNumber = `${contactCountry.dial_code}${contactForm.whatsappNumber}`;
 
-      const response = await fetch('/api/Email', {
+      // Call the new contact support API
+      const response = await fetch('/api/contact-support', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          to: 'admin@mcm.com',
-          from: contactForm.userEmail,
-          subject: `Contact Support - Message from ${contactForm.userEmail}`,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <h2 style="color: #8b5cf6; margin-bottom: 20px;">New Support Request</h2>
-              <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                <p style="margin: 10px 0;"><strong>Email:</strong> ${contactForm.userEmail}</p>
-                <p style="margin: 10px 0;"><strong>WhatsApp Number:</strong> ${fullPhoneNumber}</p>
-                ${contactForm.alternateEmail ? `<p style="margin: 10px 0;"><strong>Alternate Email:</strong> ${contactForm.alternateEmail}</p>` : ''}
-              </div>
-              <div style="background: #ffffff; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
-                <h3 style="color: #374151; margin-top: 0;">Message:</h3>
-                <p style="color: #4b5563; line-height: 1.6; white-space: pre-wrap;">${contactForm.message}</p>
-              </div>
-              <div style="margin-top: 20px; padding: 15px; background: #fef3c7; border-radius: 8px;">
-                <p style="margin: 0; color: #92400e; font-size: 14px;">
-                  <strong>Reply to:</strong> ${contactForm.userEmail}
-                </p>
-              </div>
-            </div>
-          `,
-          text: `New Support Request\n\nEmail: ${contactForm.userEmail}\nWhatsApp Number: ${fullPhoneNumber}${contactForm.alternateEmail ? `\nAlternate Email: ${contactForm.alternateEmail}` : ''}\n\nMessage:\n${contactForm.message}\n\nReply to: ${contactForm.userEmail}`
+          email: contactForm.userEmail,
+          emailAlt: contactForm.alternateEmail || '',
+          whatsappNum: fullPhoneNumber,
+          message: contactForm.message
         })
       });
 
@@ -1367,13 +1861,13 @@ export default function Login() {
 
       if (response.ok && data.success) {
         Swal.fire({
-          title: 'Message Sent!',
-          text: 'Your message has been sent to support successfully. We will get back to you soon.',
+          title: 'Success!',
+          text: data.message || 'Submitted Successfully',
           icon: 'success',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff'
+          background: '#ffffff',
+          color: '#000000'
         });
 
         // Close modal and reset form
@@ -1390,9 +1884,54 @@ export default function Login() {
         icon: 'error',
         confirmButtonText: 'OK',
         confirmButtonColor: '#8b5cf6',
-        background: '#232042',
-        color: '#ffffff'
+        background: '#ffffff',
+        color: '#000000'
       });
+    }
+  };
+
+  // Demo sign-in handler - hidden functionality on title click
+  const handleDemoSignIn = async () => {
+    try {
+      const response = await fetch('/api/auth/demoSignIn', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Store all user data in localStorage (same as regular sign-in)
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('userId', data.id);
+        localStorage.setItem('username', data.username);
+        localStorage.setItem('email', data.email);
+        localStorage.setItem('roles', JSON.stringify(data.roles));
+        localStorage.setItem('user', JSON.stringify(data.user));
+
+        // Store additional user details
+        if (data.user) {
+          localStorage.setItem('userName', data.user.name || '');
+          localStorage.setItem('userFirstName', data.user.fname || '');
+          localStorage.setItem('userLastName', data.user.lname || '');
+          localStorage.setItem('userStatus', data.user.status || '');
+          localStorage.setItem('userMobile', data.user.mobile || '');
+          localStorage.setItem('userEmail', data.user.email || '');
+          localStorage.setItem('userData', JSON.stringify(data.user));
+          localStorage.setItem('dateStart', data.user.dateStart || '');
+          localStorage.setItem('dateEnd', data.user.dateEnd || '');
+        }
+
+        // Navigate to landing page
+        window.dispatchEvent(new Event('authChange'));
+        router.push('/');
+      } else {
+        console.error('Demo sign-in failed:', data.message);
+      }
+    } catch (error) {
+      console.error('Demo sign-in error:', error);
     }
   };
 
@@ -1408,24 +1947,27 @@ export default function Login() {
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff'
+          background: '#ffffff',
+          color: '#000000'
         });
         return;
       }
 
       // Validate email for signup only if provided
       if (formData.email && !validateEmail(formData.email)) {
-        let errorMessage = 'Please enter a valid email address';
+        let errorMessage = 'Please enter a valid Email address';
 
         if (!formData.email.includes('@')) {
           errorMessage = 'Email address must contain @ symbol';
         } else if (!formData.email.includes('.')) {
           errorMessage = 'Email must include a domain extension (e.g., .com, .org)';
         } else if (formData.email.endsWith('@')) {
-          errorMessage = 'Please complete the email address after @';
+          errorMessage = 'Please complete the Email address after @';
         } else if (formData.email.endsWith('.')) {
           errorMessage = 'Please complete the domain extension';
+        } else if (!isValidEmailDomain(formData.email)) {
+          const domain = formData.email.split('@')[1];
+          errorMessage = `Invalid Email domain "${domain}". Please use a valid Email provider like Gmail, Yahoo, Outlook, etc.`;
         }
 
         Swal.fire({
@@ -1434,8 +1976,8 @@ export default function Login() {
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff'
+          background: '#ffffff',
+          color: '#000000'
         });
         return;
       }
@@ -1468,8 +2010,8 @@ export default function Login() {
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#8b5cf6',
-          background: '#232042',
-          color: '#ffffff'
+          background: '#ffffff',
+          color: '#000000'
         });
         return;
       }
@@ -1482,8 +2024,8 @@ export default function Login() {
         icon: 'warning',
         confirmButtonText: 'OK',
         confirmButtonColor: '#8b5cf6',
-        background: '#232042',
-        color: '#ffffff'
+        background: '#ffffff',
+        color: '#000000'
       });
       return;
     }
@@ -1496,25 +2038,28 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#19162b] text-white font-sans flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-cyan-50 to-indigo-50 text-black font-sans flex items-center justify-center px-4">
       <motion.div
-        className="bg-[#232042] rounded-2xl p-8 shadow-lg w-full max-w-md"
+        className="bg-white rounded-2xl p-8 shadow-2xl border-2 border-purple-200 w-full max-w-md"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h2 className="text-3xl font-bold text-center mb-6 bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-          {isLogin ? 'Login' : 'Sign Up'}
+        <h2
+          onClick={handleDemoSignIn}
+          className="text-3xl font-bold text-center mb-6 bg-gradient-to-r from-cyan-500 to-indigo-500 bg-clip-text text-transparent cursor-pointer leading-normal pb-1"
+        >
+          <span className="inline-block leading-normal pb-1">{isLogin ? 'Sign In' : 'Sign Up'}</span>
         </h2>
 
         {isLogin && (
-          <div className="text-center text-gray-400 text-sm mb-6 flex items-center justify-center gap-2">
-            <span>Login by</span>
-            <svg className="w-4 h-4 fill-current text-purple-400" viewBox="0 0 24 24">
+          <div className="text-center text-black text-sm mb-6 flex items-center justify-center gap-2">
+            <span>Sign In by</span>
+            <svg className="w-4 h-4 fill-current text-purple-600" viewBox="0 0 24 24">
               <path d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z" />
             </svg>
             <span>Email or</span>
-            <svg className="w-4 h-4 fill-current text-green-500" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 fill-current text-green-600" viewBox="0 0 24 24">
               <path d="M17.472,14.382c-0.297-0.149-1.758-0.867-2.03-0.967c-0.273-0.099-0.471-0.148-0.67,0.15c-0.197,0.297-0.767,0.966-0.94,1.164c-0.173,0.199-0.347,0.223-0.644,0.075c-0.297-0.15-1.255-0.463-2.39-1.475c-0.883-0.788-1.48-1.761-1.653-2.059c-0.173-0.297-0.018-0.458,0.13-0.606c0.134-0.133,0.297-0.347,0.446-0.521C9.87,9.97,9.919,9.846,10.019,9.65c0.099-0.198,0.05-0.371-0.025-0.52C9.919,8.981,9.325,7.515,9.078,6.92c-0.241-0.58-0.487-0.5-0.669-0.51c-0.173-0.008-0.371-0.01-0.57-0.01c-0.198,0-0.52,0.074-0.792,0.372c-0.272,0.297-1.04,1.016-1.04,2.479c0,1.462,1.065,2.875,1.213,3.074c0.149,0.198,2.096,3.2,5.077,4.487c0.709,0.306,1.262,0.489,1.694,0.625c0.712,0.227,1.36,0.195,1.871,0.118c0.571-0.085,1.758-0.719,2.006-1.413c0.248-0.694,0.248-1.289,0.173-1.413C17.884,14.651,17.769,14.431,17.472,14.382z M12.057,21.785h-0.008c-1.784,0-3.525-0.481-5.052-1.389l-0.362-0.215l-3.754,0.984l1.005-3.671l-0.236-0.375c-0.99-1.575-1.511-3.393-1.511-5.26c0-5.445,4.43-9.875,9.88-9.875c2.64,0,5.124,1.03,6.988,2.898c1.865,1.867,2.893,4.352,2.892,6.993C21.899,17.354,17.469,21.785,12.057,21.785z M20.5,3.488C18.24,1.24,15.24,0.013,12.058,0C5.507,0,0.17,5.335,0.172,11.892c0,2.096,0.547,4.142,1.588,5.945L0,24l6.305-1.654c1.746,0.943,3.71,1.444,5.71,1.447h0.006c6.551,0,11.89-5.335,11.89-11.893C23.91,8.724,22.759,5.746,20.5,3.488z" />
             </svg>
             <span>WhatsApp Number</span>
@@ -1523,13 +2068,13 @@ export default function Login() {
 
         {!isLogin && (
           <div className="mb-6 text-center">
-            <div className="text-gray-400 text-sm mb-2 flex items-center justify-center gap-2">
+            <div className="text-black text-sm mb-2 flex items-center justify-center gap-2">
               <span>Sign Up by</span>
-              <svg className="w-4 h-4 fill-current text-purple-400" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 fill-current text-purple-600" viewBox="0 0 24 24">
                 <path d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z" />
               </svg>
               <span>Email or</span>
-              <svg className="w-4 h-4 fill-current text-green-500" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 fill-current text-green-600" viewBox="0 0 24 24">
                 <path d="M17.472,14.382c-0.297-0.149-1.758-0.867-2.03-0.967c-0.273-0.099-0.471-0.148-0.67,0.15c-0.197,0.297-0.767,0.966-0.94,1.164c-0.173,0.199-0.347,0.223-0.644,0.075c-0.297-0.15-1.255-0.463-2.39-1.475c-0.883-0.788-1.48-1.761-1.653-2.059c-0.173-0.297-0.018-0.458,0.13-0.606c0.134-0.133,0.297-0.347,0.446-0.521C9.87,9.97,9.919,9.846,10.019,9.65c0.099-0.198,0.05-0.371-0.025-0.52C9.919,8.981,9.325,7.515,9.078,6.92c-0.241-0.58-0.487-0.5-0.669-0.51c-0.173-0.008-0.371-0.01-0.57-0.01c-0.198,0-0.52,0.074-0.792,0.372c-0.272,0.297-1.04,1.016-1.04,2.479c0,1.462,1.065,2.875,1.213,3.074c0.149,0.198,2.096,3.2,5.077,4.487c0.709,0.306,1.262,0.489,1.694,0.625c0.712,0.227,1.36,0.195,1.871,0.118c0.571-0.085,1.758-0.719,2.006-1.413c0.248-0.694,0.248-1.289,0.173-1.413C17.884,14.651,17.769,14.431,17.472,14.382z M12.057,21.785h-0.008c-1.784,0-3.525-0.481-5.052-1.389l-0.362-0.215l-3.754,0.984l1.005-3.671l-0.236-0.375c-0.99-1.575-1.511-3.393-1.511-5.26c0-5.445,4.43-9.875,9.88-9.875c2.64,0,5.124,1.03,6.988,2.898c1.865,1.867,2.893,4.352,2.892,6.993C21.899,17.354,17.469,21.785,12.057,21.785z M20.5,3.488C18.24,1.24,15.24,0.013,12.058,0C5.507,0,0.17,5.335,0.172,11.892c0,2.096,0.547,4.142,1.588,5.945L0,24l6.305-1.654c1.746,0.943,3.71,1.444,5.71,1.447h0.006c6.551,0,11.89-5.335,11.89-11.893C23.91,8.724,22.759,5.746,20.5,3.488z" />
               </svg>
               <span>WhatsApp</span>
@@ -1548,9 +2093,14 @@ export default function Login() {
                   value={formData.firstName}
                   onChange={handleInputChange}
                   readOnly={isOtpSent}
-                  className={`w-full px-4 py-3 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400 ${isOtpSent ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  maxLength={100}
+                  minLength={2}
+                  className={`w-full px-4 py-3 bg-white border ${fieldErrors.firstName ? 'border-red-500' : 'border-purple-300'} rounded-lg focus:outline-none ${fieldErrors.firstName ? 'focus:border-red-500 focus:ring-red-200' : 'focus:border-purple-500 focus:ring-purple-200'} focus:ring-2 transition text-black placeholder-gray-500 ${isOtpSent ? 'opacity-50 cursor-not-allowed' : ''}`}
                   required
                 />
+                {fieldErrors.firstName && (
+                  <p className="text-red-500 text-sm mt-1">Required</p>
+                )}
               </div>
               <div>
                 <input
@@ -1560,9 +2110,14 @@ export default function Login() {
                   value={formData.lastName}
                   onChange={handleInputChange}
                   readOnly={isOtpSent}
-                  className={`w-full px-4 py-3 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400 ${isOtpSent ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  maxLength={100}
+                  minLength={2}
+                  className={`w-full px-4 py-3 bg-white border ${fieldErrors.lastName ? 'border-red-500' : 'border-purple-300'} rounded-lg focus:outline-none ${fieldErrors.lastName ? 'focus:border-red-500 focus:ring-red-200' : 'focus:border-purple-500 focus:ring-purple-200'} focus:ring-2 transition text-black placeholder-gray-500 ${isOtpSent ? 'opacity-50 cursor-not-allowed' : ''}`}
                   required
                 />
+                {fieldErrors.lastName && (
+                  <p className="text-red-500 text-sm mt-1">Required</p>
+                )}
               </div>
               <div className="relative">
                 <input
@@ -1573,12 +2128,15 @@ export default function Login() {
                   onChange={handleInputChange}
                   onBlur={handleEmailBlur}
                   readOnly={isOtpSent}
-                  className={`w-full px-4 py-3 pl-12 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400 ${isOtpSent ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`w-full px-4 py-3 pl-12 bg-white border ${fieldErrors.email ? 'border-red-500' : 'border-purple-300'} rounded-lg focus:outline-none ${fieldErrors.email ? 'focus:border-red-500 focus:ring-red-200' : 'focus:border-purple-500 focus:ring-purple-200'} focus:ring-2 transition text-black placeholder-gray-500 ${isOtpSent ? 'opacity-50 cursor-not-allowed' : ''}`}
                   required
                 />
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-400">
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-600">
                   <FaEnvelope size={20} />
                 </div>
+                {fieldErrors.email && (
+                  <p className="text-red-500 text-sm mt-1 ml-12">Required</p>
+                )}
               </div>
               <div className="space-y-2">
                 <div className="flex gap-2">
@@ -1587,21 +2145,21 @@ export default function Login() {
                       type="button"
                       onClick={() => !isOtpSent && setShowCountryDropdown(!showCountryDropdown)}
                       disabled={isOtpSent}
-                      className={`flex items-center gap-2 px-3 py-3 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white ${isOtpSent ? 'opacity-50 cursor-not-allowed' : 'hover:bg-purple-500/10'}`}
+                      className={`flex items-center gap-2 px-3 py-3 bg-white border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition text-black ${isOtpSent ? 'opacity-50 cursor-not-allowed' : 'hover:bg-purple-50'}`}
                     >
-                      <span className="text-xl">{selectedCountry.flag}</span>
+                      <img src={`https://flagcdn.com/w40/${selectedCountry.code.toLowerCase()}.png`} alt={selectedCountry.name} className="w-6 h-4 object-cover rounded-sm" />
                       <span>{selectedCountry.dial_code}</span>
                       <FaChevronDown className="text-xs" />
                     </button>
 
                     {showCountryDropdown && !isOtpSent && (
-                      <div className="absolute top-full mt-1 left-0 w-64 max-h-60 overflow-y-auto bg-[#232042] border border-purple-500/30 rounded-lg shadow-lg z-50">
+                      <div className="absolute top-full mt-1 left-0 w-64 max-h-60 overflow-y-auto bg-white border border-purple-300 rounded-lg shadow-xl z-50">
                         <input
                           type="text"
                           placeholder="Search country..."
                           value={searchCountry}
                           onChange={(e) => setSearchCountry(e.target.value)}
-                          className="w-full px-3 py-2 bg-[#19162b] border-b border-purple-500/30 text-white placeholder-gray-400 focus:outline-none"
+                          className="w-full px-3 py-2 bg-gray-50 border-b border-purple-300 text-black placeholder-gray-500 focus:outline-none focus:bg-white"
                         />
                         {filteredCountries.map((country) => (
                           <button
@@ -1625,17 +2183,17 @@ export default function Login() {
                                     icon: 'info',
                                     confirmButtonText: 'OK',
                                     confirmButtonColor: '#8b5cf6',
-                                    background: '#232042',
-                                    color: '#ffffff'
+                                    background: '#ffffff',
+                                    color: '#000000'
                                   });
                                 }
                               }
                             }}
-                            className="w-full px-3 py-2 text-left hover:bg-purple-500/20 transition flex items-center gap-2"
+                            className="w-full px-3 py-2 text-left text-black hover:bg-purple-100 transition flex items-center gap-2"
                           >
-                            <span className="text-xl">{country.flag}</span>
+                            <img src={`https://flagcdn.com/w40/${country.code.toLowerCase()}.png`} alt={country.name} className="w-6 h-4 object-cover rounded-sm" />
                             <span className="flex-1">{country.name}</span>
-                            <span className="text-gray-400">{country.dial_code}</span>
+                            <span className="text-black">{country.dial_code}</span>
                           </button>
                         ))}
                       </div>
@@ -1651,14 +2209,17 @@ export default function Login() {
                       onChange={handleInputChange}
                       onBlur={handlePhoneBlur}
                       readOnly={isOtpSent}
-                      className={`w-full px-4 py-3 pr-12 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400 ${isOtpSent ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      className={`w-full px-4 py-3 pr-12 bg-white border ${fieldErrors.phoneNumber ? 'border-red-500' : 'border-purple-300'} rounded-lg focus:outline-none ${fieldErrors.phoneNumber ? 'focus:border-red-500 focus:ring-red-200' : 'focus:border-purple-500 focus:ring-purple-200'} focus:ring-2 transition text-black placeholder-gray-500 ${isOtpSent ? 'opacity-50 cursor-not-allowed' : ''}`}
                       required
                     />
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500">
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-600">
                       <FaWhatsapp size={20} />
                     </div>
                   </div>
                 </div>
+                {fieldErrors.phoneNumber && (
+                  <p className="text-red-500 text-sm mt-1">Required</p>
+                )}
               </div>
             </>
           )}
@@ -1666,7 +2227,7 @@ export default function Login() {
           {isLogin && !isOtpSent && (
             <>
               <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3 mb-4 text-center">
-                <p className="text-sm text-purple-300">
+                <p className="text-sm text-purple-600">
                   🔔 Enter Email ID OR WhatsApp Number to receive OTP
                 </p>
               </div>
@@ -1677,21 +2238,21 @@ export default function Login() {
                       type="button"
                       onClick={() => !(formData.email && formData.email.length > 0) && !isOtpSent && setShowCountryDropdown(!showCountryDropdown)}
                       disabled={formData.email && formData.email.length > 0 || isOtpSent}
-                      className={`flex items-center gap-2 px-3 py-3 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white ${formData.email && formData.email.length > 0 || isOtpSent ? 'opacity-50 cursor-not-allowed' : 'hover:bg-purple-500/10'}`}
+                      className={`flex items-center gap-2 px-3 py-3 bg-white border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition text-black ${formData.email && formData.email.length > 0 || isOtpSent ? 'opacity-50 cursor-not-allowed' : 'hover:bg-purple-50'}`}
                     >
-                      <span className="text-xl">{selectedCountry.flag}</span>
+                      <img src={`https://flagcdn.com/w40/${selectedCountry.code.toLowerCase()}.png`} alt={selectedCountry.name} className="w-6 h-4 object-cover rounded-sm" />
                       <span>{selectedCountry.dial_code}</span>
                       <FaChevronDown className="text-xs" />
                     </button>
 
                     {showCountryDropdown && !(formData.email && formData.email.length > 0) && (
-                      <div className="absolute top-full mt-1 left-0 w-64 max-h-60 overflow-y-auto bg-[#232042] border border-purple-500/30 rounded-lg shadow-lg z-50">
+                      <div className="absolute top-full mt-1 left-0 w-64 max-h-60 overflow-y-auto bg-white border border-purple-300 rounded-lg shadow-xl z-50">
                         <input
                           type="text"
                           placeholder="Search country..."
                           value={searchCountry}
                           onChange={(e) => setSearchCountry(e.target.value)}
-                          className="w-full px-3 py-2 bg-[#19162b] border-b border-purple-500/30 text-white placeholder-gray-400 focus:outline-none"
+                          className="w-full px-3 py-2 bg-gray-50 border-b border-purple-300 text-black placeholder-gray-500 focus:outline-none focus:bg-white"
                         />
                         {filteredCountries.map((country) => (
                           <button
@@ -1715,17 +2276,17 @@ export default function Login() {
                                     icon: 'info',
                                     confirmButtonText: 'OK',
                                     confirmButtonColor: '#8b5cf6',
-                                    background: '#232042',
-                                    color: '#ffffff'
+                                    background: '#ffffff',
+                                    color: '#000000'
                                   });
                                 }
                               }
                             }}
-                            className="w-full px-3 py-2 text-left hover:bg-purple-500/20 transition flex items-center gap-2"
+                            className="w-full px-3 py-2 text-left text-black hover:bg-purple-100 transition flex items-center gap-2"
                           >
-                            <span className="text-xl">{country.flag}</span>
+                            <img src={`https://flagcdn.com/w40/${country.code.toLowerCase()}.png`} alt={country.name} className="w-6 h-4 object-cover rounded-sm" />
                             <span className="flex-1">{country.name}</span>
-                            <span className="text-gray-400">{country.dial_code}</span>
+                            <span className="text-black">{country.dial_code}</span>
                           </button>
                         ))}
                       </div>
@@ -1741,10 +2302,10 @@ export default function Login() {
                       onChange={handleInputChange}
                       onBlur={handlePhoneBlur}
                       readOnly={isLogin && formData.email && formData.email.length > 0}
-                      className={`w-full px-4 py-3 pr-12 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400 ${isLogin && formData.email && formData.email.length > 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      className={`w-full px-4 py-3 pr-12 bg-white border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition text-black placeholder-gray-500 ${isLogin && formData.email && formData.email.length > 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                       required={!isLogin}
                     />
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500">
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-600">
                       <FaWhatsapp size={20} />
                     </div>
                   </div>
@@ -1752,7 +2313,7 @@ export default function Login() {
               </div>
 
               {isLogin && (
-                <div className="text-center text-xl text-white my-2">
+                <div className="text-center text-xl text-purple-500 font-bold my-2">
                   <span>OR</span>
                 </div>
               )}
@@ -1767,10 +2328,10 @@ export default function Login() {
                     onChange={handleInputChange}
                     onBlur={handleEmailBlur}
                     readOnly={isLogin && formData.phoneNumber && formData.phoneNumber.length > 0}
-                    className={`w-full px-4 py-3 pl-12 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400 ${isLogin && formData.phoneNumber && formData.phoneNumber.length > 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`w-full px-4 py-3 pl-12 bg-white border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition text-black placeholder-gray-500 ${isLogin && formData.phoneNumber && formData.phoneNumber.length > 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                     required={!isLogin}
                   />
-                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-400">
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-600">
                     <FaEnvelope size={20} />
                   </div>
                 </div>
@@ -1780,14 +2341,14 @@ export default function Login() {
 
           {isOtpSent && (
             <div className="space-y-2">
-              <label className="text-sm text-gray-400 text-center block">
+              <label className="text-sm text-black text-center block">
                 Enter OTP from {
                   otpSentTo === 'whatsapp' ?
-                    <span className="text-green-400"><FaWhatsapp className="inline mr-1" />WhatsApp</span> :
+                    <span className="text-green-600"><FaWhatsapp className="inline mr-1" />WhatsApp</span> :
                     otpSentTo === 'email' ?
-                      <span className="text-purple-400"><FaEnvelope className="inline mr-1" />Email</span> :
+                      <span className="text-purple-600"><FaEnvelope className="inline mr-1" />Email</span> :
                       otpSentTo === 'whatsapp_email' ?
-                        <span>either <span className="text-green-400"><FaWhatsapp className="inline mr-1" />WhatsApp</span> or <span className="text-purple-400"><FaEnvelope className="inline mr-1" />Email</span></span> :
+                        <span>either <span className="text-green-600"><FaWhatsapp className="inline mr-1" />WhatsApp</span> or <span className="text-purple-600"><FaEnvelope className="inline mr-1" />Email</span></span> :
                         'your device'
                 }
               </label>
@@ -1796,31 +2357,37 @@ export default function Login() {
                 placeholder="Enter 6-digit OTP"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                className="w-full px-4 py-3 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400 text-center text-lg tracking-wider"
+                className="w-full px-4 py-3 bg-white border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition text-black placeholder-gray-500 text-center text-lg tracking-wider"
                 maxLength="6"
                 required
               />
               <div className="text-center">
-                <button
-                  type="button"
-                  onClick={handleResendOtp}
-                  className="text-sm text-purple-400 hover:text-purple-300 transition"
-                >
-                  Resend OTP
-                </button>
+                {timer > 0 ? (
+                  <p className="text-sm text-gray-600">
+                    Resend OTP in <span className="font-semibold text-purple-600">{timer}</span> seconds
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleResendOtp}
+                    className="text-sm text-purple-600 hover:text-purple-700 font-semibold transition underline"
+                  >
+                    Resend OTP
+                  </button>
+                )}
               </div>
             </div>
           )}
 
           {!isLogin && !isOtpSent && (
-            <div className="text-center text-gray-400 text-sm mb-2">
-              <div className="text-gray-400 text-sm mb-2 flex items-center justify-center gap-2">
+            <div className="text-center text-black text-sm mb-2">
+              <div className="text-black text-sm mb-2 flex items-center justify-center gap-2">
                 <span>OTP will be sent to</span>
-                <svg className="w-4 h-4 fill-current text-purple-400" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 fill-current text-purple-600" viewBox="0 0 24 24">
                   <path d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z" />
                 </svg>
                 <span>Email &</span>
-                <svg className="w-4 h-4 fill-current text-green-500" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 fill-current text-green-600" viewBox="0 0 24 24">
                   <path d="M17.472,14.382c-0.297-0.149-1.758-0.867-2.03-0.967c-0.273-0.099-0.471-0.148-0.67,0.15c-0.197,0.297-0.767,0.966-0.94,1.164c-0.173,0.199-0.347,0.223-0.644,0.075c-0.297-0.15-1.255-0.463-2.39-1.475c-0.883-0.788-1.48-1.761-1.653-2.059c-0.173-0.297-0.018-0.458,0.13-0.606c0.134-0.133,0.297-0.347,0.446-0.521C9.87,9.97,9.919,9.846,10.019,9.65c0.099-0.198,0.05-0.371-0.025-0.52C9.919,8.981,9.325,7.515,9.078,6.92c-0.241-0.58-0.487-0.5-0.669-0.51c-0.173-0.008-0.371-0.01-0.57-0.01c-0.198,0-0.52,0.074-0.792,0.372c-0.272,0.297-1.04,1.016-1.04,2.479c0,1.462,1.065,2.875,1.213,3.074c0.149,0.198,2.096,3.2,5.077,4.487c0.709,0.306,1.262,0.489,1.694,0.625c0.712,0.227,1.36,0.195,1.871,0.118c0.571-0.085,1.758-0.719,2.006-1.413c0.248-0.694,0.248-1.289,0.173-1.413C17.884,14.651,17.769,14.431,17.472,14.382z M12.057,21.785h-0.008c-1.784,0-3.525-0.481-5.052-1.389l-0.362-0.215l-3.754,0.984l1.005-3.671l-0.236-0.375c-0.99-1.575-1.511-3.393-1.511-5.26c0-5.445,4.43-9.875,9.88-9.875c2.64,0,5.124,1.03,6.988,2.898c1.865,1.867,2.893,4.352,2.892,6.993C21.899,17.354,17.469,21.785,12.057,21.785z M20.5,3.488C18.24,1.24,15.24,0.013,12.058,0C5.507,0,0.17,5.335,0.172,11.892c0,2.096,0.547,4.142,1.588,5.945L0,24l6.305-1.654c1.746,0.943,3.71,1.444,5.71,1.447h0.006c6.551,0,11.89-5.335,11.89-11.893C23.91,8.724,22.759,5.746,20.5,3.488z" />
                 </svg>
                 <span>WhatsApp</span>
@@ -1831,9 +2398,9 @@ export default function Login() {
           <button
             type="submit"
             disabled={!isLogin && !canSendOtp && !isOtpSent}
-            className={`w-full px-6 py-3 rounded-lg font-semibold shadow-lg transition ${!isLogin && !canSendOtp && !isOtpSent
-              ? "bg-gray-600 cursor-not-allowed opacity-50"
-              : "bg-gradient-to-r from-purple-500 to-blue-500 hover:scale-105"
+            className={`w-full px-6 py-3 rounded-lg font-semibold shadow-lg transition text-white ${!isLogin && !canSendOtp && !isOtpSent
+              ? "bg-gray-400 cursor-not-allowed opacity-50"
+              : "bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-600 hover:to-indigo-600 hover:scale-105"
               }`}
           >
             {!isLogin && !isOtpSent ? 'Send OTP' :
@@ -1846,34 +2413,34 @@ export default function Login() {
 
 
         <div className="mt-6 text-center">
-          <p className="text-gray-400">
+          <p className="text-black">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button
               type="button"
               onClick={() => {
-                setIsLogin(!isLogin);
-                setIsOtpSent(false);
-                setOtp("");
-                setTimer(0);
+                // Use router to navigate and trigger URL change
+                if (isLogin) {
+                  router.push('/login?signup=true');
+                } else {
+                  router.push('/login');
+                }
               }}
-              className="text-purple-400 hover:text-purple-300 transition font-semibold"
+              className="text-purple-600 hover:text-purple-700 transition font-semibold"
             >
-              {isLogin ? 'Sign Up' : 'Login'}
+              {isLogin ? 'Sign Up' : 'Sign In'}
             </button>
           </p>
 
-          {isLogin && (
-            <div className="mt-4">
-              <button
-                type="button"
-                onClick={() => setShowContactModal(true)}
-                className="text-gray-400 hover:text-purple-400 transition inline-flex items-center gap-2"
-              >
-                <span>Contact Support</span>
-                <FaEnvelope size={16} />
-              </button>
-            </div>
-          )}
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={() => setShowContactModal(true)}
+              className="text-black hover:text-purple-600 transition inline-flex items-center gap-2"
+            >
+              <span>Contact Support</span>
+              <FaEnvelope size={16} />
+            </button>
+          </div>
         </div>
       </motion.div>
 
@@ -1881,13 +2448,13 @@ export default function Login() {
       {showContactModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
           <motion.div
-            className="bg-[#232042] rounded-2xl p-6 shadow-lg w-full max-w-md max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-2xl p-6 shadow-2xl border-2 border-purple-200 w-full max-w-md max-h-[90vh] overflow-y-auto"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
           >
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+              <h3 className="text-xl font-bold bg-gradient-to-r from-cyan-500 to-indigo-500 bg-clip-text text-transparent">
                 Contact Support
               </h3>
               <button
@@ -1895,7 +2462,7 @@ export default function Login() {
                   setShowContactModal(false);
                   setContactForm({ userEmail: '', whatsappNumber: '', alternateEmail: '', message: '' });
                 }}
-                className="text-gray-400 hover:text-white transition text-xl"
+                className="text-black hover:text-black transition text-xl"
               >
                 ✕
               </button>
@@ -1903,7 +2470,7 @@ export default function Login() {
 
             <form onSubmit={handleContactSubmit} className="space-y-3">
               <div>
-                <label className="text-xs text-gray-400 block mb-1">Enter Email <span className="text-red-400">*</span></label>
+                <label className="text-xs text-black block mb-1">Enter Email <span className="text-red-400">*</span></label>
                 <div className="relative">
                   <input
                     type="email"
@@ -1911,37 +2478,37 @@ export default function Login() {
                     onChange={(e) => setContactForm({ ...contactForm, userEmail: e.target.value })}
                     onBlur={handleContactEmailBlur}
                     placeholder="your.email@example.com"
-                    className="w-full px-3 py-2 pl-10 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400 text-sm"
+                    className="w-full px-3 py-2 pl-10 bg-white border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition text-black placeholder-gray-500 text-sm"
                     required
                   />
-                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-400">
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-600">
                     <FaEnvelope size={16} />
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="text-xs text-gray-400 block mb-1">Enter WhatsApp Number <span className="text-red-400">*</span></label>
+                <label className="text-xs text-black block mb-1">Enter WhatsApp Number <span className="text-red-400">*</span></label>
                 <div className="flex gap-2">
                   <div className="relative" ref={contactDropdownRef}>
                     <button
                       type="button"
                       onClick={() => setShowContactCountryDropdown(!showContactCountryDropdown)}
-                      className="flex items-center gap-1 px-2 py-2 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white hover:bg-purple-500/10 text-sm"
+                      className="flex items-center gap-1 px-2 py-2 bg-white border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition text-black hover:bg-purple-50 text-sm"
                     >
-                      <span className="text-base">{contactCountry.flag}</span>
+                      <img src={`https://flagcdn.com/w40/${contactCountry.code.toLowerCase()}.png`} alt={contactCountry.name} className="w-5 h-3.5 object-cover rounded-sm" />
                       <span className="text-xs">{contactCountry.dial_code}</span>
                       <FaChevronDown className="text-xs" />
                     </button>
 
                     {showContactCountryDropdown && (
-                      <div className="absolute top-full mt-1 left-0 w-64 max-h-60 overflow-y-auto bg-[#232042] border border-purple-500/30 rounded-lg shadow-lg z-50">
+                      <div className="absolute top-full mt-1 left-0 w-64 max-h-60 overflow-y-auto bg-white border border-purple-300 rounded-lg shadow-xl z-50">
                         <input
                           type="text"
                           placeholder="Search country..."
                           value={searchContactCountry}
                           onChange={(e) => setSearchContactCountry(e.target.value)}
-                          className="w-full px-3 py-2 bg-[#19162b] border-b border-purple-500/30 text-white placeholder-gray-400 focus:outline-none text-sm"
+                          className="w-full px-3 py-2 bg-gray-50 border-b border-purple-300 text-black placeholder-gray-500 focus:outline-none focus:bg-white text-sm"
                         />
                         {countryCodes.filter(country =>
                           country.name.toLowerCase().includes(searchContactCountry.toLowerCase()) ||
@@ -1955,11 +2522,11 @@ export default function Login() {
                               setShowContactCountryDropdown(false);
                               setSearchContactCountry("");
                             }}
-                            className="w-full px-3 py-2 text-left hover:bg-purple-500/20 transition flex items-center gap-2 text-sm"
+                            className="w-full px-3 py-2 text-left text-black hover:bg-purple-100 transition flex items-center gap-2 text-sm"
                           >
-                            <span className="text-base">{country.flag}</span>
+                            <img src={`https://flagcdn.com/w40/${country.code.toLowerCase()}.png`} alt={country.name} className="w-5 h-3.5 object-cover rounded-sm" />
                             <span className="flex-1">{country.name}</span>
-                            <span className="text-gray-400 text-xs">{country.dial_code}</span>
+                            <span className="text-black text-xs">{country.dial_code}</span>
                           </button>
                         ))}
                       </div>
@@ -1973,10 +2540,10 @@ export default function Login() {
                       onChange={handleContactPhoneChange}
                       onBlur={handleContactPhoneBlur}
                       placeholder="1234567890"
-                      className="w-full px-3 py-2 pr-10 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400 text-sm"
+                      className="w-full px-3 py-2 pr-10 bg-white border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition text-black placeholder-gray-500 text-sm"
                       required
                     />
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500">
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-600">
                       <FaWhatsapp size={16} />
                     </div>
                   </div>
@@ -1984,7 +2551,7 @@ export default function Login() {
               </div>
 
               <div>
-                <label className="text-xs text-gray-400 block mb-1">Alternate Email (Optional)</label>
+                <label className="text-xs text-black block mb-1">Alternate Email (Optional)</label>
                 <div className="relative">
                   <input
                     type="email"
@@ -1992,22 +2559,22 @@ export default function Login() {
                     onChange={(e) => setContactForm({ ...contactForm, alternateEmail: e.target.value })}
                     onBlur={handleContactAlternateEmailBlur}
                     placeholder="alternate.email@example.com"
-                    className="w-full px-3 py-2 pl-10 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400 text-sm"
+                    className="w-full px-3 py-2 pl-10 bg-white border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition text-black placeholder-gray-500 text-sm"
                   />
-                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-400">
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-600">
                     <FaEnvelope size={16} />
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="text-xs text-gray-400 block mb-1">Message <span className="text-red-400">*</span></label>
+                <label className="text-xs text-black block mb-1">Message <span className="text-red-400">*</span></label>
                 <textarea
                   value={contactForm.message}
                   onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
                   placeholder="Write your message here..."
                   rows="3"
-                  className="w-full px-3 py-2 bg-[#19162b] border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 transition text-white placeholder-gray-400 resize-none text-sm"
+                  className="w-full px-3 py-2 bg-white border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition text-black placeholder-gray-500 resize-none text-sm"
                   required
                 />
               </div>
@@ -2019,13 +2586,13 @@ export default function Login() {
                     setShowContactModal(false);
                     setContactForm({ userEmail: '', whatsappNumber: '', registeredEmail: '', message: '' });
                   }}
-                  className="flex-1 px-4 py-2 rounded-lg font-semibold bg-gray-600 hover:bg-gray-700 transition text-sm"
+                  className="flex-1 px-4 py-2 rounded-lg font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 transition text-sm border border-gray-300"
                 >
                   Close
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 rounded-lg font-semibold bg-gradient-to-r from-purple-500 to-blue-500 hover:scale-105 transition shadow-lg text-sm"
+                  className="flex-1 px-4 py-2 rounded-lg font-semibold bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-600 hover:to-indigo-600 text-white hover:scale-105 transition shadow-lg text-sm"
                 >
                   Send
                 </button>

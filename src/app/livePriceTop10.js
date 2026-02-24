@@ -2,55 +2,67 @@
 import { useState, useEffect, useRef } from "react";
 
 export const useTop10LivePrice = () => {
-  const [top10Symbols, setTop10Symbols] = useState([]);
+  const [coinData, setCoinData] = useState([]);
   const [prices, setPrices] = useState({});
+  const [priceChanges, setPriceChanges] = useState({});
   const [isConnected, setIsConnected] = useState(false);
   const wsRef = useRef(null);
 
-  // Fetch top 10 symbols from Binance dynamically
+  // Fetch top 10 coins from Binance
   useEffect(() => {
-    const fetchTopSymbols = async () => {
+    const fetchCoinData = async () => {
       try {
-        const res = await fetch("https://api.binance.com/api/v3/ticker/24hr");
-        const data = await res.json();
+        // Fetch top 10 USDT pairs by volume from Binance
+        const binanceRes = await fetch("https://api.binance.com/api/v3/ticker/24hr");
+        const binanceData = await binanceRes.json();
 
-        // Filter USDT pairs and sort by 24h volume (or any metric)
-        const usdtPairs = data
-          .filter((c) => c.symbol.endsWith("USDT"))
+        // Filter only USDT pairs and sort by quote volume
+        const top10Coins = binanceData
+          .filter((coin) => coin.symbol.endsWith("USDT") && coin.symbol !== "USDT")
           .sort((a, b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume))
           .slice(0, 10)
-          .map((c) => c.symbol);
+          .map((coin) => coin.symbol.replace("USDT", "").toLowerCase());
 
-        setTop10Symbols(usdtPairs);
+        // Fetch additional data from your backend
+        const symbols = top10Coins.join(",");
+        const res = await fetch(`/api/top10-coins?symbols=${symbols}`);
+        const data = await res.json();
+
+        if (data.success) {
+          setCoinData(data.coins);
+        } else {
+          throw new Error("Failed to fetch coins");
+        }
       } catch (err) {
-        console.error("Failed to fetch top symbols:", err);
-        // fallback
-        setTop10Symbols([
-          "BTCUSDT",
-          "ETHUSDT",
-          "BNBUSDT",
-          "XRPUSDT",
-          "ADAUSDT",
-          "DOGEUSDT",
-          "SOLUSDT",
-          "DOTUSDT",
-          "MATICUSDT",
-          "LTCUSDT",
+        console.error("Failed to fetch coin data:", err);
+        // Fallback data
+        setCoinData([
+          { symbol: "BTC", name: "Bitcoin", price: 0, image: "", priceChange24h: 0 },
+          { symbol: "ETH", name: "Ethereum", price: 0, image: "", priceChange24h: 0 },
+          { symbol: "BNB", name: "BNB", price: 0, image: "", priceChange24h: 0 },
+          { symbol: "XRP", name: "XRP", price: 0, image: "", priceChange24h: 0 },
+          { symbol: "ADA", name: "Cardano", price: 0, image: "", priceChange24h: 0 },
+          { symbol: "DOGE", name: "Dogecoin", price: 0, image: "", priceChange24h: 0 },
+          { symbol: "SOL", name: "Solana", price: 0, image: "", priceChange24h: 0 },
+          { symbol: "DOT", name: "Polkadot", price: 0, image: "", priceChange24h: 0 },
+          { symbol: "MATIC", name: "Polygon", price: 0, image: "", priceChange24h: 0 },
+          { symbol: "LTC", name: "Litecoin", price: 0, image: "", priceChange24h: 0 },
         ]);
       }
     };
 
-    fetchTopSymbols();
+    fetchCoinData();
   }, []);
 
-  // Connect WebSocket for live prices
+  // Connect WebSocket for live prices and 24h change
   useEffect(() => {
-    if (top10Symbols.length === 0) return;
+    if (coinData.length === 0) return;
 
     // Close previous socket if any
     if (wsRef.current) wsRef.current.close();
 
-    const streams = top10Symbols.map((s) => `${s.toLowerCase()}@trade`).join("/");
+    const symbols = coinData.map((c) => `${c.symbol}USDT`);
+    const streams = symbols.map((s) => `${s.toLowerCase()}@ticker`).join("/");
     const ws = new WebSocket(`wss://stream.binance.com:9443/stream?streams=${streams}`);
     wsRef.current = ws;
 
@@ -61,10 +73,15 @@ export const useTop10LivePrice = () => {
     ws.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data);
-        if (msg?.data?.s && msg?.data?.p) {
+        if (msg?.data?.s && msg?.data?.c) {
+          const symbol = msg.data.s;
           setPrices((prev) => ({
             ...prev,
-            [msg.data.s]: parseFloat(msg.data.p),
+            [symbol]: parseFloat(msg.data.c),
+          }));
+          setPriceChanges((prev) => ({
+            ...prev,
+            [symbol]: parseFloat(msg.data.P),
           }));
         }
       } catch (err) {
@@ -73,12 +90,15 @@ export const useTop10LivePrice = () => {
     };
 
     return () => ws.close();
-  }, [top10Symbols]);
+  }, [coinData]);
 
-  // Compose live top 10 data as a value
-  const top10Data = top10Symbols.map((s) => ({
-    symbol: s.replace("USDT", ""),
-    price: prices[s] || "-",
+  // Compose live top 10 data with images and names
+  const top10Data = coinData.map((coin) => ({
+    symbol: coin.symbol,
+    name: coin.name,
+    image: coin.image,
+    price: prices[`${coin.symbol}USDT`] || coin.price || "-",
+    priceChange24h: priceChanges[`${coin.symbol}USDT`] || coin.priceChange24h || 0,
   }));
 
   // Return the actual data

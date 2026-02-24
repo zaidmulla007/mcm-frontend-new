@@ -17,8 +17,8 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
   const [totalItems, setTotalItems] = useState(0);
   const [selectedSymbol, setSelectedSymbol] = useState("");
   const [selectedSentiment, setSelectedSentiment] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState("2025-01-01");
+  const [endDate, setEndDate] = useState("2025-07-31");
   const [dateError, setDateError] = useState("");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const symbolsToTrack = [...new Set(recommendations.map(rec => rec.symbol).filter(Boolean))];
@@ -301,23 +301,23 @@ export default function InfluencerRecommendations({ channelID, channelData }) {
           <span className="font-bold text-to-purple">
             {startDate && endDate
               ? startDate === endDate
-                ? `on ${formatDate(startDate)}`
-                : `${formatDate(startDate)} to ${formatDate(endDate)}`
+                ? `on ${formatDate(startDate, 'DD MMM YYYY hh:mm A')}`
+                : `${formatDate(startDate, 'DD MMM YYYY hh:mm A')} to ${formatDate(endDate, 'DD MMM YYYY hh:mm A')}`
               : startDate
-                ? `from ${formatDate(startDate)}`
+                ? `from ${formatDate(startDate, 'DD MMM YYYY hh:mm A')}`
                 : endDate
-                  ? `until ${formatDate(endDate)}`
+                  ? `until ${formatDate(endDate, 'DD MMM YYYY hh:mm A')}`
                   : "all time"}
           </span>{" "}
-          for{" "}
-          <span className="font-bold text-to-purple">
+
+          {/* <span className="font-bold text-to-purple">
             {selectedSentiment ? selectedSentiment.replace("_", " ") : "all"}
-          </span>{" "}
-          sentiment (
-          <span className="font-bold text-to-purple">
-            {formatNumberWithCommas(totalItems)}
-          </span>
-          )
+          </span>{" "} */}
+          
+            <span className="font-bold text-to-purple">
+             : {formatNumberWithCommas(totalItems)}
+            </span>
+          
         </h3>
 
         <div id="influencer-filters-section" className="flex flex-col gap-3 items-end">

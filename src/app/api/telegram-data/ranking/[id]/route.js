@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 
 export async function GET(request, { params }) {
-  const { id } = params;
+  const { id } = await params;
 
   try {
     console.log(`Fetching Telegram ranking data for ID: ${id}`);
 
-    const externalUrl = `http://37.27.120.45:5000/api/admin/rankingstelegramdata/ranking?timeframe=1_hour&type=overall&year=all&quarter=all`;
+    const externalUrl = `http://37.27.120.45:5901/api/admin/rankingstelegramdata/ranking?timeframe=1_hour&type=overall&year=all&quarter=all`;
     console.log(`Making request to: ${externalUrl}`);
 
     // Test if the external API is accessible

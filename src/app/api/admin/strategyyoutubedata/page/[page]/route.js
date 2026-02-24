@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export async function GET(request, { params }) {
   try {
-    const { page } = params;
+    const { page } = await params;
     const url = new URL(request.url);
     const channelID = url.searchParams.get('channelID');
     const limit = url.searchParams.get('limit') || '100';
@@ -13,7 +13,7 @@ export async function GET(request, { params }) {
 
     // Build the external API URL
     let externalApiUrl = `http://37.27.120.45:5901/api/admin/strategyyoutubedata/page/${page}?channelID=${channelID}&limit=${limit}`;
-    
+
     // Add optional query parameters
     if (symbol && symbol.trim() !== '') {
       externalApiUrl += `&symbol=${encodeURIComponent(symbol)}`;
@@ -61,7 +61,7 @@ export async function GET(request, { params }) {
     });
   } catch (error) {
     console.error('Error fetching strategy YouTube data:', error);
-    
+
     let errorMessage = 'Failed to fetch strategy YouTube data';
     let statusCode = 500;
 

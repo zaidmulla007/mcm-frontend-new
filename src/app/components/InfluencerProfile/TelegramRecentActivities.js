@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { FaStar, FaStarHalfAlt } from "react-icons/fa";
 import moment from "moment-timezone";
 import { useTimezone } from "../../contexts/TimezoneContext";
@@ -15,9 +15,25 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
   const [expandedTitles, setExpandedTitles] = useState({});
   const [expandedMarketing, setExpandedMarketing] = useState({});
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const scrollContainerRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  // Check scroll position to show/hide arrows
+  const updateScrollButtons = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    setCanScrollLeft(container.scrollLeft > 0);
+    setCanScrollRight(container.scrollLeft + container.clientWidth < container.scrollWidth - 1);
+  }, []);
+
+  // Scroll by one card width (320px + 16px gap)
+  const scrollByCard = (direction) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const cardWidth = 336; // w-80 (320px) + gap-4 (16px)
+    container.scrollBy({ left: direction * cardWidth, behavior: 'smooth' });
+  };
 
   useEffect(() => {
     console.log("TelegramRecentActivities - channelData:", channelData);
@@ -72,10 +88,12 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
     }
   }, [channelData, channelID, telegramLast5]);
 
-  // Reset current page when recentPosts change
+  // Update scroll buttons on resize and after data loads
   useEffect(() => {
-    setCurrentPage(1);
-  }, [recentPosts]);
+    updateScrollButtons();
+    window.addEventListener('resize', updateScrollButtons);
+    return () => window.removeEventListener('resize', updateScrollButtons);
+  }, [updateScrollButtons, recentPosts]);
 
   // Force re-render when timezone changes
   useEffect(() => {
@@ -137,20 +155,20 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
 
 
   const getSentimentColor = (sentiment) => {
-    if (sentiment.toLowerCase().includes("bullish")) return "text-green-500";
-    if (sentiment.toLowerCase().includes("bearish")) return "text-red-500";
-    return "text-blue-500"; // neutral
+    if (sentiment.toLowerCase().includes("bullish")) return "text-green-700";
+    if (sentiment.toLowerCase().includes("bearish")) return "text-red-700";
+    return "text-blue-700"; // neutral
   };
 
   const getColumnColor = (index) => {
-    return "bg-blue-600";
+    return "bg-gradient-to-r from-cyan-500 to-indigo-500";
   };
 
   const getScoreColor = (score) => {
-    if (score >= 8) return "text-green-500";
-    if (score >= 6) return "text-blue-500";
-    if (score >= 4) return "text-yellow-500";
-    return "text-red-500";
+    if (score >= 8) return "text-green-700";
+    if (score >= 6) return "text-blue-700";
+    if (score >= 4) return "text-yellow-700";
+    return "text-red-700";
   };
 
   // Capitalize first letter of each word
@@ -183,73 +201,84 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
     ).join(' ');
   };
 
-  // Pagination calculations
-  const totalPosts = recentPosts.length;
-  const totalPages = Math.ceil(totalPosts / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const visiblePosts = recentPosts.slice(startIndex, endIndex);
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handlePrevious = () => {
-    if (currentPage > 1) {
-      handlePageChange(currentPage - 1);
-    }
-  };
-
-  const handleNext = () => {
-    if (currentPage < totalPages) {
-      handlePageChange(currentPage + 1);
-    }
-  };
-
-  // Generate page numbers to display
-  const getPageNumbers = () => {
-    const pages = [];
-    const maxPagesToShow = 5;
-    const half = Math.floor(maxPagesToShow / 2);
-    let startPage = Math.max(1, currentPage - half);
-    let endPage = Math.min(totalPages, currentPage + half);
-
-    if (endPage - startPage < maxPagesToShow - 1) {
-      if (startPage === 1) {
-        endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-      } else {
-        startPage = Math.max(1, endPage - maxPagesToShow + 1);
-      }
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-
-    return pages;
-  };
-
   return (
-    <div className="bg-white min-h-screen rounded-xl text-gray-900 p-4">
+    <div className="bg-white min-h-screen rounded-xl text-black p-4">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-black">
             {channelData?.results?.channel_id || "Telegram Influencer"}
           </h1>
-          {rank && (
+          <div className="mt-3 flex flex-wrap justify-start gap-4 text-sm text-black">
+            {(channelData?.messages_last_30_count !== undefined && channelData?.messages_last_30_count !== null) && (
+              <div className="flex items-start gap-2">
+                <span className="text-black">Last 30 days:</span>
+                <span className="font-semibold text-black bg-blue-100 px-3 py-1 rounded-full">{channelData.messages_last_30_count} messages</span>
+              </div>
+            )}
+            {(channelData?.messages_last_7_count !== undefined && channelData?.messages_last_7_count !== null) && (
+              <div className="flex items-start gap-2">
+                <span className="text-black">Last 7 days:</span>
+                <span className="font-semibold text-black bg-green-100 px-3 py-1 rounded-full">{channelData.messages_last_7_count} messages</span>
+              </div>
+            )}
+            {(channelData?.messages_last_24h_count !== undefined && channelData?.messages_last_24h_count !== null) && (
+              <div className="flex items-start gap-2">
+                <span className="text-black">Last 24 hours:</span>
+                <span className="font-semibold text-black bg-purple-100 px-3 py-1 rounded-full">{channelData.messages_last_24h_count} messages</span>
+              </div>
+            )}
+          </div>
+          {/* {rank && (
             <div className="text-xl font-semibold text-white-600 mt-2">
               Rank (180 days/Overall) : {rank}
             </div>
-          )}
+          )} */}
         </div>
 
         {/* Posts */}
-        <div className="flex gap-4 overflow-x-auto pb-6">
-          {visiblePosts.map((post, index) => (
+        <div className="relative">
+          {recentPosts.length === 0 ? (
+            <div className="w-full text-center py-12">
+              <p className="text-xl text-black font-semibold">No posts available</p>
+            </div>
+          ) : (
+            <>
+              {/* Left Arrow */}
+              {canScrollLeft && (
+                <button
+                  onClick={() => scrollByCard(-1)}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg border border-gray-800 rounded-full w-10 h-10 flex items-center justify-center text-indigo-600 hover:text-indigo-800 transition-all duration-200 cursor-pointer"
+                  aria-label="Scroll left"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+              )}
+
+              {/* Right Arrow */}
+              {canScrollRight && (
+                <button
+                  onClick={() => scrollByCard(1)}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg border border-gray-800 rounded-full w-10 h-10 flex items-center justify-center text-indigo-600 hover:text-indigo-800 transition-all duration-200 cursor-pointer"
+                  aria-label="Scroll right"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              )}
+
+            <div
+              ref={scrollContainerRef}
+              onScroll={updateScrollButtons}
+              className="flex gap-4 overflow-x-auto pb-6"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+          {recentPosts.map((post, index) => (
             <div
               key={post.id}
-              className="w-80 flex-shrink-0 bg-white rounded-xl overflow-hidden border border-gray-800 shadow-lg"
+              className="w-80 flex-shrink-0 bg-white rounded-xl overflow-hidden shadow-lg"
             >
               {/* Post Header with Number */}
               <div
@@ -262,7 +291,7 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
               {/* Post Title */}
               <div className="p-3 border-b border-gray-800">
                 <div className="min-h-[40px] mb-2">
-                  <div className={`text-sm font-medium text-gray-900 ${expandedTitles[post.id] ? '' : 'line-clamp-2'}`} title={post.messageText}>
+                  <div className={`text-sm font-medium text-black ${expandedTitles[post.id] ? '' : 'line-clamp-2'}`} title={post.messageText}>
                     {expandedTitles[post.id] ? post.messageText : post.title}
                   </div>
                 </div>
@@ -277,7 +306,7 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
                   )}
                 </div>
                 <div className="text-xs space-y-1 h-12">
-                  <div className="flex justify-between text-gray-600">
+                  <div className="flex justify-between text-black">
                     <span>Views: {post.views}</span>
                     <span>Forwards: {post.forwards}</span>
                   </div>
@@ -293,53 +322,41 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
               </div>
 
               {/* MCM Scoring */}
-              <div className="p-3 border-b border-gray-800">
+              <div className="p-3 border-b border-gray-800 h-34">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="font-bold text-xs text-gray-700">MCM Scoring</span>
+                  <span className="font-bold text-xs text-black">MCM Scoring</span>
                 </div>
                 <ul className="text-xs space-y-2">
                   <li className="flex items-center justify-between">
-                    <span className="text-gray-700">Overall</span>
+                    <span className="text-black">Overall</span>
                     {renderStars(post.overallScore)}
                   </li>
                   <li className="flex items-center justify-between">
-                    <span className="text-gray-700">Educational</span>
+                    <span className="text-black">Educational</span>
                     {renderStars(post.educationalPurpose)}
                   </li>
                   <li className="flex items-center justify-between">
-                    <span className="text-gray-700">Actionable</span>
+                    <span className="text-black">Actionable</span>
                     {renderStars(post.actionableInsights)}
                   </li>
-                  <li className="flex flex-col">
-                    <span className="text-gray-700 mb-2">Marketing Content</span>
-                    <div className={`text-xs text-gray-500 ${expandedMarketing[post.id] ? 'leading-tight' : 'truncate overflow-hidden whitespace-nowrap'}`}>
-                      {typeof post.marketingContent === "string"
-                        ? expandedMarketing[post.id]
-                          ? post.marketingContent
-                            .split(" ")
-                            .map((word, i) =>
-                              i < 2 ? word.charAt(0).toUpperCase() + word.slice(1) : word
-                            )
-                            .join(" ")
-                          : post.marketingContent
-                            .split(" ")
-                            .map((word, i) =>
-                              i < 2 ? word.charAt(0).toUpperCase() + word.slice(1) : word
-                            )
-                            .join(" ")
-                        : "N/A"}
-                    </div>
-                    <div className="h-6 mt-2">
-                      {typeof post.marketingContent === "string" &&
-                        post.marketingContent.length > 50 && (
-                          <button
-                            onClick={() => toggleMarketing(post.id)}
-                            className="text-xs text-blue-500 hover:text-blue-700 cursor-pointer self-start"
-                          >
-                            {expandedMarketing[post.id] ? "Read Less" : "Read More"}
-                          </button>
-                        )}
-                    </div>
+                  <li className="flex items-center justify-between">
+                    <span className="text-black">Marketing Content</span>
+                    {typeof post.marketingContent === "string" &&
+                      post.marketingContent.toLowerCase().includes("no marketing content") ? (
+                      <span className="text-black">None</span>
+                    ) : post.marketingContent ? (
+                      <div className="flex items-center gap-1">
+                        <span className="text-black">Yes</span>
+                        <span className="relative group cursor-pointer">
+                          <span className="text-blue-600 text-sm">ⓘ</span>
+                          <span className="invisible group-hover:visible absolute bottom-full mb-2 right-0 bg-gray-800 text-white text-xs p-3 rounded-lg shadow-xl w-64 break-words z-50">
+                            {post.marketingContent}
+                          </span>
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-black">None</span>
+                    )}
                   </li>
                 </ul>
               </div>
@@ -347,7 +364,7 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
               {/* Post Summary */}
               <div className="p-3 border-b border-gray-800">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-bold text-xs text-gray-700">Post Summary</span>
+                  <span className="font-bold text-xs text-black">Post Summary</span>
                   <button
                     onClick={() => toggleSummary(post.id)}
                     className="text-lg text-blue-500 hover:text-blue-700 cursor-pointer font-bold"
@@ -358,7 +375,7 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
 
                 <div className="min-h-[96px] mb-2">
                   <div
-                    className={`text-xs text-gray-600 leading-tight transition-all duration-300 ${expandedSummaries[post.id] ? '' : 'line-clamp-4'
+                    className={`text-xs text-black leading-tight transition-all duration-300 text-justify ${expandedSummaries[post.id] ? '' : 'line-clamp-4'
                       }`}
                   >
                     {post.summary || "No summary available"}
@@ -384,7 +401,7 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
                 onMouseLeave={() => setHoveredPost(null)}
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="font-bold text-xs text-gray-700">Coins Analysis</span>
+                  <span className="font-bold text-xs text-black">Coins Analysis</span>
                 </div>
 
                 {/* Coins table */}
@@ -393,9 +410,9 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
                     <table className="w-full text-xs">
                       <thead>
                         <tr className="border-b border-gray-800">
-                          <th className="text-center text-gray-700 pb-1 pr-2">Name</th>
-                          <th className="text-center text-gray-700 pb-1 pr-2">Sentiment</th>
-                          <th className="text-center text-gray-700 pb-1">Holding Period</th>
+                          <th className="text-center text-black pb-1 pr-2">Name</th>
+                          <th className="text-center text-black pb-1 pr-2">Sentiment</th>
+                          <th className="text-center text-black pb-1">Holding Period</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -405,40 +422,27 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
                             : (post.coinRecommendations || []).slice(0, 5);
 
                           const rows = [];
-                          for (let i = 0; i < 5; i++) {
-                            const coin = coins[i];
+                          coins.forEach((coin, i) => {
                             rows.push(
-                              <tr key={i} className={coin ? "border-b border-gray-800/50" : ""}>
+                              <tr key={i} className="border-b border-gray-800/50">
                                 <td className="py-1 pr-2 text-center">
-                                  {coin ? (
-                                    <span className="text-gray-900" title={coin.symbol}>
-                                      {formatCoinName(coin.name || coin.name)}
-                                    </span>
-                                  ) : (
-                                    <span className="text-transparent">-</span>
-                                  )}
+                                  <span className="text-black" title={coin.symbol}>
+                                    {formatCoinName(coin.name || coin.name)}
+                                  </span>
                                 </td>
                                 <td className="py-1 pr-2 text-center">
-                                  {coin ? (
-                                    <span className={getSentimentColor(coin.sentiment || 'neutral')}>
-                                      {formatSentiment(coin.sentiment)}
-                                    </span>
-                                  ) : (
-                                    <span className="text-transparent">-</span>
-                                  )}
+                                  <span className={getSentimentColor(coin.sentiment || 'neutral')}>
+                                    {formatSentiment(coin.sentiment)}
+                                  </span>
                                 </td>
                                 <td className="py-1 text-center">
-                                  {coin ? (
-                                    <span className="text-gray-700">
-                                      {formatHoldingPeriod(coin.term)}
-                                    </span>
-                                  ) : (
-                                    <span className="text-transparent">-</span>
-                                  )}
+                                  <span className="text-black">
+                                    {formatHoldingPeriod(coin.term)}
+                                  </span>
                                 </td>
                               </tr>
                             );
-                          }
+                          });
                           return rows;
                         })()}
                       </tbody>
@@ -473,7 +477,7 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
                             <div key={i} className={`${getSentimentColor(rec.sentiment)} mb-1 flex items-start`}>
                               <span className="mr-1">•</span>
                               <span>{formatCoinName(rec.name || rec.coin)}: {formatSentiment(rec.sentiment)}, {formatHoldingPeriod(rec.term)}</span>
-                              {rec.price && <span className="ml-1 text-gray-400">@ {rec.price}</span>}
+                              {rec.price && <span className="ml-1 text-black">@ {rec.price}</span>}
                               {rec.action && <span className="ml-1 text-yellow-400">({rec.action})</span>}
                             </div>
                           )) || []}
@@ -482,37 +486,37 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
 
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div className="flex items-start">
-                          <span className="mr-1 text-gray-400">•</span>
-                          <span><span className="text-gray-400">Actionable:</span> <span className={getScoreColor(post.actionableInsights)}>{post.actionableInsights}/10</span></span>
+                          <span className="mr-1 text-black">•</span>
+                          <span><span className="text-black">Actionable:</span> <span className={getScoreColor(post.actionableInsights)}>{post.actionableInsights}/10</span></span>
                         </div>
                         <div className="flex items-start">
-                          <span className="mr-1 text-gray-400">•</span>
-                          <span><span className="text-gray-400">Buying Zone:</span> <span className={getScoreColor(post.buyingPriceZone)}>{post.buyingPriceZone}/10</span></span>
+                          <span className="mr-1 text-black">•</span>
+                          <span><span className="text-black">Buying Zone:</span> <span className={getScoreColor(post.buyingPriceZone)}>{post.buyingPriceZone}/10</span></span>
                         </div>
                         <div className="flex items-start">
-                          <span className="mr-1 text-gray-400">•</span>
-                          <span><span className="text-gray-400">Clarity:</span> <span className={getScoreColor(post.clarityOfAnalysis)}>{post.clarityOfAnalysis}/10</span></span>
+                          <span className="mr-1 text-black">•</span>
+                          <span><span className="text-black">Clarity:</span> <span className={getScoreColor(post.clarityOfAnalysis)}>{post.clarityOfAnalysis}/10</span></span>
                         </div>
                         <div className="flex items-start">
-                          <span className="mr-1 text-gray-400">•</span>
-                          <span><span className="text-gray-400">Credibility:</span> <span className={getScoreColor(post.credibilityScore)}>{post.credibilityScore}/10</span></span>
+                          <span className="mr-1 text-black">•</span>
+                          <span><span className="text-black">Credibility:</span> <span className={getScoreColor(post.credibilityScore)}>{post.credibilityScore}/10</span></span>
                         </div>
                         <div className="flex items-start">
-                          <span className="mr-1 text-gray-400">•</span>
-                          <span><span className="text-gray-400">Educational:</span> <span className={getScoreColor(post.educationalPurpose)}>{post.educationalPurpose}/10</span></span>
+                          <span className="mr-1 text-black">•</span>
+                          <span><span className="text-black">Educational:</span> <span className={getScoreColor(post.educationalPurpose)}>{post.educationalPurpose}/10</span></span>
                         </div>
                         <div className="flex items-start">
-                          <span className="mr-1 text-gray-400">•</span>
-                          <span><span className="text-gray-400">Exit Strategy:</span> <span className={getScoreColor(post.exitStrategyScore)}>{post.exitStrategyScore}/10</span></span>
+                          <span className="mr-1 text-black">•</span>
+                          <span><span className="text-black">Exit Strategy:</span> <span className={getScoreColor(post.exitStrategyScore)}>{post.exitStrategyScore}/10</span></span>
                         </div>
                       </div>
 
                       <div className="mt-3 pt-2 border-t border-gray-600">
-                        <div className="text-gray-400 text-xs flex items-start">
+                        <div className="text-black text-xs flex items-start">
                           <span className="mr-1">•</span>
                           <span><span className="font-semibold">Outlook:</span> {post.outlook}</span>
                         </div>
-                        <div className="text-gray-400 text-xs flex items-start mt-1">
+                        <div className="text-black text-xs flex items-start mt-1">
                           <span className="mr-1">•</span>
                           <span><span className="font-semibold">Engagement:</span> {post.views} views | {post.forwards} forwards</span>
                         </div>
@@ -523,172 +527,10 @@ export default function TelegramRecentActivityTab({ channelID, channelData, tele
               </div>
             </div>
           ))}
+            </div>
+            </>
+          )}
         </div>
-
-        {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <div className="flex flex-col items-center mt-8 space-y-4">
-            {/* Pagination Info */}
-            <div className="text-sm text-gray-400 text-center">
-              Showing {startIndex + 1} to {Math.min(endIndex, totalPosts)} of {totalPosts} posts
-            </div>
-
-            {/* Mobile Pagination - Show only on small screens */}
-            <div className="flex sm:hidden items-center justify-center space-x-1 w-full">
-              {/* First Button - Mobile */}
-              <button
-                onClick={() => handlePageChange(1)}
-                disabled={currentPage === 1}
-                className={`px-2 py-2 rounded-lg font-medium text-xs transition-all duration-200 ${currentPage === 1
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 hover:border-blue-500'
-                  }`}
-              >
-                ‹‹
-              </button>
-
-              {/* Previous Button - Mobile */}
-              <button
-                onClick={handlePrevious}
-                disabled={currentPage === 1}
-                className={`px-2 py-2 rounded-lg font-medium text-xs transition-all duration-200 ${currentPage === 1
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 hover:border-blue-500'
-                  }`}
-              >
-                ‹
-              </button>
-
-              {/* Current Page Info */}
-              <div className="flex items-center space-x-2 px-2">
-                <span className="text-xs text-gray-600">Page</span>
-                <span className="px-2 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded text-xs font-medium">
-                  {currentPage}
-                </span>
-                <span className="text-xs text-gray-600">of {totalPages}</span>
-              </div>
-
-              {/* Next Button - Mobile */}
-              <button
-                onClick={handleNext}
-                disabled={currentPage === totalPages}
-                className={`px-2 py-2 rounded-lg font-medium text-xs transition-all duration-200 ${currentPage === totalPages
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 hover:border-blue-500'
-                  }`}
-              >
-                ›
-              </button>
-
-              {/* Last Button - Mobile */}
-              <button
-                onClick={() => handlePageChange(totalPages)}
-                disabled={currentPage === totalPages}
-                className={`px-2 py-2 rounded-lg font-medium text-xs transition-all duration-200 ${currentPage === totalPages
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 hover:border-blue-500'
-                  }`}
-              >
-                ››
-              </button>
-            </div>
-
-            {/* Desktop/Tablet Pagination - Show on medium screens and up */}
-            <div className="hidden sm:flex items-center space-x-1 md:space-x-2 flex-wrap justify-center">
-              {/* First Button - Desktop */}
-              <button
-                onClick={() => handlePageChange(1)}
-                disabled={currentPage === 1}
-                className={`px-2 md:px-4 py-2 rounded-lg font-medium text-xs md:text-sm transition-all duration-200 ${currentPage === 1
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 hover:border-blue-500'
-                  }`}
-              >
-                &lt;&lt;
-              </button>
-
-              {/* Previous Button - Desktop */}
-              <button
-                onClick={handlePrevious}
-                disabled={currentPage === 1}
-                className={`px-2 md:px-4 py-2 rounded-lg font-medium text-xs md:text-sm transition-all duration-200 ${currentPage === 1
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 hover:border-blue-500'
-                  }`}
-              >
-                &lt;
-              </button>
-
-              {/* First Page */}
-              {getPageNumbers()[0] > 1 && (
-                <>
-                  <button
-                    onClick={() => handlePageChange(1)}
-                    className="px-2 md:px-4 py-2 rounded-lg font-medium text-xs md:text-sm bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 hover:border-blue-500 transition-all duration-200"
-                  >
-                    1
-                  </button>
-                  {getPageNumbers()[0] > 2 && (
-                    <span className="text-gray-500 text-xs">...</span>
-                  )}
-                </>
-              )}
-
-              {/* Page Numbers */}
-              {getPageNumbers().map((page) => (
-                <button
-                  key={page}
-                  onClick={() => handlePageChange(page)}
-                  className={`px-2 md:px-4 py-2 rounded-lg font-medium text-xs md:text-sm transition-all duration-200 ${currentPage === page
-                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 hover:border-blue-500'
-                    }`}
-                >
-                  {page}
-                </button>
-              ))}
-
-              {/* Last Page */}
-              {getPageNumbers()[getPageNumbers().length - 1] < totalPages && (
-                <>
-                  {getPageNumbers()[getPageNumbers().length - 1] < totalPages - 1 && (
-                    <span className="text-gray-500 text-xs">...</span>
-                  )}
-                  <button
-                    onClick={() => handlePageChange(totalPages)}
-                    className="px-2 md:px-4 py-2 rounded-lg font-medium text-xs md:text-sm bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 hover:border-blue-500 transition-all duration-200"
-                  >
-                    {totalPages}
-                  </button>
-                </>
-              )}
-
-              {/* Next Button - Desktop */}
-              <button
-                onClick={handleNext}
-                disabled={currentPage === totalPages}
-                className={`px-2 md:px-4 py-2 rounded-lg font-medium text-xs md:text-sm transition-all duration-200 ${currentPage === totalPages
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 hover:border-blue-500'
-                  }`}
-              >
-                &gt;
-              </button>
-
-              {/* Last Button - Desktop */}
-              <button
-                onClick={() => handlePageChange(totalPages)}
-                disabled={currentPage === totalPages}
-                className={`px-2 md:px-4 py-2 rounded-lg font-medium text-xs md:text-sm transition-all duration-200 ${currentPage === totalPages
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 hover:border-blue-500'
-                  }`}
-              >
-                &gt;&gt;
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

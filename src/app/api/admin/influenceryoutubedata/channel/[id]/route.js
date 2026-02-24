@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 
 export async function GET(request, { params }) {
-  const { id } = params;
-  
+  const { id } = await params;
+
   // Set fixed parameters
   const searchParams = new URLSearchParams({
     sentiment: 'strong_bullish',
@@ -11,19 +11,18 @@ export async function GET(request, { params }) {
 
   try {
     const apiUrl = `http://37.27.120.45:5901/api/admin/influenceryoutubedata/channel/${id}?${searchParams.toString()}`;
-    console.log('Fetching from:', apiUrl);
-    
+
     const response = await fetch(apiUrl, {
       headers: {
         'Content-Type': 'application/json',
       },
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(60000),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`External API returned status: ${response.status}, body: ${errorText}`);
-      
+
       return NextResponse.json(
         {
           error: `External API error: ${response.status}`,
@@ -34,7 +33,7 @@ export async function GET(request, { params }) {
     }
 
     const data = await response.json();
-    console.log('API response data:', JSON.stringify(data, null, 2));
+    // console.log('API response data:', JSON.stringify(data, null, 2)); // Reduced noise
 
     return NextResponse.json(data, {
       headers: {
@@ -47,12 +46,12 @@ export async function GET(request, { params }) {
     console.error('Error fetching influencer data:', error);
     console.error('Error name:', error.name);
     console.error('Error message:', error.message);
-    
+
     let errorMessage = 'Failed to fetch influencer data';
     let statusCode = 500;
 
     if (error.name === 'AbortError') {
-      errorMessage = 'Request timeout - API took longer than 15 seconds';
+      errorMessage = 'Request timeout - API took longer than 60 seconds';
       statusCode = 408;
     } else if (error.message.includes('fetch') || error.message.includes('ECONNREFUSED') || error.message.includes('ENOTFOUND')) {
       errorMessage = `Network error - external API not accessible: ${error.message}`;

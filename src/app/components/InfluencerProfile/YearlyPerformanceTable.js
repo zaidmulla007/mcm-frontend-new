@@ -1,6 +1,7 @@
 import { useState } from "react";
 import SentimentGauge from "./SentimentGauge";
 import GaugeComponent from "react-gauge-component";
+import PerformanceTable from "./PerformanceTable";
 
 export default function YearlyPerformanceTable({ yearlyData, quarterlyData, channelData }) {
     const [selectedTimeframe, setSelectedTimeframe] = useState("30");
@@ -10,9 +11,19 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData, chan
     const [expandedWinLoss, setExpandedWinLoss] = useState(false);
     const [expandedAverageReturn, setExpandedAverageReturn] = useState(false);
     const [tooltipVisible, setTooltipVisible] = useState({});
+    const [moonshotTooltip, setMoonshotTooltip] = useState(null);
+    const [withoutMoonshotTooltip, setWithoutMoonshotTooltip] = useState(null);
 
-    // Get available years from data
+    // State for PerformanceTable hover effects
+    const [hoveredColumnROI, setHoveredColumnROI] = useState(null);
+    const [hoveredRowROI, setHoveredRowROI] = useState(null);
+    const [hoveredColumnWinRate, setHoveredColumnWinRate] = useState(null);
+    const [hoveredRowWinRate, setHoveredRowWinRate] = useState(null);
+    const currentYear = new Date().getFullYear();
+
+    // Get available years from data (exclude 2026)
     const availableYears = Object.keys(yearlyData || {})
+        .filter(year => year !== "2026")
         .sort()
         .reverse();
 
@@ -29,34 +40,30 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData, chan
         return "text-green-400";                   // 66–100%
     };
 
-    // Add dynamic columns for last 7 days and last 15 days
-    const getDynamicColumns = () => {
-        const columns = [];
-
-        const getWinColor = (value) => {
-            if (value < 33) return "text-red-400";     // 0–32%
-            if (value < 66) return "text-yellow-400";  // 33–65%
-            return "text-green-400";                   // 66–100%
+    // Helper function to format percentage and determine styling
+    const formatPercentageWithStyling = (value, period, hoveredColumn, hoveredRow, quarter) => {
+        if (value == null) return {
+            display: 'N/A',
+            isNegative: true,
+            isHovered: hoveredColumn === period || hoveredRow === quarter,
+            isExactCell: hoveredColumn === period && hoveredRow === quarter
         };
 
-        // Add "Last 7 Days" column with info icon
-        columns.push({
-            type: "dynamic",
-            key: "last7days",
-            label: "Last 7 Days",
-            hasInfo: true,
-            tooltipText: "Last 7 days calculated as per the latest system update time",
-        });
+        const roundedValue = Math.round(value);
+        const displayValue = roundedValue === 0 ? '0' : roundedValue.toString();
+        const isSmallNegative = value <= 0 && roundedValue === 0;
 
-        // Add "Last 15 Days" column with info icon
-        columns.push({
-            type: "dynamic",
-            key: "last15days",
-            label: "Last 15 Days",
-            hasInfo: true,
-            tooltipText:
-                "Last 15 days calculated as per the latest system update time.",
-        });
+        return {
+            display: `${displayValue}%`,
+            isNegative: value <= 0 && !isSmallNegative,
+            isHovered: hoveredColumn === period || hoveredRow === quarter,
+            isExactCell: hoveredColumn === period && hoveredRow === quarter
+        };
+    };
+
+    // Get dynamic columns for years
+    const getDynamicColumns = () => {
+        const columns = [];
 
         // Add year columns
         availableYears.forEach((year) => {
@@ -517,7 +524,34 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData, chan
                         {expandedRecommendations && (
                             <tr className="border-b border-gray-100 light-dropdown ">
                                 <td className="py-3 px-4 text-to-purple font-semibold text-sm pl-8">
-                                    Hyperactivity
+                                    <div className="flex items-center gap-1">
+                                        <span>Moonshots</span>
+                                        <div className="relative inline-block">
+                                            <button
+                                                onMouseEnter={() => setMoonshotTooltip('recommendations')}
+                                                onMouseLeave={() => setMoonshotTooltip(null)}
+                                                className="text-gray-500 hover:text-gray-700 transition-colors"
+                                            >
+                                                <svg
+                                                    className="w-4 h-4"
+                                                    fill="currentColor"
+                                                    viewBox="0 0 20 20"
+                                                >
+                                                    <path
+                                                        fillRule="evenodd"
+                                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                                        clipRule="evenodd"
+                                                    />
+                                                </svg>
+                                            </button>
+                                            {moonshotTooltip === 'recommendations' && (
+                                                <div className="absolute z-10 w-72 px-3 py-2 text-sm text-white bg-gray-900 rounded-lg shadow-lg border border-gray-700 top-0 left-full ml-2">
+                                                    Moonshot is defined by hyperactivity in a coin recommended by the influencer within a short period of time.
+                                                    <div className="absolute top-1/2 right-full transform -translate-y-1/2 w-0 h-0 border-t-4 border-b-4 border-r-4 border-transparent border-r-gray-900"></div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 </td>
                                 {dynamicColumns.map((column) => {
                                     const hyperactiveMetrics = calculateHyperactiveYearMetrics(column.key);
@@ -536,7 +570,34 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData, chan
                         {expandedRecommendations && (
                             <tr className="border-b border-gray-100 light-dropdown ">
                                 <td className="py-3 px-4 text-to-purple font-semibold text-sm pl-8">
-                                    Non Hyperactivity
+                                    <div className="flex items-center gap-1">
+                                        <span>Without Moonshots</span>
+                                        <div className="relative inline-block">
+                                            <button
+                                                onMouseEnter={() => setWithoutMoonshotTooltip('recommendations')}
+                                                onMouseLeave={() => setWithoutMoonshotTooltip(null)}
+                                                className="text-gray-500 hover:text-gray-700 transition-colors"
+                                            >
+                                                <svg
+                                                    className="w-4 h-4"
+                                                    fill="currentColor"
+                                                    viewBox="0 0 20 20"
+                                                >
+                                                    <path
+                                                        fillRule="evenodd"
+                                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                                        clipRule="evenodd"
+                                                    />
+                                                </svg>
+                                            </button>
+                                            {withoutMoonshotTooltip === 'recommendations' && (
+                                                <div className="absolute z-10 w-72 px-3 py-2 text-sm text-white bg-gray-900 rounded-lg shadow-lg border border-gray-700 top-0 left-full ml-2">
+                                                    Refers to fundamental, organic-growth crypto assets that are not driven by influencer hype or short-term pumps.
+                                                    <div className="absolute top-1/2 right-full transform -translate-y-1/2 w-0 h-0 border-t-4 border-b-4 border-r-4 border-transparent border-r-gray-900"></div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 </td>
                                 {dynamicColumns.map((column) => {
                                     const normalMetrics = calculateNormalYearMetrics(column.key);
@@ -628,7 +689,34 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData, chan
                         {expandedWinLoss && (
                             <tr className="light-hyper-activity-row light-dropdown ">
                                 <td className="light-hyper-activity-header">
-                                    Hyperactivity
+                                    <div className="flex items-center gap-1">
+                                        <span>Moonshots</span>
+                                        <div className="relative inline-block">
+                                            <button
+                                                onMouseEnter={() => setMoonshotTooltip('winloss')}
+                                                onMouseLeave={() => setMoonshotTooltip(null)}
+                                                className="text-gray-500 hover:text-gray-700 transition-colors"
+                                            >
+                                                <svg
+                                                    className="w-4 h-4"
+                                                    fill="currentColor"
+                                                    viewBox="0 0 20 20"
+                                                >
+                                                    <path
+                                                        fillRule="evenodd"
+                                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                                        clipRule="evenodd"
+                                                    />
+                                                </svg>
+                                            </button>
+                                            {moonshotTooltip === 'winloss' && (
+                                                <div className="absolute z-10 w-72 px-3 py-2 text-sm text-white bg-gray-900 rounded-lg shadow-lg border border-gray-700 top-0 left-full ml-2">
+                                                    Moonshot is defined by hyperactivity in a coin recommended by the influencer within a short period of time.
+                                                    <div className="absolute top-1/2 right-full transform -translate-y-1/2 w-0 h-0 border-t-4 border-b-4 border-r-4 border-transparent border-r-gray-900"></div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 </td>
                                 {dynamicColumns.map((column) => {
                                     const hyperactiveMetrics = calculateHyperactiveYearMetrics(column.key);
@@ -686,7 +774,34 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData, chan
                         {expandedWinLoss && (
                             <tr className="light-without-hyper-row light-dropdown ">
                                 <td className="light-without-hyper-header">
-                                    Non Hyperactivity
+                                    <div className="flex items-center gap-1">
+                                        <span>Without Moonshots</span>
+                                        <div className="relative inline-block">
+                                            <button
+                                                onMouseEnter={() => setWithoutMoonshotTooltip('winloss')}
+                                                onMouseLeave={() => setWithoutMoonshotTooltip(null)}
+                                                className="text-gray-500 hover:text-gray-700 transition-colors"
+                                            >
+                                                <svg
+                                                    className="w-4 h-4"
+                                                    fill="currentColor"
+                                                    viewBox="0 0 20 20"
+                                                >
+                                                    <path
+                                                        fillRule="evenodd"
+                                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                                        clipRule="evenodd"
+                                                    />
+                                                </svg>
+                                            </button>
+                                            {withoutMoonshotTooltip === 'winloss' && (
+                                                <div className="absolute z-10 w-72 px-3 py-2 text-sm text-white bg-gray-900 rounded-lg shadow-lg border border-gray-700 top-0 left-full ml-2">
+                                                    Refers to fundamental, organic-growth crypto assets that are not driven by influencer hype or short-term pumps.
+                                                    <div className="absolute top-1/2 right-full transform -translate-y-1/2 w-0 h-0 border-t-4 border-b-4 border-r-4 border-transparent border-r-gray-900"></div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 </td>
                                 {dynamicColumns.map((column) => {
                                     const normalMetrics = calculateNormalYearMetrics(column.key);
@@ -821,7 +936,34 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData, chan
                         {expandedAverageReturn && (
                             <tr className="border-b border-gray-100 light-dropdown ">
                                 <td className="py-3 px-4 text-to-purple font-semibold text-sm pl-8">
-                                   Hyperactivity
+                                    <div className="flex items-center gap-1">
+                                        <span>Moonshots</span>
+                                        <div className="relative inline-block">
+                                            <button
+                                                onMouseEnter={() => setMoonshotTooltip('avgreturn')}
+                                                onMouseLeave={() => setMoonshotTooltip(null)}
+                                                className="text-gray-500 hover:text-gray-700 transition-colors"
+                                            >
+                                                <svg
+                                                    className="w-4 h-4"
+                                                    fill="currentColor"
+                                                    viewBox="0 0 20 20"
+                                                >
+                                                    <path
+                                                        fillRule="evenodd"
+                                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                                        clipRule="evenodd"
+                                                    />
+                                                </svg>
+                                            </button>
+                                            {moonshotTooltip === 'avgreturn' && (
+                                                <div className="absolute z-10 w-72 px-3 py-2 text-sm text-white bg-gray-900 rounded-lg shadow-lg border border-gray-700 top-0 left-full ml-2">
+                                                    Moonshot is defined by hyperactivity in a coin recommended by the influencer within a short period of time.
+                                                    <div className="absolute top-1/2 right-full transform -translate-y-1/2 w-0 h-0 border-t-4 border-b-4 border-r-4 border-transparent border-r-gray-900"></div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 </td>
 
                                 {dynamicColumns.map((column) => {
@@ -882,7 +1024,34 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData, chan
                         {expandedAverageReturn && (
                             <tr className="border-b border-gray-100 light-dropdown ">
                                 <td className="py-3 px-4 text-to-purple font-semibold text-sm pl-8">
-                                    Non Hyperactivity
+                                    <div className="flex items-center gap-1">
+                                        <span>Without Moonshots</span>
+                                        <div className="relative inline-block">
+                                            <button
+                                                onMouseEnter={() => setWithoutMoonshotTooltip('avgreturn')}
+                                                onMouseLeave={() => setWithoutMoonshotTooltip(null)}
+                                                className="text-gray-500 hover:text-gray-700 transition-colors"
+                                            >
+                                                <svg
+                                                    className="w-4 h-4"
+                                                    fill="currentColor"
+                                                    viewBox="0 0 20 20"
+                                                >
+                                                    <path
+                                                        fillRule="evenodd"
+                                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                                        clipRule="evenodd"
+                                                    />
+                                                </svg>
+                                            </button>
+                                            {withoutMoonshotTooltip === 'avgreturn' && (
+                                                <div className="absolute z-10 w-72 px-3 py-2 text-sm text-white bg-gray-900 rounded-lg shadow-lg border border-gray-700 top-0 left-full ml-2">
+                                                    Refers to fundamental, organic-growth crypto assets that are not driven by influencer hype or short-term pumps.
+                                                    <div className="absolute top-1/2 right-full transform -translate-y-1/2 w-0 h-0 border-t-4 border-b-4 border-r-4 border-transparent border-r-gray-900"></div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 </td>
 
                                 {dynamicColumns.map((column) => {
@@ -978,6 +1147,21 @@ export default function YearlyPerformanceTable({ yearlyData, quarterlyData, chan
           );
         })}
       </div> */}
+
+            {/* Performance Table Component */}
+            <PerformanceTable
+                channelData={channelData}
+                hoveredColumnROI={hoveredColumnROI}
+                setHoveredColumnROI={setHoveredColumnROI}
+                hoveredRowROI={hoveredRowROI}
+                setHoveredRowROI={setHoveredRowROI}
+                hoveredColumnWinRate={hoveredColumnWinRate}
+                setHoveredColumnWinRate={setHoveredColumnWinRate}
+                hoveredRowWinRate={hoveredRowWinRate}
+                setHoveredRowWinRate={setHoveredRowWinRate}
+                formatPercentageWithStyling={formatPercentageWithStyling}
+                currentYear={currentYear}
+            />
         </div>
     );
 }

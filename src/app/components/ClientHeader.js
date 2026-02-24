@@ -1,24 +1,77 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
-import { FaUserCircle, FaUser, FaCreditCard, FaSignOutAlt } from "react-icons/fa";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect, useRef, Suspense } from "react";
+import { FaUserCircle, FaUser, FaCreditCard, FaSignOutAlt, FaHome, FaDrum, FaChartLine, FaBullhorn, FaTrophy, FaBlog, FaInfoCircle, FaGlobe, FaChartBar, FaHistory, FaCoins, FaStar, FaChartPie, FaNewspaper, FaSitemap, FaChevronDown, FaSignal, FaFileAlt, FaRegNewspaper } from "react-icons/fa";
 import { useTimezone } from "../contexts/TimezoneContext";
+import { useSelectedCoin } from "../contexts/SelectedCoinContext";
+import styles from "./ClientHeader.module.css";
 
 const navLinks = [
-  { name: "Home", href: "/" },
-  { name: "Influencers Rank", href: "/influencers" },
-  { name: "Influencer Search", href: "/influencer-search" },
-  { name: "Leaderboard", href: "/leaderboard" },
-  { name: "About", href: "/about" },
-  { name: "Contact", href: "/contact" },
+  { name: "Home", href: "/", icon: FaHome },
+  { name: "Latest Posts", href: "/influencer-search", icon: FaBullhorn },
+  { name: "Trending Coins", href: "/coins-new", icon: FaCoins },
+  { name: "Influencer", href: "/influencerssearch", icon: FaChartBar },
+  { name: "All Coins", href: "/coins-list", icon: FaCoins },
+  { name: "Screener", href: "/market-overview", icon: FaChartPie },
+  { name: "Favorites", href: "/favorites", icon: FaStar },
+  // {
+  //   name: "Under Development",
+  //   icon: FaHistory,
+  //   subLinks: [
+  //     { name: "Post Spread", href: "/tree", icon: FaSitemap },
+  //     { name: "MCM Signal", href: "/mcm-final", icon: FaSignal },
+  //     { name: "MCM Signal Test", href: "/mcm-signal-test", icon: FaSignal },
+  //     { name: "Reports", href: "/document", icon: FaFileAlt },
+  //     { name: "Top News", href: "/top-news", icon: FaRegNewspaper },
+  //   ]
+  // },
 ];
+
+function AuthButtons() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  return (
+    <>
+      <button
+        onClick={() => {
+          const isSignupPage = searchParams.get('signup') === 'true';
+          if (pathname === '/login') {
+            // If on login page, toggle between login and signup
+            if (isSignupPage) {
+              router.push('/login');
+            } else {
+              router.push('/login?signup=true');
+            }
+          } else {
+            // If not on login page, go to sign in
+            router.push('/login');
+          }
+        }}
+        className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition font-medium"
+      >
+        <FaGlobe className="text-base" />
+        <span className="text-sm">
+          {pathname === '/login' && searchParams.get('signup') === 'true' ? 'Sign Up' : 'Sign In'}
+        </span>
+      </button>
+      <Link
+        href="/login"
+        className="bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-600 hover:to-indigo-600 text-white px-6 py-2.5 rounded-lg font-semibold text-sm shadow-md shadow-indigo-500/30 hover:shadow-lg hover:scale-105 transition"
+      >
+        Start Free Trial
+      </Link>
+    </>
+  );
+}
 
 export default function ClientHeader() {
   const pathname = usePathname();
-  const router = useRouter();
   const { useLocalTime, toggleTimezone } = useTimezone();
+  const { selectedSymbol } = useSelectedCoin();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState({
     firstName: '',
@@ -83,8 +136,8 @@ export default function ClientHeader() {
       dateEnd: ''
     });
 
-    // Redirect to login page
-    router.push('/login');
+    // Redirect to home page with full reload to reset login state
+    window.location.href = '/';
   };
 
   const getDisplayName = () => {
@@ -95,179 +148,233 @@ export default function ClientHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-30 w-full bg-[#19162b]/95 backdrop-blur border-b border-[#232042] shadow-sm">
-      <div className=" mx-auto flex items-center justify-between px-4 py-3">
+    <header className="sticky top-0 z-30 w-full bg-gradient-to-r from-white/95 via-indigo-50/95 to-fuchsia-50/95 backdrop-blur-md border-b border-indigo-200/30 shadow-md shadow-indigo-500/5">
+      {/* SVG Gradient Definition */}
+      <svg width="0" height="0" style={{ position: 'absolute' }}>
+        <defs>
+          <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style={{ stopColor: 'rgb(59, 130, 246)', stopOpacity: 1 }} />
+            <stop offset="100%" style={{ stopColor: 'rgb(168, 85, 247)', stopOpacity: 1 }} />
+          </linearGradient>
+        </defs>
+      </svg>
+      <div className="mx-auto flex items-center justify-between px-6 py-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          {/* <Image src="/images/MCMLOGO.png" alt="Logo" width={70} height={70} /> */}
-          <Image src="/images/my_crypto-removebg-preview.png" alt="Logo" width={80} height={80} className="logo-img" />
-          {/* <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent hidden sm:inline">
-            MCM
-          </span> */}
+        <Link href={isLoggedIn ? "/" : "/"} className="flex items-center gap-2">
+          <Image src="/images/mycryptomonitor-bg.png" alt="Logo" width={80} height={90} className="logo-img" />
         </Link>
+
         {/* Navigation */}
-        <nav className="hidden md:flex gap-6 ml-8">
-          {navLinks.map((link) => {
-            const isActive = pathname === link.href ||
-              (link.href !== "/" && pathname.startsWith(link.href)) ||
-              (link.href === "/influencers" && pathname.startsWith("/telegram-influencer"));
+        <nav className="hidden md:flex flex-1 justify-center gap-5">
+          {navLinks.filter((link) => isLoggedIn || link.name === "Home").map((link) => {
+            // Dynamic logic for Home/Landing Page based on login status
+            let actualHref = link.href;
+            let displayName = link.name;
+
+            if (link.name === "Home") {
+              if (isLoggedIn) {
+                // Logged in users see "Home" and navigate to /
+                actualHref = "/";
+                displayName = "Home";
+              } else {
+                // Non-logged in users navigate to /
+                actualHref = "/";
+                displayName = "";
+              }
+            }
+
+            if (link.subLinks) {
+              const isAnySubActive = link.subLinks.some(sub => {
+                if (sub.href === "/coins") return pathname === "/coins";
+                if (sub.href === "/coins-new") return pathname === "/coins-new";
+                if (sub.href === "/coins-list") return pathname.startsWith("/coins-list");
+                if (sub.href === "/influencer-search") {
+                  return pathname === "/influencer-search" || pathname === "/posts" || pathname.startsWith("/influencers/") || pathname.startsWith("/telegram-influencer/");
+                }
+                return pathname === sub.href || (sub.href !== "/" && pathname.startsWith(sub.href));
+              });
+
+              return (
+                <div key={link.name} className="relative group flex items-center">
+                  <button
+                    className={`flex items-center gap-1.5 text-xs font-medium transition py-2 relative ${isAnySubActive
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent'
+                      : 'text-gray-700 hover:text-indigo-600'
+                      }`}
+                  >
+                    {link.name}
+                    {isAnySubActive ? (
+                      <span className={styles.gradientIcon}>
+                        <FaChevronDown className="text-[10px] ml-1 transition-transform group-hover:rotate-180" />
+                      </span>
+                    ) : (
+                      <FaChevronDown className="text-[10px] ml-1 transition-transform group-hover:rotate-180" />
+                    )}
+                    {isAnySubActive && (
+                      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500"></span>
+                    )}
+                  </button>
+
+                  <div className="absolute left-1/2 -translate-x-1/2 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 z-50">
+                    <div className="w-56 bg-white/95 backdrop-blur-sm rounded-xl shadow-xl shadow-indigo-500/10 border border-indigo-200/50 py-2 overflow-hidden">
+                      {link.subLinks.map((sub) => {
+                        const isSubActive = sub.href === "/coins" ? pathname === "/coins" :
+                          sub.href === "/coins-new" ? pathname === "/coins-new" :
+                            sub.href === "/coins-list" ? pathname.startsWith("/coins-list") :
+                              sub.href === "/influencer-search" ? (pathname === "/influencer-search" || pathname === "/posts" || pathname.startsWith("/influencers/") || pathname.startsWith("/telegram-influencer/")) :
+                                pathname === sub.href;
+
+                        return (
+                          <Link
+                            key={sub.name}
+                            href={sub.href}
+                            className={`flex items-center gap-3 px-4 py-2.5 text-sm transition ${isSubActive
+                              ? 'bg-gradient-to-r from-indigo-50 to-fuchsia-50 text-indigo-600'
+                              : 'text-gray-700 hover:bg-indigo-50/50 hover:text-indigo-600'
+                              }`}
+                          >
+                            <span>
+                              {sub.name === "All Coins" && selectedSymbol
+                                ? `All Coins (${selectedSymbol})`
+                                : sub.name}
+                            </span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            // Check if this link is active
+            const isActive = pathname === actualHref;
 
             return (
               <Link
                 key={link.name}
-                href={link.href}
-                className={`text-sm font-medium transition relative ${isActive
-                  ? 'text-blue-400'
-                  : 'text-gray-200 hover:text-blue-400'
-                  } ${isActive
-                    ? 'after:absolute after:bottom-[-8px] after:left-0 after:w-full after:h-0.5 after:bg-blue-400'
-                    : ''
+                href={actualHref}
+                className={`flex items-center gap-1.5 text-xs font-medium transition py-2 relative ${isActive
+                  ? 'bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent'
+                  : 'text-gray-700 hover:text-indigo-600'
                   }`}
               >
-                {link.name}
+                {displayName}
+                {isActive && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500"></span>
+                )}
               </Link>
             );
           })}
         </nav>
 
-        {/* Timezone Toggle in Navbar - Only show when logged in */}
-        {isLoggedIn && (
-          <div className="hidden md:flex items-center gap-2 ml-8">
-            {/* Default UTC first */}
-            <button
-              onClick={toggleTimezone}
-              className={`text-xs px-3 py-1 rounded-full transition ${!useLocalTime
-                  ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                  : 'bg-gray-500/20 text-white border border-gray-500/30 hover:bg-gray-500/30'
-                }`}
-            >
-              Default UTC
-            </button>
-
-            {/* Local Time second */}
-            <button
-              onClick={toggleTimezone}
-              className={`text-xs px-3 py-1 rounded-full transition flex flex-col items-center ${useLocalTime
-                  ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                  : 'bg-gray-500/20 text-white border border-gray-500/30 hover:bg-gray-500/30'
-                }`}
-            >
-              <span>Local Time</span>
-              {useLocalTime && userCity && (
-                <span className="text-[10px] opacity-80 mt-0.5">{userCity}</span>
-              )}
-            </button>
-          </div>
-        )}
-
-
-        {/* Search + Auth */}
-        <div className="flex items-center gap-4 ml-auto">
-          {/* <div className="relative hidden md:block">
-            <input
-              type="text"
-              placeholder="Search..."
-              className="bg-[#232042] text-sm text-white rounded-full px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400 w-48"
-            />
-            <span className="absolute left-3 top-2.5 text-gray-400">
-              <svg
-                width="18"
-                height="18"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <circle cx="11" cy="11" r="7" />
-                <path d="M21 21l-4.35-4.35" />
-              </svg>
-            </span>
-          </div> */}
+        {/* Auth Buttons */}
+        <div className="flex items-center gap-4">
           {isLoggedIn ? (
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setShowDropdown(!showDropdown)}
-                className="flex items-center gap-2 bg-[#232042] px-4 py-2 rounded-lg hover:bg-[#2a2454] transition"
+                className="flex items-center gap-2 bg-gradient-to-r from-indigo-50 to-fuchsia-50 hover:from-indigo-100 hover:to-fuchsia-100 px-4 py-2 rounded-lg border border-indigo-200/50 transition shadow-sm"
               >
-                <FaUserCircle size={24} className="text-purple-400" />
-                <span className="text-sm font-medium text-white">{getDisplayName()}</span>
+                <span className={styles.gradientIcon}>
+                  <FaUserCircle size={24} />
+                </span>
+                <span className="text-sm font-medium text-gray-900">{getDisplayName()}</span>
               </button>
 
               {showDropdown && (
-                <div className="absolute right-0 mt-2 w-64 bg-[#232042] rounded-lg shadow-lg border border-purple-500/30 overflow-hidden">
-                  <div className="p-4 border-b border-purple-500/30">
-                    <p className="text-sm font-semibold text-white">
+                <div className="absolute right-0 mt-2 w-64 bg-white/95 backdrop-blur-md rounded-xl shadow-2xl shadow-indigo-500/10 border border-indigo-200/50 overflow-hidden">
+                  <div className="p-4 border-b border-indigo-200/50 bg-gradient-to-r from-cyan-50 via-indigo-50 to-fuchsia-50">
+                    <p className="text-sm font-semibold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
                       {userInfo.firstName && userInfo.lastName
                         ? `${userInfo.firstName} ${userInfo.lastName}`
                         : 'User Profile'}
                     </p>
-                    <p className="text-xs text-gray-400 mt-1">{userInfo.email}</p>
+                    <p className="text-xs text-gray-600 mt-1 font-medium">{userInfo.email}</p>
                   </div>
 
                   <div className="py-2">
                     <Link
                       href="/profile"
-                      className="flex items-center gap-3 px-4 py-2 hover:bg-purple-500/20 transition text-sm"
+                      className="flex items-center gap-3 px-4 py-2.5 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-fuchsia-50 transition text-sm group"
                       onClick={() => setShowDropdown(false)}
                     >
-                      <FaUser className="text-purple-400" />
-                      <span className="text-white">My Profile</span>
+                      <span className={styles.gradientIcon}>
+                        <FaUser className="group-hover:scale-110 transition-transform" />
+                      </span>
+                      <span className="text-gray-900 font-medium">My Profile</span>
                     </Link>
 
                     <Link
                       href="/manage-subscription"
-                      className="flex items-center gap-3 px-4 py-2 hover:bg-purple-500/20 transition text-sm"
+                      className="flex items-center gap-3 px-4 py-2.5 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-fuchsia-50 transition text-sm group"
                       onClick={() => setShowDropdown(false)}
                     >
-                      <FaCreditCard className="text-purple-400" />
-                      <span className="text-white">Manage Subscriptions</span>
+                      <span className={styles.gradientIcon}>
+                        <FaCreditCard className="group-hover:scale-110 transition-transform" />
+                      </span>
+                      <span className="text-gray-900 font-medium">Manage Subscriptions</span>
                     </Link>
 
-                    <div className="px-4 py-2 border-t border-purple-500/30 mt-2">
-                      <div className="text-xs text-white mb-2">Timezone</div>
-                      <div className="flex gap-2">
+                    <div className="px-4 py-3 border-t border-indigo-200/50 mt-2 bg-gradient-to-r from-indigo-50/30 to-fuchsia-50/30">
+                      <div className="text-xs font-semibold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent mb-2">Timezone</div>
+                      <div className="flex items-center gap-2">
+                        {!useLocalTime && (
+                          <span className="text-xs font-medium text-gray-700">
+                            UTC
+                          </span>
+                        )}
                         <button
-                          onClick={toggleTimezone}
-                          className={`text-xs px-2 py-1 rounded transition flex flex-col items-center ${useLocalTime
-                              ? 'bg-blue-500/20 text-blue-400'
-                              : 'bg-gray-500/20 text-white hover:bg-gray-500/30'
+                          onClick={() => toggleTimezone()}
+                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-sm ${useLocalTime ? 'bg-gradient-to-r from-blue-500 to-purple-500' : 'bg-gray-300'
                             }`}
+                          role="switch"
+                          aria-checked={useLocalTime}
                         >
-                          <span>Local Time</span>
-                          {useLocalTime && userCity && (
-                            <span className="text-[10px] opacity-80 mt-0.5">{userCity}</span>
-                          )}
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform ${useLocalTime ? 'translate-x-4' : 'translate-x-0.5'
+                              }`}
+                          />
                         </button>
-                        <button
-                          onClick={toggleTimezone}
-                          className={`text-xs px-2 py-1 rounded transition ${!useLocalTime
-                              ? 'bg-blue-500/20 text-blue-400'
-                              : 'bg-gray-500/20 text-white hover:bg-gray-500/30'
-                            }`}
-                        >
-                          Default UTC
-                        </button>
+                        {useLocalTime && (
+                          <span className="text-xs font-medium text-gray-700">
+                            {userCity || 'Local'}
+                          </span>
+                        )}
                       </div>
                     </div>
 
                     <button
                       onClick={handleLogout}
-                      className="flex items-center gap-3 px-4 py-2 hover:bg-purple-500/20 transition text-sm w-full text-left border-t border-purple-500/30"
+                      className="flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 transition text-sm w-full text-left border-t border-indigo-200/50 mt-1 group"
                     >
-                      <FaSignOutAlt className="text-purple-400" />
-                      <span className="text-white">Logout</span>
+                      <FaSignOutAlt className="text-red-600 group-hover:scale-110 transition-transform" />
+                      <span className="text-gray-900 font-medium">Logout</span>
                     </button>
                   </div>
                 </div>
               )}
             </div>
           ) : (
-            <Link
-              href="/login"
-              className="bg-gradient-to-r from-purple-500 to-blue-500 px-4 py-2 rounded-lg font-semibold text-sm shadow hover:scale-105 transition"
-            >
-              Login / Sign Up
-            </Link>
+            <Suspense fallback={
+              <>
+                <Link
+                  href="/login?signup=true"
+                  className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition font-medium"
+                >
+                  <FaGlobe className="text-base" />
+                  <span className="text-sm">Sign Up</span>
+                </Link>
+                <Link
+                  href="/login"
+                  className="bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-700 hover:via-indigo-700 hover:to-fuchsia-700 text-white px-6 py-2.5 rounded-lg font-semibold text-sm shadow-md shadow-indigo-500/30 hover:shadow-lg hover:scale-105 transition"
+                >
+                  Start Free Trial
+                </Link>
+              </>
+            }>
+              <AuthButtons />
+            </Suspense>
           )}
         </div>
       </div>

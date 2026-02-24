@@ -13,7 +13,7 @@ export const useTimezone = () => {
 };
 
 export const TimezoneProvider = ({ children }) => {
-  const [useLocalTime, setUseLocalTime] = useState(false);
+  const [useLocalTime, setUseLocalTime] = useState(true);
   const [userTimezone, setUserTimezone] = useState('UTC');
 
   // Initialize timezone on mount
@@ -22,11 +22,9 @@ export const TimezoneProvider = ({ children }) => {
     const detectedTimezone = moment.tz.guess();
     setUserTimezone(detectedTimezone);
 
-    // Load timezone preference from localStorage
-    const savedTimezone = localStorage.getItem('useLocalTime');
-    if (savedTimezone !== null) {
-      setUseLocalTime(JSON.parse(savedTimezone));
-    }
+    // Always start with Local Time (switch OFF) on every page load/refresh
+    setUseLocalTime(true);
+    localStorage.setItem('useLocalTime', JSON.stringify(true));
   }, []);
 
   // Save timezone preference to localStorage when it changes
@@ -40,7 +38,7 @@ export const TimezoneProvider = ({ children }) => {
 
   // Helper function to format dates consistently across the app
   const formatDate = (date, format = 'ddd DD MMM hh:mm A') => {
-    if (!date) return "N/A";
+    if (!date) return "Loading...";
 
     const momentDate = moment(date);
     let formattedMoment;
@@ -50,7 +48,7 @@ export const TimezoneProvider = ({ children }) => {
       // Use local time
       formattedMoment = momentDate.tz(userTimezone);
       const cityName = userTimezone.split('/').pop().replace(/_/g, ' ');
-      locationDisplay = ` (${cityName})`;
+      locationDisplay = ` ${cityName}`;
     } else {
       // Use UTC time
       formattedMoment = momentDate.utc();

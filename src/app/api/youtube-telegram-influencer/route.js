@@ -60,7 +60,7 @@ export async function GET(request) {
     );
   } catch (error) {
     console.error('Error fetching YouTube Telegram Influencer data:', error);
-    
+
     let errorMessage = 'Failed to fetch YouTube Telegram Influencer data';
     let statusCode = 500;
 

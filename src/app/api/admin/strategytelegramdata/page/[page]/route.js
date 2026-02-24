@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export async function GET(request, { params }) {
   try {
-    const { page } = params;
+    const { page } = await params;
     const url = new URL(request.url);
     const startDate = url.searchParams.get('startDate');
     const endDate = url.searchParams.get('endDate');
@@ -11,10 +11,10 @@ export async function GET(request, { params }) {
 
     // Build the external API URL
     let externalApiUrl = `http://37.27.120.45:5901/api/admin/strategytelegramdata/page/${page}`;
-    
+
     // Add query parameters if they exist
     const queryParams = new URLSearchParams();
-    
+
     if (startDate && startDate.trim() !== '') {
       queryParams.append('startDate', startDate);
     }
@@ -66,7 +66,7 @@ export async function GET(request, { params }) {
     });
   } catch (error) {
     console.error('Error fetching strategy telegram data:', error);
-    
+
     let errorMessage = 'Failed to fetch strategy telegram data';
     let statusCode = 500;
 

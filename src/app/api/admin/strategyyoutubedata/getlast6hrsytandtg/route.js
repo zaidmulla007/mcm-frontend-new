@@ -38,7 +38,7 @@ export async function GET(request) {
     });
   } catch (error) {
     console.error('Error fetching last 6hrs YouTube Telegram data:', error);
-    
+
     let errorMessage = 'Failed to fetch last 6hrs YouTube Telegram data';
     let statusCode = 500;
 
